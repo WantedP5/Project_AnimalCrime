@@ -129,6 +129,12 @@ AACCharacter::AACCharacter()
 	{
 		JumpAction = JumpActionRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project/Input/Actions/IA_Interact.IA_Interact"));
+	if (InteractActionRef.Succeeded())
+	{
+		InteractAction = InteractActionRef.Object;
+	}
 }
 
 
@@ -160,6 +166,11 @@ void AACCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
+void AACCharacter::Interact(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Log, TEXT("Interact!!"));
+}
+
 
 void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -184,6 +195,6 @@ void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AACCharacter::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AACCharacter::Look);
-
+	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACCharacter::Interact);
 }
 

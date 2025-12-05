@@ -20,7 +20,7 @@ protected:
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
+	void Interact(const FInputActionValue& Value);
 
 protected:
 	//!< 메쉬 컴포넌트
@@ -52,7 +52,8 @@ protected:
 	TObjectPtr<class UInputAction> LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> InteractAction;
 
 
 protected:
