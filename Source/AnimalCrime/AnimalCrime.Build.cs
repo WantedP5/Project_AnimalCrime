@@ -10,8 +10,6 @@ public class AnimalCrime : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "RenderCore", "RHI" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
-
         // 모듈 경로도 Include할 때 검색하도록 설정.
         PublicIncludePaths.AddRange(new string[] {
             "AnimalCrime"
