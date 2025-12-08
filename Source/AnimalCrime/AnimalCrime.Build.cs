@@ -11,7 +11,7 @@ public class AnimalCrime : ModuleRules
         // ����
         PublicIncludePaths.AddRange(new[] { "AnimalCrime" });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "RenderCore", "RHI" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
@@ -21,7 +21,7 @@ public class AnimalCrime : ModuleRules
         });
 
         // Uncomment if you are using Slate UI
-        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "UnrealEd", "EditorSubsystem", "LevelEditor" });
 
         // Uncomment if you are using online features
         // PrivateDependencyModuleNames.Add("OnlineSubsystem");
