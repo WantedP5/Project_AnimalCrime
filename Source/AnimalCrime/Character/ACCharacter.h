@@ -22,10 +22,20 @@ protected:
 	void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
 	virtual void ItemDrop(const FInputActionValue& Value);
+	
+	virtual void Attack();
 
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
 
+public:
+	UFUNCTION(BlueprintCallable)
+	bool CheckProcessAttack() const;
+	UFUNCTION(BlueprintCallable)
+	void ChangeAttackTrue();
+	UFUNCTION(BlueprintCallable)
+	void ChangeAttackFalse();
+	
 protected:
 	//!< 메쉬 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
@@ -60,9 +70,23 @@ protected:
 	TObjectPtr<class UInputAction> InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ItemDropAction;
+	
+	/** Input Action: 기본 공격 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Input", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> MeleeAction;
+	
+	/** 몽타주: 기본 공격  */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAnimMontage> MeleeMontage;
 
-protected:
-	//!< 애니메이션
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UAnimInstance> AnimInstance;
+	/** 플레그: 공격 시도 중 여부 */
+	UPROPERTY()
+	uint8 bAttackFlag : 1 = false;
+	
+	UFUNCTION(Server, Reliable)
+	void ServerAttack();
+	void PerformAttackTrace();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayAttackMontage();
 };
