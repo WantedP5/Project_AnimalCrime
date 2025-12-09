@@ -1,18 +1,16 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Character/ACCharacter.h"
 #include "ACTestMafiaCharacter.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ANIMALCRIME_API AACTestMafiaCharacter : public AACCharacter
 {
 	GENERATED_BODY()
+
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	void Interact(const FInputActionValue& Value) override;
@@ -22,15 +20,15 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
 
-	void ServerItemDrop() override;
+	virtual void ServerItemDrop_Implementation() override;
+
+	UFUNCTION()
+	void OnRep_HandBomb();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bomb")
-	uint8 bIsInteractBomb : 1;
-
 	//!<아이템
 	UPROPERTY()
 	TObjectPtr<class AACEscapeMissionBomb> InteractBomb;
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing = OnRep_HandBomb)
 	TObjectPtr<class AACEscapeMissionBomb> HandBomb;
 };

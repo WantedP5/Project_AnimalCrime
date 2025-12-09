@@ -35,7 +35,14 @@ protected:
 public:
 	FORCEINLINE UStaticMeshComponent* GetBombMeshComp() const { return BombMeshComp; } 
 
+	void AttachToCharacter();
+	void DetachFromCharacter();
+
+	FORCEINLINE TObjectPtr<class UBoxComponent> GetRootComp() const { return RootComp; }
+
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class UBoxComponent> RootComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	TObjectPtr<class UStaticMeshComponent> BombMeshComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
