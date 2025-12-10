@@ -7,6 +7,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "ACSlotWidget.h"
+#include "Materials/MaterialInterface.h"
 
 void UACSlotWidget::NativeConstruct()
 {
@@ -39,8 +40,8 @@ void UACSlotWidget::SetItemData(UACItemData* InItemData)
         }
         else
         {
-            // PreviewImage가 없으면 기본 이미지 또는 투명 처리
-            ItemPreviewImage->SetColorAndOpacity(FLinearColor(0.2f, 0.2f, 0.2f, 1.0f)); // 회색
+            // PreviewImage가 없으면 투명 처리
+            ItemPreviewImage->SetColorAndOpacity(FLinearColor(0.2f, 0.2f, 0.2f, 0.0f));
             UE_LOG(LogTemp, Warning, TEXT("PreviewImage is missing for item: %s"), *InItemData->ItemName.ToString());
         }
     }
@@ -53,7 +54,7 @@ void UACSlotWidget::SetItemData(UACItemData* InItemData)
 
     if (ItemPriceText != nullptr)
     {
-        FText PriceText = FText::Format(FText::FromString(TEXT("{0} Gold")), InItemData->Price);
+        FText PriceText = FText::Format(FText::FromString(TEXT("{0}G")), InItemData->Price);
         ItemPriceText->SetText(PriceText);
     }
 }

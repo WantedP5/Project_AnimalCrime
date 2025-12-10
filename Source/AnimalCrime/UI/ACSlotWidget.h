@@ -52,4 +52,7 @@ protected:
     // 현재 아이템
     UPROPERTY(BlueprintReadOnly, Category = "Shop")
     TObjectPtr<class UACItemData> ItemData;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TObjectPtr<class UMaterialInterface> ItemPreviewMaterial;
 };

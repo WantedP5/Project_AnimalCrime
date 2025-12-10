@@ -8,7 +8,7 @@ public class AnimalCrime : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "RenderCore", "RHI" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "RenderCore", "RHI" });
 
         // 모듈 경로도 Include할 때 검색하도록 설정.
         PublicIncludePaths.AddRange(new string[] {

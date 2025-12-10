@@ -67,30 +67,41 @@ void AACItemPreviewCapture::InitializeRenderTarget(bool bForceRecreate)
     // 렌더 타겟이 없으면 생성
     if (RenderTarget == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Creating NEW RenderTarget"));
         RenderTarget = NewObject<UTextureRenderTarget2D>(this);
+
+        RenderTarget->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA16f;
+
         RenderTarget->InitAutoFormat(RenderTargetSize, RenderTargetSize);
-        RenderTarget->ClearColor = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f); // 투명 배경
+        RenderTarget->ClearColor = FLinearColor::Transparent; // 투명 배경
+        //RenderTarget->bForceLinearGamma = false;
         RenderTarget->UpdateResourceImmediate(true);
     }
 
     // SceneCapture에 렌더 타겟 할당
-    if (SceneCaptureComponent)
+    if (SceneCaptureComponent != nullptr)
     {
         SceneCaptureComponent->TextureTarget = RenderTarget;
+        //SceneCaptureComponent->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 
         // 렌더링 설정
         SceneCaptureComponent->ShowFlags.SetAtmosphere(false);
         SceneCaptureComponent->ShowFlags.SetFog(false);
         SceneCaptureComponent->ShowFlags.SetSkyLighting(false);
-        SceneCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+        SceneCaptureComponent->ShowFlags.SetPostProcessing(false);  
+        SceneCaptureComponent->ShowFlags.SetTemporalAA(false);      
 
-        // ShowOnlyList 설정
+        // 알파채널 지원
+        //SceneCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorHDR;
+        //SceneCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+        SceneCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+        SceneCaptureComponent->bCaptureEveryFrame = false;
+        SceneCaptureComponent->bCaptureOnMovement = false;
+
+        // ShowOnlyList 설정 - 원래대로
         SceneCaptureComponent->ShowOnlyComponents.Empty();
         SceneCaptureComponent->ShowOnlyComponents.Add(ClothingMeshComponent);
         SceneCaptureComponent->ShowOnlyComponents.Add(EquipmentMeshComponent);
-
-        UE_LOG(LogTemp, Warning, TEXT("RenderTarget initialized successfully"));
+        
     }
 }
 
@@ -138,7 +149,7 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
 
             // 메시를 원점에 배치하고 정면을 보도록 회전
             EquipmentMeshComponent->SetRelativeLocation(FVector(0, 0, 0));
-            EquipmentMeshComponent->SetRelativeRotation(FRotator(0, 180, 0));
+            EquipmentMeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
 
             UE_LOG(LogTemp, Log, TEXT("Set Equipment Mesh: %s"), *InItemData->ItemName.ToString());
         }
@@ -146,11 +157,11 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
     }
     }
 
-    // ⭐ 카메라 위치 자동 조정
+    // 카메라 위치 자동 조정
     AutoAdjustCamera();
 
     // ShowOnlyList 업데이트 및 캡처
-    if (SceneCaptureComponent)
+    if (SceneCaptureComponent != nullptr)
     {
         SceneCaptureComponent->ShowOnlyComponents.Empty();
         SceneCaptureComponent->ShowOnlyComponents.Add(ClothingMeshComponent);
@@ -193,8 +204,8 @@ void AACItemPreviewCapture::AutoAdjustCamera()
     float HalfFOVRadians = FMath::DegreesToRadians(CameraFOV * 0.5f);
     float DesiredDistance = MeshRadius / FMath::Tan(HalfFOVRadians);
 
-    // 여유 공간 추가 (1.5배)
-    DesiredDistance *= 1.5f;
+    //// 여유 공간 추가 (1.5배)
+    //DesiredDistance *= 1.0f;
 
     // 카메라 위치 조정 (X축 음수 방향으로 이동)
     FVector CameraLocation = MeshCenter + FVector(-DesiredDistance, 0, 0);

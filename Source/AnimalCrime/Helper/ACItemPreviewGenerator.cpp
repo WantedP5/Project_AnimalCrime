@@ -159,6 +159,9 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
     NewTexture->SRGB = true;
     NewTexture->CompressionSettings = TC_Default;
     NewTexture->MipGenSettings = TMGS_NoMipmaps;
+    // Alpha 채널 설정 - 배경 투명, 오브젝트 불투명
+    NewTexture->AdjustMinAlpha = 1.0f;
+    NewTexture->AdjustMaxAlpha = 0.0f;
     NewTexture->UpdateResource();
 
     // 패키지 저장
