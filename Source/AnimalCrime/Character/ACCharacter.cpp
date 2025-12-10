@@ -34,6 +34,7 @@ AACCharacter::AACCharacter()
 	MeshComp->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Body_010.SK_Body_010")));
 	MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	MeshComp->SetReceivesDecals(false);
 
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
 	if (AnimRef.Succeeded())
@@ -51,7 +52,8 @@ AACCharacter::AACCharacter()
 	HeadMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	HeadMesh->SetupAttachment(RootComponent);
 	HeadMesh->SetLeaderPoseComponent(MeshComp);
-
+	HeadMesh->SetReceivesDecals(false);
+	
 	FaceMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Face"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Male_emotion_usual_001.SK_Male_emotion_usual_001"));
 	if (FaceMeshRef.Succeeded() == true)
@@ -62,6 +64,7 @@ AACCharacter::AACCharacter()
 	FaceMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	FaceMesh->SetupAttachment(RootComponent);
 	FaceMesh->SetLeaderPoseComponent(MeshComp);
+	FaceMesh->SetReceivesDecals(false);
 
 	TopMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Top"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> TopMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Outerwear_036.SK_Outerwear_036"));
@@ -73,6 +76,7 @@ AACCharacter::AACCharacter()
 	TopMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	TopMesh->SetupAttachment(RootComponent);
 	TopMesh->SetLeaderPoseComponent(MeshComp);
+	TopMesh->SetReceivesDecals(false);
 
 	BottomMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bottom"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BottomMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Pants_014.SK_Pants_014"));
@@ -84,6 +88,7 @@ AACCharacter::AACCharacter()
 	BottomMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	BottomMesh->SetupAttachment(RootComponent);
 	BottomMesh->SetLeaderPoseComponent(MeshComp);
+	BottomMesh->SetReceivesDecals(false);
 
 	ShoesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
@@ -95,6 +100,7 @@ AACCharacter::AACCharacter()
 	ShoesMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	ShoesMesh->SetupAttachment(RootComponent);
 	ShoesMesh->SetLeaderPoseComponent(MeshComp);
+	ShoesMesh->SetReceivesDecals(false);
 
 	//카메라
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
