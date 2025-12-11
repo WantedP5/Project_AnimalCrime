@@ -249,12 +249,14 @@ void AACCharacter::ServerInteract_Implementation(AActor* Target)
 	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
 	if (Interactable == nullptr)
 	{
+		AC_LOG(LogSW, Warning, TEXT("aaaaaa1"));
 		return;
 	}
 
 	// 1. 상호작용 가능한지 체크( 현재 캐릭터 roll과 상호작용 가능한 물체인가?)
 	if (Interactable->CanInteract(this) == false)
 	{
+		AC_LOG(LogSW, Warning, TEXT("aaaaaa2"));
 		return;
 	}
 	
@@ -263,6 +265,7 @@ void AACCharacter::ServerInteract_Implementation(AActor* Target)
 	//if (Dist > 300.f) return;
 
 	// 3. 상호작용 실행
+	AC_LOG(LogSW, Warning, TEXT("aaaaaa3"));
 	Interactable->OnInteract(this);
 }
 

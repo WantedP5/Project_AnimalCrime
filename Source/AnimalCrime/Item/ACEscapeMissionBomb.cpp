@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Character/ACTestMafiaCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Component/ACInteractableComponent.h"
 #include "AnimalCrime.h"
 
 AACEscapeMissionBomb::AACEscapeMissionBomb()
@@ -38,7 +39,7 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 	//BombMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	//BombMeshComp->SetCollisionProfileName(TEXT("PhysicsActor"));
 
-	InteractBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractBoxComponent"));
+	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
 	// 네트워크 복제 설정. 서버에 이 액터가 생성되면 클라이언트로 복제됨, 삭제도 동기화
@@ -51,8 +52,8 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 void AACEscapeMissionBomb::BeginPlay()
 {
 	Super::BeginPlay();
-	InteractBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AACEscapeMissionBomb::OnInteractTriggerOverlapBegin);
-	InteractBoxComponent->OnComponentEndOverlap.AddDynamic(this, &AACEscapeMissionBomb::OnInteractTriggerOverlapEnd);
+	//InteractBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AACEscapeMissionBomb::OnInteractTriggerOverlapBegin);
+	//InteractBoxComponent->OnComponentEndOverlap.AddDynamic(this, &AACEscapeMissionBomb::OnInteractTriggerOverlapEnd);
 
 	//// 루트 컴포넌트의 로컬 바운드 가져오기
 	//FBoxSphereBounds RootBounds = BombMeshComp->Bounds;
@@ -81,29 +82,29 @@ void AACEscapeMissionBomb::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(AACEscapeMissionBomb, AttachedCharacter);
 }
 
-void AACEscapeMissionBomb::OnInteractTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	AACTestMafiaCharacter* TestMafiaChar = Cast<AACTestMafiaCharacter>(OtherActor);
-	if (TestMafiaChar == nullptr)
-	{
-		return;
-	}
-
-	AC_LOG(LogSY, Log, TEXT("InteractBox Begin"));
-	TestMafiaChar->InteractBomb = this;
-}
-
-void AACEscapeMissionBomb::OnInteractTriggerOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	AACTestMafiaCharacter* TestMafiaChar = Cast<AACTestMafiaCharacter>(OtherActor);
-	if (TestMafiaChar == nullptr)
-	{
-		return;
-	}
-
-	AC_LOG(LogSY, Log, TEXT("InteractBox End"));
-	TestMafiaChar->InteractBomb = nullptr;
-}
+//void AACEscapeMissionBomb::OnInteractTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//{
+//	AACTestMafiaCharacter* TestMafiaChar = Cast<AACTestMafiaCharacter>(OtherActor);
+//	if (TestMafiaChar == nullptr)
+//	{
+//		return;
+//	}
+//
+//	AC_LOG(LogSY, Log, TEXT("InteractBox Begin"));
+//	TestMafiaChar->InteractBomb = this;
+//}
+//
+//void AACEscapeMissionBomb::OnInteractTriggerOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+//{
+//	AACTestMafiaCharacter* TestMafiaChar = Cast<AACTestMafiaCharacter>(OtherActor);
+//	if (TestMafiaChar == nullptr)
+//	{
+//		return;
+//	}
+//
+//	AC_LOG(LogSY, Log, TEXT("InteractBox End"));
+//	TestMafiaChar->InteractBomb = nullptr;
+//}
 
 void AACEscapeMissionBomb::OnRep_AttachedCharacter()
 {
@@ -155,3 +156,46 @@ void AACEscapeMissionBomb::DetachFromCharacter()
 	AC_LOG(LogSY, Log, TEXT("Bomb Detach to Character"));
 }
 
+/**
+	@brief  폭탄은 마피아만 잡아야함.
+	@param  Interactor - 겹친 대상
+	@retval            - 상호작용 가능 여부
+**/
+bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
+{
+	if (ACPlayer == nullptr)
+	{
+		AC_LOG(LogSW, Log, TEXT("Sorry aaaaa"));
+		return false;
+	}
+	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
+	{
+		AC_LOG(LogSW, Log, TEXT("Sorry Only For MAFIA!!!!!"));
+		return false;
+	}
+
+	AC_LOG(LogSW, Log, TEXT("Bomb - Mafia Contacted!!"));
+	return true;
+}
+
+void AACEscapeMissionBomb::OnInteract(AACCharacter* Interactor)
+{
+	AACTestMafiaCharacter* ACPlayerMafia = Cast<AACTestMafiaCharacter>(Interactor);
+
+	if (ACPlayerMafia == nullptr)
+	{
+		return;
+	}
+	//if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
+	//{
+	//	return;
+	//}
+
+	AC_LOG(LogSW, Log, TEXT("Mafia Held BOMB!!"));
+
+	//ACPlayerMafia->bIsInteractBomb = true;
+	//ACPlayerMafia->InteractBomb = this;
+
+
+	AttachToCharacter();
+}

@@ -34,10 +34,15 @@ void AACTestMafiaCharacter::BeginPlay()
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
 }
 
-void AACTestMafiaCharacter::Interact(const FInputActionValue& Value)
+//void AACTestMafiaCharacter::Interact(const FInputActionValue& Value)
+//{
+//	AC_LOG(LogSY, Log, TEXT("Interact Key!!"));
+//	//ServerInteract(); //서버에 알림.
+//}
+
+EACCharacterType AACTestMafiaCharacter::GetCharacterType()
 {
-	AC_LOG(LogSY, Log, TEXT("Interact Key!!"));
-	//ServerInteract(); //서버에 알림.
+	return EACCharacterType::Mafia;
 }
 
 void AACTestMafiaCharacter::ItemDrop(const FInputActionValue& Value)
@@ -46,44 +51,44 @@ void AACTestMafiaCharacter::ItemDrop(const FInputActionValue& Value)
 	ServerItemDrop(); //서버에 알림.
 }
 
-void AACTestMafiaCharacter::ServerInteract_Implementation(AActor* Target)
-{
-	if (InteractBomb != nullptr)
-	{
-		if (HandBomb != nullptr)
-		{
-			AC_LOG(LogSY, Warning, TEXT("Already Have Bomb"));
-			return;
-		}
-
-		InteractBomb->AttachedCharacter = this;
-
-		//아이템 핸드로 이동
-		HandBomb = InteractBomb;
-
-		//캐릭터에 폭탄 부착
-		InteractBomb->AttachToCharacter();
-
-		//폭탄 설치 가능 구역 보이게 하기
-		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
-		if (GS != nullptr && GS->EscapeState == EEscapeState::DeliverBomb)
-		{
-			ClientSetBombAreaVisible(true);
-		}
-
-		AC_LOG(LogSY, Log, TEXT("Interact Bomb Success"));
-
-		return;
-	}
-	if (InteractDealer != nullptr)
-	{
-		AC_LOG(LogSY, Log, TEXT("Interact Dealer Success"));
-		InteractDealer->OnInteracted(this);
-		return;
-	}
-
-	AC_LOG(LogSY, Warning, TEXT("Not Interact Actor"));
-}
+//void AACTestMafiaCharacter::ServerInteract_Implementation(AActor* Target)
+//{
+//	if (InteractBomb != nullptr)
+//	{
+//		if (HandBomb != nullptr)
+//		{
+//			AC_LOG(LogSY, Warning, TEXT("Already Have Bomb"));
+//			return;
+//		}
+//
+//		InteractBomb->AttachedCharacter = this;
+//
+//		//아이템 핸드로 이동
+//		HandBomb = InteractBomb;
+//
+//		//캐릭터에 폭탄 부착
+//		InteractBomb->AttachToCharacter();
+//
+//		//폭탄 설치 가능 구역 보이게 하기
+//		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+//		if (GS != nullptr && GS->EscapeState == EEscapeState::DeliverBomb)
+//		{
+//			ClientSetBombAreaVisible(true);
+//		}
+//
+//		AC_LOG(LogSY, Log, TEXT("Interact Bomb Success"));
+//
+//		return;
+//	}
+//	if (InteractDealer != nullptr)
+//	{
+//		AC_LOG(LogSY, Log, TEXT("Interact Dealer Success"));
+//		InteractDealer->OnInteracted(this);
+//		return;
+//	}
+//
+//	AC_LOG(LogSY, Warning, TEXT("Not Interact Actor"));
+//}
 
 void AACTestMafiaCharacter::ServerItemDrop_Implementation()
 {
