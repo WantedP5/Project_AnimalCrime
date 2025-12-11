@@ -18,11 +18,11 @@ UENUM(BlueprintType)
 enum class EClothingSlot : uint8
 {
     FullBody,   // 전신
-    Hat,        // 모자
+    Head,       // 모자
+    FaceAcc,     // 악세사리
     Top,        // 상의
     Bottom,     // 하의
     Shoes,      // 신발
-    Accessory   // 악세사리
 };
 
 /**
@@ -46,8 +46,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EItemType ItemType;
 
+    // 의류일 경우 어느 부위인지 지정
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "ItemType == EItemType::Clothing",EditConditionHides))
+    EClothingSlot ClothingSlot;
+
     // 부착할 소켓 이름
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "ItemType == EItemType::Weapon", EditConditionHides))
     FName AttachSocketName;
 
     // 미리 렌더링된 프리뷰 이미지

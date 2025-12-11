@@ -7,7 +7,9 @@
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "ACSlotWidget.h"
-#include "Materials/MaterialInterface.h"
+#include "Character/ACCharacter.h"
+#include "Component/ACShopComponent.h"
+#include "AnimalCrime.h"
 
 void UACSlotWidget::NativeConstruct()
 {
@@ -24,7 +26,7 @@ void UACSlotWidget::SetItemData(UACItemData* InItemData)
 {
     if (InItemData == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SetItemData: ItemData is null"));
+        UE_LOG(LogHG, Warning, TEXT("SetItemData: ItemData is null"));
         return;
     }
 
@@ -42,7 +44,7 @@ void UACSlotWidget::SetItemData(UACItemData* InItemData)
         {
             // PreviewImage가 없으면 투명 처리
             ItemPreviewImage->SetColorAndOpacity(FLinearColor(0.2f, 0.2f, 0.2f, 0.0f));
-            UE_LOG(LogTemp, Warning, TEXT("PreviewImage is missing for item: %s"), *InItemData->ItemName.ToString());
+            UE_LOG(LogHG, Warning, TEXT("PreviewImage is missing for item: %s"), *InItemData->ItemName.ToString());
         }
     }
 
@@ -62,4 +64,17 @@ void UACSlotWidget::SetItemData(UACItemData* InItemData)
 
 void UACSlotWidget::OnPurchaseButtonClicked()
 {
+    if (ItemData == nullptr) return;
+
+    APlayerController* PC = GetOwningPlayer();
+    if (PC == nullptr) return;
+
+    AACCharacter* Character = Cast<AACCharacter>(PC->GetPawn());
+    if (Character == nullptr) return;
+
+    UACShopComponent* ShopComponent = Character->FindComponentByClass<UACShopComponent>();
+    if (ShopComponent == nullptr) return;
+
+    // 이 함수가 내부적으로 Server RPC 호출
+    ShopComponent->PurchaseAndEquipItem(ItemData);
 }

@@ -8,6 +8,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "AnimalCrime.h"
 
 // Sets default values
 AACItemPreviewCapture::AACItemPreviewCapture()
@@ -55,7 +56,7 @@ void AACItemPreviewCapture::BeginPlay()
 
 void AACItemPreviewCapture::InitializeRenderTarget(bool bForceRecreate)
 {
-    UE_LOG(LogTemp, Warning, TEXT("ACItemPreviewCapture InitializeRenderTarget Called! ForceRecreate: %d"),
+    UE_LOG(LogHG, Warning, TEXT("ACItemPreviewCapture InitializeRenderTarget Called! ForceRecreate: %d"),
         bForceRecreate);
 
     // 강제 재생성이면 기존 RenderTarget 제거
@@ -109,11 +110,11 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
 {
     if (InItemData == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SetItemData: ItemData is null"));
+        UE_LOG(LogHG, Warning, TEXT("SetItemData: ItemData is null"));
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("SetItemData called for: %s"), *InItemData->ItemName.ToString());
+    UE_LOG(LogHG, Warning, TEXT("SetItemData called for: %s"), *InItemData->ItemName.ToString());
 
     CurrentItemData = InItemData;
 
@@ -124,7 +125,7 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
     {
         if (InItemData->ClothingMesh)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Setting Clothing Mesh: %s"), *InItemData->ClothingMesh->GetName());
+            UE_LOG(LogHG, Warning, TEXT("Setting Clothing Mesh: %s"), *InItemData->ClothingMesh->GetName());
             ClothingMeshComponent->SetSkeletalMesh(InItemData->ClothingMesh);
             ClothingMeshComponent->SetVisibility(true);
             EquipmentMeshComponent->SetVisibility(false);
@@ -133,7 +134,7 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
             ClothingMeshComponent->SetRelativeLocation(FVector(0, 0, 0));
             ClothingMeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
 
-            UE_LOG(LogTemp, Log, TEXT("Set Clothing Mesh: %s"), *InItemData->ItemName.ToString());
+            UE_LOG(LogHG, Log, TEXT("Set Clothing Mesh: %s"), *InItemData->ItemName.ToString());
         }
         break;
     }
@@ -142,7 +143,7 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
     {
         if (InItemData->EquipmentMesh)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Setting Equipment Mesh: %s"), *InItemData->EquipmentMesh->GetName());
+            UE_LOG(LogHG, Warning, TEXT("Setting Equipment Mesh: %s"), *InItemData->EquipmentMesh->GetName());
             EquipmentMeshComponent->SetStaticMesh(InItemData->EquipmentMesh);
             EquipmentMeshComponent->SetVisibility(true);
             ClothingMeshComponent->SetVisibility(false);
@@ -151,7 +152,7 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
             EquipmentMeshComponent->SetRelativeLocation(FVector(0, 0, 0));
             EquipmentMeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
 
-            UE_LOG(LogTemp, Log, TEXT("Set Equipment Mesh: %s"), *InItemData->ItemName.ToString());
+            UE_LOG(LogHG, Log, TEXT("Set Equipment Mesh: %s"), *InItemData->ItemName.ToString());
         }
         break;
     }
@@ -167,9 +168,9 @@ void AACItemPreviewCapture::SetItemData(UACItemData* InItemData)
         SceneCaptureComponent->ShowOnlyComponents.Add(ClothingMeshComponent);
         SceneCaptureComponent->ShowOnlyComponents.Add(EquipmentMeshComponent);
 
-        UE_LOG(LogTemp, Warning, TEXT("Calling CaptureScene..."));
+        UE_LOG(LogHG, Warning, TEXT("Calling CaptureScene..."));
         SceneCaptureComponent->CaptureScene();
-        UE_LOG(LogTemp, Warning, TEXT("CaptureScene Complete!"));
+        UE_LOG(LogHG, Warning, TEXT("CaptureScene Complete!"));
     }
 }
 
@@ -192,7 +193,7 @@ void AACItemPreviewCapture::AutoAdjustCamera()
 
     if (!bHasBounds)
     {
-        UE_LOG(LogTemp, Warning, TEXT("AutoAdjustCamera: No visible mesh"));
+        UE_LOG(LogHG, Warning, TEXT("AutoAdjustCamera: No visible mesh"));
         return;
     }
 
@@ -205,7 +206,7 @@ void AACItemPreviewCapture::AutoAdjustCamera()
     float DesiredDistance = MeshRadius / FMath::Tan(HalfFOVRadians);
 
     //// 여유 공간 추가 (1.5배)
-    //DesiredDistance *= 1.0f;
+    DesiredDistance *= 1.5f;
 
     // 카메라 위치 조정 (X축 음수 방향으로 이동)
     FVector CameraLocation = MeshCenter + FVector(-DesiredDistance, 0, 0);
@@ -215,6 +216,6 @@ void AACItemPreviewCapture::AutoAdjustCamera()
     FRotator LookAtRotation = (MeshCenter - CameraLocation).Rotation();
     SceneCaptureComponent->SetWorldRotation(LookAtRotation);
 
-    UE_LOG(LogTemp, Warning, TEXT("Camera adjusted - Distance: %.2f, MeshRadius: %.2f, Center: %s"),
+    UE_LOG(LogHG, Warning, TEXT("Camera adjusted - Distance: %.2f, MeshRadius: %.2f, Center: %s"),
         DesiredDistance, MeshRadius, *MeshCenter.ToString());
 }

@@ -3,7 +3,8 @@
 
 #include "UI/ACShopWidget.h"
 #include "ACShopWidget.h"
-//#include "Components/Border.h"
+#include "AnimalCrime.h"
+#include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
 #include "Components/UniformGridPanel.h"
@@ -25,14 +26,26 @@ void UACShopWidget::NativeConstruct()
     if (WeaponButton)
         WeaponButton->OnClicked.AddDynamic(this, &UACShopWidget::OnWeaponButtonClicked);
 
-    if (ClothingButton)
-        ClothingButton->OnClicked.AddDynamic(this, &UACShopWidget::OnClothingButtonClicked);
+    if (HeadButton)
+        HeadButton->OnClicked.AddDynamic(this, &UACShopWidget::OnHeadButtonClicked);
+
+    if (FaceAccButton)
+        FaceAccButton->OnClicked.AddDynamic(this, &UACShopWidget::OnFaceAccButtonClicked);
+
+    if (TopButton)
+        TopButton->OnClicked.AddDynamic(this, &UACShopWidget::OnTopButtonClicked);
+
+    if (BottomButton)
+        BottomButton->OnClicked.AddDynamic(this, &UACShopWidget::OnBottomButtonClicked);
+
+    if (ShoesButton)
+        ShoesButton->OnClicked.AddDynamic(this, &UACShopWidget::OnShoesButtonClicked);
 
     // 보더 배열에 등록
     //Borders = { WeaponBorder, ClothingBorder};
 
-    // 초기 상태: Weapon ScrollBox만 보여주기
-    ShowBorder(EBorderType::Weapon);
+   // 초기 상태: Weapon 카테고리 보여주기
+    ShowCategory(EShopCategory::Weapon);
 
     // 아이템 로드 및 슬롯 생성 
     LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
@@ -42,7 +55,7 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
 {
     if (SlotWidgetClass == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("ACShopWidget: SlotWidgetClass is not set! Please set it in Blueprint."));
+        UE_LOG(LogHG, Error, TEXT("ACShopWidget: SlotWidgetClass is not set! Please set it in Blueprint."));
         return;
     }
 
@@ -60,12 +73,16 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
 
     AssetRegistry.GetAssets(Filter, AssetDataList);
 
-    UE_LOG(LogTemp, Warning, TEXT("Found %d ItemData assets in %s"), AssetDataList.Num(), *SearchPath);
+    UE_LOG(LogHG, Warning, TEXT("Found %d ItemData assets in %s"), AssetDataList.Num(), *SearchPath);
 
     // 3. 에셋 로드 및 타입별 분류
     AllItemData.Empty();
     WeaponItems.Empty();
-    ClothingItems.Empty();
+    HeadItems.Empty();
+    FaceAccItems.Empty();
+    TopItems.Empty();
+    BottomItems.Empty();
+    ShoesItems.Empty();
 
     for (const FAssetData& AssetData : AssetDataList)
     {
@@ -75,50 +92,79 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
             AllItemData.Add(ItemData);
 
             // 타입별 분류
-            switch (ItemData->ItemType)
+            if (ItemData->ItemType == EItemType::Weapon)
             {
-            case EItemType::Weapon:
                 WeaponItems.Add(ItemData);
-                break;
-            case EItemType::Clothing:
-                ClothingItems.Add(ItemData);
-                break;
+            }
+            else if (ItemData->ItemType == EItemType::Clothing)
+            {
+                // 의류는 슬롯별로 세부 분류
+                switch (ItemData->ClothingSlot)
+                {
+                case EClothingSlot::Head:
+                    HeadItems.Add(ItemData);
+                    break;
+                case EClothingSlot::FaceAcc:
+                    FaceAccItems.Add(ItemData);
+                    break;
+                case EClothingSlot::Top:
+                    TopItems.Add(ItemData);
+                    break;
+                case EClothingSlot::Bottom:
+                    BottomItems.Add(ItemData);
+                    break;
+                case EClothingSlot::Shoes:
+                    ShoesItems.Add(ItemData);
+                    break;
+                }
             }
         }
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("Classified - Weapons: %d, Clothing: %d"), WeaponItems.Num(),
-        ClothingItems.Num());
-
-    //  각 타입별로 슬롯 생성
-    CreateSlotsForType(EBorderType::Weapon);
-    CreateSlotsForType(EBorderType::Clothing);
+   
+    // 초기 카테고리 슬롯 생성
+    CreateSlotsForCategory(CurrentCategory);
 }
 
-void UACShopWidget::CreateSlotsForType(EBorderType Type)
+void UACShopWidget::CreateSlotsForCategory(EShopCategory Category)
 {
     if (SlotWidgetClass == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("SlotWidgetClass is not set!"));
+        UE_LOG(LogHG, Error, TEXT("SlotWidgetClass is not set!"));
         return;
     }
 
     if (ContentGridPanel == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("ContentGridPanel is null"));
+        UE_LOG(LogHG, Error, TEXT("ContentGridPanel is null"));
         return;
     }
 
-    // 타입에 따라 아이템 선택
+    // 카테고리에 따라 아이템 선택
     TArray<UACItemData*> ItemsToCreate;
-    switch (Type)
+    switch (Category)
     {
-    case EBorderType::Weapon:
+    case EShopCategory::Weapon:
         ItemsToCreate = WeaponItems;
         break;
 
-    case EBorderType::Clothing:
-        ItemsToCreate = ClothingItems;
+    case EShopCategory::Head:
+        ItemsToCreate = HeadItems;
+        break;
+
+    case EShopCategory::FaceAcc:
+        ItemsToCreate = FaceAccItems;
+        break;
+
+    case EShopCategory::Top:
+        ItemsToCreate = TopItems;
+        break;
+
+    case EShopCategory::Bottom:
+        ItemsToCreate = BottomItems;
+        break;
+
+    case EShopCategory::Shoes:
+        ItemsToCreate = ShoesItems;
         break;
     }
 
@@ -141,7 +187,7 @@ void UACShopWidget::CreateSlotsForType(EBorderType Type)
         UACSlotWidget* NewSlot = CreateWidget<UACSlotWidget>(this, SlotWidgetClass);
         if (NewSlot == nullptr)
         {
-            UE_LOG(LogTemp, Error, TEXT("Failed to create slot widget"));
+            UE_LOG(LogHG, Error, TEXT("Failed to create slot widget"));
             continue;
         }
 
@@ -154,25 +200,46 @@ void UACShopWidget::CreateSlotsForType(EBorderType Type)
         ContentGridPanel->AddChildToUniformGrid(NewSlot, Row, Column);
         ContentGridPanel->SetSlotPadding(FMargin(10.0f));
 
-        UE_LOG(LogTemp, Log, TEXT("Created slot for: %s at [%d, %d]"), *ItemData->ItemName.ToString(), Row,
+        UE_LOG(LogHG, Log, TEXT("Created slot for: %s at [%d, %d]"), *ItemData->ItemName.ToString(), Row,
             Column);
     }
 }
 
+// 버튼 클릭 이벤트들
 void UACShopWidget::OnWeaponButtonClicked()
 {
-    ShowBorder(EBorderType::Weapon);
+    ShowCategory(EShopCategory::Weapon);
 }
 
-void UACShopWidget::OnClothingButtonClicked()
+void UACShopWidget::OnHeadButtonClicked()
 {
-    ShowBorder(EBorderType::Clothing);
+    ShowCategory(EShopCategory::Head);
 }
 
-void UACShopWidget::ShowBorder(EBorderType Type)
+void UACShopWidget::OnFaceAccButtonClicked()
 {
-    CurrentBorderType = Type;
+    ShowCategory(EShopCategory::FaceAcc);
+}
 
-    // 선택된 타입에 맞는 슬롯 생성
-    CreateSlotsForType(Type);
+void UACShopWidget::OnTopButtonClicked()
+{
+    ShowCategory(EShopCategory::Top);
+}
+
+void UACShopWidget::OnBottomButtonClicked()
+{
+    ShowCategory(EShopCategory::Bottom);
+}
+
+void UACShopWidget::OnShoesButtonClicked()
+{
+    ShowCategory(EShopCategory::Shoes);
+}
+
+void UACShopWidget::ShowCategory(EShopCategory Category)
+{
+    CurrentCategory = Category;
+
+    // 선택된 카테고리에 맞는 슬롯 생성
+    CreateSlotsForCategory(Category);
 }

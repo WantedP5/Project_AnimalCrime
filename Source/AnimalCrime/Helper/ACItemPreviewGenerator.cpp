@@ -12,12 +12,13 @@
 #include "ImageUtils.h"
 #include "Editor.h"
 #include "Engine/World.h" 
+#include "AnimalCrime.h"
 
 UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemData, AACItemPreviewCapture* PreviewCapture, const FString& SavePath)
 {
     if (!ItemData || !PreviewCapture)
     {
-        UE_LOG(LogTemp, Error, TEXT("GeneratePreviewForItem: Invalid parameters"));
+        UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: Invalid parameters"));
         return nullptr;
     }
 
@@ -25,7 +26,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
     UWorld* EditorWorld = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
     if (!EditorWorld)
     {
-        UE_LOG(LogTemp, Error, TEXT("GeneratePreviewForItem: No Editor World found"));
+        UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: No Editor World found"));
         return nullptr;
     }
 
@@ -47,7 +48,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
     UTextureRenderTarget2D* RenderTarget = PreviewCapture->GetRenderTarget();
     if (!RenderTarget)
     {
-        UE_LOG(LogTemp, Error, TEXT("GeneratePreviewForItem: RenderTarget is null"));
+        UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: RenderTarget is null"));
         return nullptr;
     }
 
@@ -63,7 +64,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
         ItemData->PreviewImage = SavedTexture;
         ItemData->MarkPackageDirty();
 
-        UE_LOG(LogTemp, Log, TEXT("Successfully generated preview for: %s"), *ItemData->ItemName.ToString());
+        UE_LOG(LogHG, Log, TEXT("Successfully generated preview for: %s"), *ItemData->ItemName.ToString());
     }
 
     return SavedTexture;
@@ -73,7 +74,7 @@ int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AA
 {
     if (!PreviewCapture)
     {
-        UE_LOG(LogTemp, Error, TEXT("GenerateAllPreviews: PreviewCapture is null"));
+        UE_LOG(LogHG, Error, TEXT("GenerateAllPreviews: PreviewCapture is null"));
         return 0;
     }
 
@@ -91,7 +92,7 @@ int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AA
 
     AssetRegistry.GetAssets(Filter, AssetDataList);
 
-    UE_LOG(LogTemp, Warning, TEXT("Found %d ItemData assets in %s"), AssetDataList.Num(), *SearchPath);
+    UE_LOG(LogHG, Warning, TEXT("Found %d ItemData assets in %s"), AssetDataList.Num(), *SearchPath);
 
     int32 GeneratedCount = 0;
 
@@ -109,7 +110,7 @@ int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AA
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Generated %d preview images"), GeneratedCount);
+    UE_LOG(LogHG, Warning, TEXT("Generated %d preview images"), GeneratedCount);
     return GeneratedCount;
 }
 
@@ -124,7 +125,7 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
     FTextureRenderTargetResource* RTResource = RenderTarget->GameThread_GetRenderTargetResource();
     if (!RTResource)
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to get RenderTarget resource"));
+        UE_LOG(LogHG, Error, TEXT("Failed to get RenderTarget resource"));
         return nullptr;
     }
 
@@ -132,7 +133,7 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
     TArray<FColor> SurfaceData;
     if (!RTResource->ReadPixels(SurfaceData))
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to read pixels from RenderTarget"));
+        UE_LOG(LogHG, Error, TEXT("Failed to read pixels from RenderTarget"));
         return nullptr;
     }
 
@@ -176,14 +177,14 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
 
     if (UPackage::SavePackage(Package, NewTexture, *PackageFileName, SaveArgs))
     {
-        UE_LOG(LogTemp, Log, TEXT("Successfully saved texture: %s"), *PackageName);
+        UE_LOG(LogHG, Log, TEXT("Successfully saved texture: %s"), *PackageName);
 
         // Asset Registry에 알림
         FAssetRegistryModule::AssetCreated(NewTexture);
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to save texture: %s"), *PackageName);
+        UE_LOG(LogHG, Error, TEXT("Failed to save texture: %s"), *PackageName);
         return nullptr;
     }
 

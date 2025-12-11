@@ -35,6 +35,14 @@ public:
 	void ChangeAttackTrue();
 	UFUNCTION(BlueprintCallable)
 	void ChangeAttackFalse();
+
+public:
+	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetBottomMesh() const { return BottomMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetShoesMesh() const { return ShoesMesh; }
+	
 	
 protected:
 	//!< 메쉬 컴포넌트
@@ -48,6 +56,8 @@ protected:
 	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
 
 protected:
 	//!< 카메라
@@ -89,4 +99,9 @@ protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
+
+protected:
+	// 상점 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
+	TObjectPtr<class UACShopComponent> ShopComponent;
 };

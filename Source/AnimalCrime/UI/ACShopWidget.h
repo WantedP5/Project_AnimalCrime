@@ -4,14 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "ACCustomWidget.h"
-#include "Components/Border.h"
 #include "ACShopWidget.generated.h"
 
 UENUM()
-enum class EBorderType
+enum class EShopCategory
 {
 	Weapon = 0,
-	Clothing,
+	Head,
+	FaceAcc,
+	Top,
+	Bottom,
+	Shoes,
 	End
 };
 
@@ -38,11 +41,11 @@ public:
 	void LoadAndCreateSlots(const FString& SearchPath = TEXT("/Game/Project/Item/"));
 
 	/**
-		@brief 특정 타입의 아이템만 슬롯 생성
-		@param ItemType - 생성할 아이템 타입
+		@brief 특정 카테고리의 아이템만 슬롯 생성
+		@param Category - 생성할 카테고리
 	**/
 	UFUNCTION(BlueprintCallable, Category = "Shop")
-	void CreateSlotsForType(EBorderType Type);
+	void CreateSlotsForCategory(EShopCategory Category);
 
 private:
 
@@ -50,9 +53,21 @@ private:
 	void OnWeaponButtonClicked();
 
 	UFUNCTION()
-	void OnClothingButtonClicked();
+	void OnHeadButtonClicked();
 
-	void ShowBorder(EBorderType Type);
+	UFUNCTION()
+	void OnFaceAccButtonClicked();
+
+	UFUNCTION()
+	void OnTopButtonClicked();
+
+	UFUNCTION()
+	void OnBottomButtonClicked();
+
+	UFUNCTION()
+	void OnShoesButtonClicked();
+
+	void ShowCategory(EShopCategory Type);
 
 protected:
 
@@ -62,26 +77,19 @@ protected:
 	TObjectPtr<class UButton> WeaponButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButton> ClothingButton;
-
-	/*UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UBorder> WeaponBorder;
+	TObjectPtr<class UButton> HeadButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UBorder> ClothingBorder;*/
-
-
-	/*UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UScrollBox> WeaponScrollBox;
+	TObjectPtr<class UButton> FaceAccButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UScrollBox> ClothingScrollBox;*/
-
-	/*UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UUniformGridPanel> WeaponGridPanel;
+	TObjectPtr<class UButton> TopButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UUniformGridPanel> ClothingGridPanel;*/
+	TObjectPtr<class UButton> BottomButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> ShoesButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UBorder> ContentBorder;
@@ -114,11 +122,23 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Shop")
 	TArray<TObjectPtr<class UACItemData>> WeaponItems;
 
-	// 의류 아이템만
+	// 의류 슬롯별로 분류
 	UPROPERTY(BlueprintReadOnly, Category = "Shop")
-	TArray<TObjectPtr<class UACItemData>> ClothingItems;
+	TArray<TObjectPtr<class UACItemData>> HeadItems;
 
-	// 현재 선택된 타입
+	UPROPERTY(BlueprintReadOnly, Category = "Shop")
+	TArray<TObjectPtr<class UACItemData>> FaceAccItems;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Shop")
+	TArray<TObjectPtr<class UACItemData>> TopItems;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Shop")
+	TArray<TObjectPtr<class UACItemData>> BottomItems;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Shop")
+	TArray<TObjectPtr<class UACItemData>> ShoesItems;
+
+	// 현재 선택된 카테고리
 	UPROPERTY()
-	EBorderType CurrentBorderType;
+	EShopCategory CurrentCategory;
 };

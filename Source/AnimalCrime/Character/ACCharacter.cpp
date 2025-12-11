@@ -12,6 +12,9 @@
 #include "Item/ACEscapeMissionBomb.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Component/ACShopComponent.h"
+#include "AnimalCrime.h"
+
 AACCharacter::AACCharacter()
 {
 	bUseControllerRotationYaw = false;
@@ -102,6 +105,18 @@ AACCharacter::AACCharacter()
 	ShoesMesh->SetLeaderPoseComponent(MeshComp);
 	ShoesMesh->SetReceivesDecals(false);
 
+	FaceAccMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
+	if (FaceAccMeshRef.Succeeded() == true)
+	{
+		FaceAccMesh->SetSkeletalMesh(FaceAccMeshRef.Object);
+	}
+	FaceAccMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	FaceAccMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	FaceAccMesh->SetupAttachment(RootComponent);
+	FaceAccMesh->SetLeaderPoseComponent(MeshComp);
+	FaceAccMesh->SetReceivesDecals(false);
+
 	//카메라
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -163,6 +178,8 @@ AACCharacter::AACCharacter()
 		MeleeMontage = MeleeMontageRef.Object;
 	}
 	
+	// ShopComponent 생성
+	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
 }
