@@ -3,16 +3,22 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
 UCLASS()
-class ANIMALCRIME_API AACCharacter : public ACharacter
+class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
 	GENERATED_BODY()
 
 public:
 	AACCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+ /**
+     @brief  캐릭터 정보를 반환하는 함수. 캐릭터 베이스는 시민.
+     @retval  - 캐릭터 정보 Enum
+ **/
+	virtual EACCharacterType GetCharacterType();
 
 protected:
 	virtual void BeginPlay() override;
@@ -20,15 +26,19 @@ protected:
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	virtual void Interact(const FInputActionValue& Value);
+	virtual void Interact(const FInputActionValue& Value); 
 	virtual void ItemDrop(const FInputActionValue& Value);
 	
 	virtual void Attack();
 
 	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor* Target);
+
+	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
 
 public:
+
 	UFUNCTION(BlueprintCallable)
 	bool CheckProcessAttack() const;
 	UFUNCTION(BlueprintCallable)
@@ -89,4 +99,21 @@ protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
+
+
+	
+public:
+	void AddInteractable(AActor* Interactor);
+	void RemoveInteractable(AActor* Interactor);
+protected:
+	virtual bool CanInteract(AACCharacter* Interactor) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
+	virtual void OnInteract(AACCharacter* Interactor) override;		// 실제 상호작용 로직(서버에서 실행) |
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
+private:
+	AActor* GetClosestInteractable();
+private:
+	TSet<AActor*> NearInteractables;
+
 };

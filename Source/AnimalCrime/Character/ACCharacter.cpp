@@ -12,6 +12,10 @@
 #include "Item/ACEscapeMissionBomb.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Component/ACInteractableComponent.h"
+
+#include "AnimalCrime.h"
+
 AACCharacter::AACCharacter()
 {
 	bUseControllerRotationYaw = false;
@@ -36,7 +40,7 @@ AACCharacter::AACCharacter()
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	MeshComp->SetReceivesDecals(false);
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayerHena.ABP_ACPlayerHena_C'"));
 	if (AnimRef.Succeeded())
 	{
 		MeshComp->SetAnimInstanceClass(AnimRef.Class);
@@ -112,6 +116,9 @@ AACCharacter::AACCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
+	InteractBoxComponent->SetupAttachment(RootComponent);
 
 	//입력
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
@@ -196,9 +203,20 @@ void AACCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
+/**
+    @brief 상호작용 키(E) 키 입력시, 구현 코드
+    @param Value - 
+**/
 void AACCharacter::Interact(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Interact!!"));
+	AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
+
+	AActor* Target = GetClosestInteractable();
+	if (Target != nullptr)
+	{
+		AC_LOG(LogSW, Log, TEXT("%s Selected!"), *Target->GetName());
+		ServerInteract(Target);  // 서버에 요청
+	}
 }
 
 void AACCharacter::ItemDrop(const FInputActionValue& Value)
@@ -224,6 +242,28 @@ void AACCharacter::Attack()
 	{
 		ServerAttack();
 	}
+}
+
+void AACCharacter::ServerInteract_Implementation(AActor* Target)
+{
+	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+	if (Interactable == nullptr)
+	{
+		return;
+	}
+
+	// 1. 상호작용 가능한지 체크( 현재 캐릭터 roll과 상호작용 가능한 물체인가?)
+	if (Interactable->CanInteract(this) == false)
+	{
+		return;
+	}
+	
+	// todo: 2. 거리 체크 (치트 방지)	???
+	//float Dist = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
+	//if (Dist > 300.f) return;
+
+	// 3. 상호작용 실행
+	Interactable->OnInteract(this);
 }
 
 bool AACCharacter::CheckProcessAttack() const
@@ -288,6 +328,55 @@ void AACCharacter::PerformAttackTrace()
 	//AnimInstance->Montage_Play(MeleeMontage);
 }
 
+bool AACCharacter::CanInteract(AACCharacter* Interactor)
+{
+	// 시민과 시민은 상호작용 가능하다?
+	return true;
+}
+
+void AACCharacter::OnInteract(AACCharacter* Interactor)
+{
+	AC_LOG(LogSW, Log, TEXT("Interacted with Character!"));
+}
+
+
+void AACCharacter::AddInteractable(AActor* Interactor)
+{
+	ensureAlways(Interactor);
+	NearInteractables.Add(Interactor);
+}
+
+void AACCharacter::RemoveInteractable(AActor* Interactor)
+{
+	ensureAlways(Interactor);
+	NearInteractables.Remove(Interactor);
+}
+
+AActor* AACCharacter::GetClosestInteractable()
+{
+	if (NearInteractables.Num() == 0)
+	{
+		AC_LOG(LogSW, Log, TEXT("No Close Interactables!!"));
+		return nullptr;
+	}
+
+	AActor* ClosestActor = nullptr;
+	float MinDistance = MAX_FLT;
+
+	for (AActor* InteractedActor : NearInteractables)
+	{
+		float Dist = FVector::Dist(GetActorLocation(), InteractedActor->GetActorLocation());
+		if (Dist < MinDistance)
+		{
+			MinDistance = Dist;
+			ClosestActor = InteractedActor;
+		}
+	}
+
+	ensure(ClosestActor != nullptr);
+	return ClosestActor;
+}
+
 void AACCharacter::MulticastPlayAttackMontage_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("Multicast"));
@@ -334,4 +423,10 @@ void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACCharacter::Interact);
 	EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Triggered, this, &AACCharacter::ItemDrop);
 	EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AACCharacter::Attack);
+}
+
+
+EACCharacterType AACCharacter::GetCharacterType()
+{
+	return EACCharacterType::Citizen;
 }

@@ -2,6 +2,7 @@
 
 
 #include "Character/ACTestPoliceCharacter.h"
+#include "AnimalCrime.h"
 
 AACTestPoliceCharacter::AACTestPoliceCharacter()
 {
@@ -15,4 +16,20 @@ AACTestPoliceCharacter::AACTestPoliceCharacter()
 		WeaponMesh->SetSkeletalMesh(WeaponMeshRef.Object);
 	}
 	WeaponMesh->SetupAttachment(GetMesh(), TEXT("RightHandSocket"));
+}
+
+EACCharacterType AACTestPoliceCharacter::GetCharacterType()
+{
+	return EACCharacterType::Police;
+}
+
+bool AACTestPoliceCharacter::CanInteract(AACCharacter* Interactor)
+{
+	// 경찰끼리도 소통 가능?
+	return true;
+}
+
+void AACTestPoliceCharacter::OnInteract(AACCharacter* Interactor)
+{
+	AC_LOG(LogSW, Log, TEXT("Interacted with Police!"));
 }

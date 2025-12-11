@@ -1,0 +1,60 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#include "Component/ACInteractableComponent.h"
+#include "Character/ACCharacter.h"
+#include "AnimalCrime.h"
+
+void UACInteractableComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OnComponentBeginOverlap.AddDynamic(this, &UACInteractableComponent::OnInteractOverlapBegin);
+	OnComponentEndOverlap.AddDynamic(this, &UACInteractableComponent::OnInteractOverlapEnd);
+
+	// 부모의 회전을 무시하고 월드 기준 회전 유지
+	SetAbsolute(false, true, false);
+
+	// 루트 컴포넌트의 로컬 바운드 가져오기
+	FBoxSphereBounds RootBounds = Bounds;
+
+	// BoxExtent 설정 (약간 여유 포함)
+	FVector Margin(300.f, 300.f, 300.f); // 필요에 따라 조정
+	SetBoxExtent(RootBounds.BoxExtent + Margin);
+
+	// 박스 위치 루트에 맞추기
+	SetRelativeLocation(FVector::ZeroVector);
+	SetCollisionProfileName(TEXT("InteractableCollision"));
+
+}
+
+void UACInteractableComponent::OnInteractOverlapBegin(
+	UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AACCharacter* ACPlayer = Cast<AACCharacter>(OtherActor);
+	if (ACPlayer == GetOwner())
+	{
+		UE_LOG(LogSW, Log, TEXT("SELF OverlapBegin"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogSW, Log, TEXT("%s OverlapBegin"),*OtherActor->GetName());
+	}
+
+	if (ACPlayer != nullptr && ACPlayer != GetOwner())
+	{
+		ACPlayer->AddInteractable(GetOwner());
+	}
+}
+
+void UACInteractableComponent::OnInteractOverlapEnd(
+	UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AACCharacter* ACPlayer = Cast<AACCharacter>(OtherActor);
+	UE_LOG(LogSW, Log, TEXT("OverlapEnd???"));
+	if (ACPlayer != nullptr)
+	{
+		UE_LOG(LogSW, Log, TEXT("%s OverlapEnd"), *OtherActor->GetName());
+		ACPlayer->RemoveInteractable(GetOwner());
+	}
+}

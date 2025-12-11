@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -13,5 +13,10 @@ UCLASS()
 class ANIMALCRIME_API AACMainPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	AACMainPlayerController();
+
+protected:
+	virtual void BeginPlay() override;
 };
