@@ -3,15 +3,15 @@
 #include "ACTestMafiaCharacter.h"
 #include "Components/BoxComponent.h"
 #include "EscapeQuest/ACBlackMarketComponent.h"
-
+#include "Component/ACInteractableComponent.h"
 #include "AnimalCrime.h"
 
 AACTestBlackMarketDealer::AACTestBlackMarketDealer()
 {
 	HeadMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hairstyle_male_010.SK_Hairstyle_male_010")));
 
-	InteractBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractBoxComponent"));
-	InteractBoxComponent->SetupAttachment(RootComponent);
+	//InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
+	//InteractBoxComponent->SetupAttachment(RootComponent);
 
 	BlackMarketComponent = CreateDefaultSubobject<UACBlackMarketComponent>(TEXT("BlackMarketComponent"));
 

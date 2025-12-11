@@ -28,8 +28,10 @@ protected:
 
 	void ItemDrop(const FInputActionValue& Value) override;
 
-	UFUNCTION(Server, Reliable)
-	void ServerInteract();
+	//UFUNCTION(Server, Reliable)
+	//void ServerInteract();
+
+	virtual void ServerInteract_Implementation(AActor* Target) override;
 
 	virtual void ServerItemDrop_Implementation() override;
 

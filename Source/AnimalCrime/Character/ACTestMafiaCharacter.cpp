@@ -37,7 +37,7 @@ void AACTestMafiaCharacter::BeginPlay()
 void AACTestMafiaCharacter::Interact(const FInputActionValue& Value)
 {
 	AC_LOG(LogSY, Log, TEXT("Interact Key!!"));
-	ServerInteract(); //서버에 알림.
+	//ServerInteract(); //서버에 알림.
 }
 
 void AACTestMafiaCharacter::ItemDrop(const FInputActionValue& Value)
@@ -46,7 +46,7 @@ void AACTestMafiaCharacter::ItemDrop(const FInputActionValue& Value)
 	ServerItemDrop(); //서버에 알림.
 }
 
-void AACTestMafiaCharacter::ServerInteract_Implementation()
+void AACTestMafiaCharacter::ServerInteract_Implementation(AActor* Target)
 {
 	if (InteractBomb != nullptr)
 	{

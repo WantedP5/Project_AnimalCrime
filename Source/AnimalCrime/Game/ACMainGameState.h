@@ -19,8 +19,8 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
-	UFUNCTION(Server, Reliable)
-	void ChangeEscapeState(EEscapeState NewEscapeState);
+	//UFUNCTION(Server, Reliable)
+	//void ChangeEscapeState(EEscapeState NewEscapeState);
 
 public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
