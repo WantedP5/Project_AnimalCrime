@@ -1,6 +1,8 @@
 ﻿#include "EscapeQuest/ACBlackMarketComponent.h"
 #include "Item/ACEscapeMissionBomb.h"
 #include "Character/ACTestMafiaCharacter.h"
+#include "Game/ACMainGameState.h"
+
 #include "AnimalCrime.h"
 
 UACBlackMarketComponent::UACBlackMarketComponent()
@@ -11,7 +13,7 @@ UACBlackMarketComponent::UACBlackMarketComponent()
 void UACBlackMarketComponent::OpenBlackMarket(AACCharacter* InteractingPlayer)
 {
 	AC_SUBLOG(LogSY, Log, TEXT("BlackMarket Opened"));
-	if(InteractingPlayer == nullptr)
+	if (InteractingPlayer == nullptr)
 	{
 		AC_SUBLOG(LogSY, Warning, TEXT("InteractingPlayer is nullptr"));
 		return;
@@ -24,9 +26,21 @@ void UACBlackMarketComponent::OpenBlackMarket(AACCharacter* InteractingPlayer)
 	}
 
 	// 서버에서만 실행되도록 보호
-	if (!GetOwner() || !GetOwner()->HasAuthority())
+	if (GetOwner() == nullptr || GetOwner()->HasAuthority() == false)
 	{
 		AC_SUBLOG(LogSY, Warning, TEXT("OpenBlackMarket called on non-server"));
+		return;
+	}
+
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		AC_SUBLOG(LogSY, Warning, TEXT("GameState is nullptr"));
+		return;
+	}
+	if (GS->EscapeState != EEscapeState::DeliverBomb)
+	{
+		AC_SUBLOG(LogSY, Log, TEXT("EscapeState is not DeliverBomb"));
 		return;
 	}
 
@@ -34,6 +48,7 @@ void UACBlackMarketComponent::OpenBlackMarket(AACCharacter* InteractingPlayer)
 	{
 		AC_SUBLOG(LogSY, Log, TEXT("Already Hand has Bomb"));
 	}
+
 	else
 	{
 		AC_SUBLOG(LogSY, Log, TEXT("Get Bomb!!"));
@@ -65,7 +80,7 @@ void UACBlackMarketComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+
 }
 
 

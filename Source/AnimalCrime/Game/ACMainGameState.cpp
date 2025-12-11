@@ -5,10 +5,12 @@
 
 #include "Net/UnrealNetwork.h"
 
+#include "Character/ACTestMafiaCharacter.h"
 
 void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AACMainGameState, TeamScore);
+	DOREPLIFETIME(AACMainGameState, EscapeState);
 }

@@ -5,18 +5,32 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Item/ACEscapeMissionBomb.h"
 
+#include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
 
-void ACBombInstallArea::BeginPlay()
+void AACBombInstallArea::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ACBombInstallArea::OnBombTriggerOverlapBegin);
+	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AACBombInstallArea::OnBombTriggerOverlapBegin);
+
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		AC_LOG(LogSY, Log, TEXT("GS is nullptr"));
+		return;
+	}
+
+	AC_LOG(LogSY, Log, TEXT("BombAreas add"));
+	GS->BombAreas.Add(this); // 클라만 저장
 }
 
-void ACBombInstallArea::OnBombTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AACBombInstallArea::OnBombTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
+	if (HasAuthority() == false) //서버만 처리
+	{
+		return;
+	}
 	AACEscapeMissionBomb* OverlappedBomb = Cast<AACEscapeMissionBomb>(OtherActor);
 	if (OverlappedBomb == nullptr)
 	{
@@ -33,18 +47,37 @@ void ACBombInstallArea::OnBombTriggerOverlapBegin(UPrimitiveComponent* Overlappe
 
 	AC_LOG(LogSY, Log, TEXT("Bomb entered install area"));
 
-	//2초 후에 폭탄 삭제
+	//1초 후에 폭탄 삭제
 	FTimerHandle BombDestroyHandle;
+
 	GetWorld()->GetTimerManager().SetTimer(
 		BombDestroyHandle,
-		FTimerDelegate::CreateLambda([OverlappedBomb]()
-			{
-				if (IsValid(OverlappedBomb))
-				{
-					OverlappedBomb->Destroy();
-				}
-			}),
-		1.0f, false
+		FTimerDelegate::CreateUObject(
+			this,
+			&AACBombInstallArea::OnBombDestroyComplete,
+			OverlappedBomb
+		),
+		1.0f,
+		false
 	);
+}
 
+void AACBombInstallArea::OnBombDestroyComplete(AACEscapeMissionBomb* Bomb)
+{
+	if (HasAuthority() == false)
+	{
+		return;
+	}
+
+	if (IsValid(Bomb))
+	{
+		Bomb->Destroy();
+	}
+
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS)
+	{
+		GS->EscapeState = EEscapeState::Escape;
+		AC_LOG(LogSY, Log, TEXT("EscapeState is Escape!"));
+	}
 }

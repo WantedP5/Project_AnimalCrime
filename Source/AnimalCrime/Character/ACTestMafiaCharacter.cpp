@@ -7,115 +7,142 @@
 #include "EscapeQuest/ACBombInstallArea.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
 
 void AACTestMafiaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);  
-    DOREPLIFETIME(AACTestMafiaCharacter, HandBomb);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AACTestMafiaCharacter, HandBomb);
+}
+
+void AACTestMafiaCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 서버만 GameState에 등록
+	if (HasAuthority() == false) 
+	{
+		return;
+	}
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		return;
+	}
+	GS->MafiaPlayers.Add(this);
+	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
 }
 
 void AACTestMafiaCharacter::Interact(const FInputActionValue& Value)
 {
-    AC_LOG(LogSY, Log, TEXT("Interact Key!!"));
+	AC_LOG(LogSY, Log, TEXT("Interact Key!!"));
 	ServerInteract(); //서버에 알림.
 }
 
 void AACTestMafiaCharacter::ItemDrop(const FInputActionValue& Value)
 {
-    AC_LOG(LogSY, Log, TEXT("ItemDrop Key!!"));
+	AC_LOG(LogSY, Log, TEXT("ItemDrop Key!!"));
 	ServerItemDrop(); //서버에 알림.
 }
 
 void AACTestMafiaCharacter::ServerInteract_Implementation()
 {
-    if (InteractBomb != nullptr)
-    {
-        if (HandBomb != nullptr)
-        {
-            AC_LOG(LogSY, Warning, TEXT("Already Have Bomb"));
-            return;
-        }
+	if (InteractBomb != nullptr)
+	{
+		if (HandBomb != nullptr)
+		{
+			AC_LOG(LogSY, Warning, TEXT("Already Have Bomb"));
+			return;
+		}
 
-        InteractBomb->AttachedCharacter = this;
+		InteractBomb->AttachedCharacter = this;
 
-        //아이템 핸드로 이동
-        HandBomb = InteractBomb;
+		//아이템 핸드로 이동
+		HandBomb = InteractBomb;
 
-        //캐릭터에 폭탄 부착
-        InteractBomb->AttachToCharacter();
+		//캐릭터에 폭탄 부착
+		InteractBomb->AttachToCharacter();
 
-        //폭탄 설치 가능 구역 보이게 하기
-        ClientSetBombAreaVisible(true);
-        AC_LOG(LogSY, Log, TEXT("Interact Bomb Success"));
+		//폭탄 설치 가능 구역 보이게 하기
+		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+		if (GS != nullptr && GS->EscapeState == EEscapeState::DeliverBomb)
+		{
+			ClientSetBombAreaVisible(true);
+		}
 
-        return;
-    }
-    if(InteractDealer != nullptr)
-    {
-        AC_LOG(LogSY, Log, TEXT("Interact Dealer Success"));
-        InteractDealer->OnInteracted(this);
-        return;
+		AC_LOG(LogSY, Log, TEXT("Interact Bomb Success"));
+
+		return;
+	}
+	if (InteractDealer != nullptr)
+	{
+		AC_LOG(LogSY, Log, TEXT("Interact Dealer Success"));
+		InteractDealer->OnInteracted(this);
+		return;
 	}
 
-    AC_LOG(LogSY, Warning, TEXT("Not Interact Actor"));
+	AC_LOG(LogSY, Warning, TEXT("Not Interact Actor"));
 }
 
 void AACTestMafiaCharacter::ServerItemDrop_Implementation()
 {
-    if (HandBomb != nullptr)
-    {
-        //참조 해제
-        HandBomb->AttachedCharacter = nullptr;
+	if (HandBomb != nullptr)
+	{
+		//참조 해제
+		HandBomb->AttachedCharacter = nullptr;
 
 		//캐릭터에서 폭탄 분리
 		HandBomb->DetachFromCharacter();
 
-        // Impulse 적용은 서버가 직접 해야 하므로 여기서 처리
-        //UStaticMeshComponent* MeshComp = HandBomb->GetBombMeshComp();
-        //if (MeshComp)
-        //{
-        //    FVector ThrowDir = GetActorForwardVector() + FVector(0, 0, 0.3f);
-        //    MeshComp->AddImpulse(ThrowDir * 300.f, NAME_None, true);
-        //}
+		// Impulse 적용은 서버가 직접 해야 하므로 여기서 처리
+		//UStaticMeshComponent* MeshComp = HandBomb->GetBombMeshComp();
+		//if (MeshComp)
+		//{
+		//    FVector ThrowDir = GetActorForwardVector() + FVector(0, 0, 0.3f);
+		//    MeshComp->AddImpulse(ThrowDir * 300.f, NAME_None, true);
+		//}
 
-        HandBomb = nullptr;
+		HandBomb = nullptr;
 
-        //폭탄 설치 가능 구역 숨기기
-        ClientSetBombAreaVisible(false);
-        AC_LOG(LogSY, Log, TEXT("Bomb dropped"));
-    }
-    else
-    {
+		//폭탄 설치 가능 구역 숨기기
+		
+		ClientSetBombAreaVisible(false);
+		AC_LOG(LogSY, Log, TEXT("Bomb dropped"));
+	}
+	else
+	{
 		AC_LOG(LogSY, Warning, TEXT("No bomb to drop"));
-    }
+	}
 }
 
 void AACTestMafiaCharacter::ClientSetBombAreaVisible_Implementation(bool bVisible)
 {
-    AC_LOG(LogSY, Log, TEXT("ClientSetBombAreaVisible1"));
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		return;
+	}
+	AC_LOG(LogSY, Log, TEXT("%d"), GS->BombAreas.Num());
+	for (AACBombInstallArea* Area : GS->BombAreas) 
+	{
+		if (Area) 
+		{
+			Area->SetActorHiddenInGame(!bVisible);
 
-    TArray<AActor*> Areas;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACBombInstallArea::StaticClass(), Areas);
-
-    AC_LOG(LogSY, Log, TEXT("%d"), Areas.Num());
-    for (AActor* Area : Areas)
-    {
-        AC_LOG(LogSY, Log, TEXT("ClientSetBombAreaVisible2"));
-        Area->SetActorHiddenInGame(!bVisible);
-    }
-
-    AC_LOG(LogSY, Log, TEXT("ClientSetBombAreaVisible3"));
+			AC_LOG(LogSY, Log, TEXT("ClientSetBombAreaVisible"));
+		}
+	}
 }
 
 void AACTestMafiaCharacter::OnRep_HandBomb()
 {
-    if (HandBomb)
-    {
-        AC_LOG(LogSY, Log, TEXT("OnRep_HandBomb: Now holding bomb"));
-    }
-    else
-    {
-        AC_LOG(LogSY, Log, TEXT("OnRep_HandBomb: No longer holding bomb"));
-    }
+	if (HandBomb)
+	{
+		AC_LOG(LogSY, Log, TEXT("OnRep_HandBomb: Now holding bomb"));
+	}
+	else
+	{
+		AC_LOG(LogSY, Log, TEXT("OnRep_HandBomb: No longer holding bomb"));
+	}
 }

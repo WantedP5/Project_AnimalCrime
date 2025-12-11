@@ -12,6 +12,9 @@ class ANIMALCRIME_API AACTestMafiaCharacter : public AACCharacter
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 /**
 	@brief 클라이언트에서 폭탄 설치 가능 영역 표시 여부를 갱신함.
