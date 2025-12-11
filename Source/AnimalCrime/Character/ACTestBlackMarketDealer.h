@@ -24,8 +24,8 @@ public:
 	void OnInteracted(class AACCharacter* InteractingPlayer);
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
-	TObjectPtr<class UBoxComponent> InteractBoxComponent;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	//TObjectPtr<class UBoxComponent> InteractBoxComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BlackMarket")
 	TObjectPtr<class UACBlackMarketComponent> BlackMarketComponent;

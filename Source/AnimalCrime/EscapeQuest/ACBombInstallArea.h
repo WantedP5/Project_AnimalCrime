@@ -6,7 +6,7 @@
 #include "ACBombInstallArea.generated.h"
 
 UCLASS()
-class ANIMALCRIME_API ACBombInstallArea : public AACArea
+class ANIMALCRIME_API AACBombInstallArea : public AACArea
 {
 	GENERATED_BODY()
 
@@ -16,4 +16,6 @@ protected:
 	UFUNCTION()
 	void OnBombTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnBombDestroyComplete(AACEscapeMissionBomb* Bomb);
 };
