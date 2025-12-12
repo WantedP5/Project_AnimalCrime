@@ -59,8 +59,9 @@ void AACEscapeMissionBomb::BeginPlay()
 	FBoxSphereBounds RootBounds = RootComponent->CalcBounds(RootComponent->GetComponentTransform());
 
 	// BoxExtent 설정 (약간 여유 포함)
-	FVector Margin(50.f, 50.f, 50.f);
-	InteractBoxComponent->SetBoxExtent(RootBounds.BoxExtent + Margin);
+	//FVector Margin(50.f, 50.f, 50.f);
+	InteractBoxComponent->SetMargin(FVector(50.f));
+	//InteractBoxComponent->SetBoxExtent(RootBounds.BoxExtent + Margin);
 
 	// 박스 위치 루트에 맞추기
 	InteractBoxComponent->SetRelativeLocation(FVector::ZeroVector);

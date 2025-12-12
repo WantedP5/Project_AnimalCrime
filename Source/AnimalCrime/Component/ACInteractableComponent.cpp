@@ -4,6 +4,17 @@
 #include "Character/ACCharacter.h"
 #include "AnimalCrime.h"
 
+UACInteractableComponent::UACInteractableComponent()
+{
+	// 박스 위치 루트에 맞추기
+	SetRelativeLocation(FVector::ZeroVector);
+	SetCollisionProfileName(TEXT("InteractableCollision"));
+
+	// 부모의 회전을 무시하고 월드 기준 회전 유지
+	SetAbsolute(false, true, false);
+	BoxMargin = FVector(50.f);
+}
+
 void UACInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -11,19 +22,16 @@ void UACInteractableComponent::BeginPlay()
 	OnComponentBeginOverlap.AddDynamic(this, &UACInteractableComponent::OnInteractOverlapBegin);
 	OnComponentEndOverlap.AddDynamic(this, &UACInteractableComponent::OnInteractOverlapEnd);
 
-	// 부모의 회전을 무시하고 월드 기준 회전 유지
-	SetAbsolute(false, true, false);
+	if (GetOwner() == nullptr)
+	{
+		return;
+	}
 
 	// 루트 컴포넌트의 로컬 바운드 가져오기
-	FBoxSphereBounds RootBounds = Bounds;
+	FBoxSphereBounds RootBounds = GetOwner()->GetRootComponent()->Bounds;
 
 	// BoxExtent 설정 (약간 여유 포함)
-	FVector Margin(300.f, 300.f, 300.f); // 필요에 따라 조정
-	SetBoxExtent(RootBounds.BoxExtent + Margin);
-
-	// 박스 위치 루트에 맞추기
-	SetRelativeLocation(FVector::ZeroVector);
-	SetCollisionProfileName(TEXT("InteractableCollision"));
+	SetBoxExtent(RootBounds.BoxExtent + BoxMargin);
 
 }
 
@@ -57,4 +65,9 @@ void UACInteractableComponent::OnInteractOverlapEnd(
 		UE_LOG(LogSW, Log, TEXT("%s OverlapEnd"), *OtherActor->GetName());
 		ACPlayer->RemoveInteractable(GetOwner());
 	}
+}
+
+void UACInteractableComponent::SetMargin(FVector InMargin)
+{
+	BoxMargin = InMargin;
 }

@@ -32,7 +32,7 @@ protected:
 	virtual void Attack();
 
 	UFUNCTION(Server, Reliable)
-	void ServerInteract(AActor* Target);
+	void ServerInteract();
 
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
@@ -107,6 +107,9 @@ protected:
 	void ServerAttack();
 	void PerformAttackTrace();
 	
+public:
+	void AttackHitCheck();
+	
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
 
@@ -122,9 +125,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 private:
-	AActor* GetClosestInteractable();
+	void SortNearInteractables();
 private:
-	TSet<AActor*> NearInteractables;
+	TArray<AActor*> NearInteractables;
 
 
 protected:

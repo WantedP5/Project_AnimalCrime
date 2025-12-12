@@ -1,0 +1,1 @@
+"C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\Win64\UnrealEditor.exe" "C:\Workspace\UnrealProject\Project\Project_AnimalCrime\AnimalCrime.uproject" "TestMap" -game -ResX=1280 -ResY=720 -log -windowed
