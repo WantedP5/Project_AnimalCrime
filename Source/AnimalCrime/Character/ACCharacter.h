@@ -107,6 +107,9 @@ protected:
 	void ServerAttack();
 	void PerformAttackTrace();
 	
+public:
+	void AttackHitCheck();
+	
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
 

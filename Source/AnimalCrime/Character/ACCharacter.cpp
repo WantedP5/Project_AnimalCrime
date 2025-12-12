@@ -1,5 +1,7 @@
 ﻿
 #include "ACCharacter.h"
+
+#include "AIController.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -9,6 +11,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "NavigationSystem.h"
+#include "AI/ACCitizenAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Item/ACEscapeMissionBomb.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -308,7 +313,12 @@ void AACCharacter::PerformAttackTrace()
 	{
 		return;
 	}
-	
+
+	MulticastPlayAttackMontage();
+}
+
+void AACCharacter::AttackHitCheck()
+{
 	// 캡슐 크기
 	float CapsuleRadius = 30.0f;
 	float CapsuleHalfHeight = 60.0f;
@@ -339,13 +349,8 @@ void AACCharacter::PerformAttackTrace()
 	if (bHit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-
-		//Hit.GetActor()->Destroy();
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
 	}
-	
-	MulticastPlayAttackMontage();
-	//AnimInstance->Montage_Play(MeleeMontage);
 }
 
 bool AACCharacter::CanInteract(AACCharacter* Interactor)
@@ -402,7 +407,7 @@ void AACCharacter::MulticastPlayAttackMontage_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("Multicast"));
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(MeleeMontage);
+		GetMesh()->GetAnimInstance()->Montage_Play(MeleeMontage, 2.0f);
 	}
 }
 
