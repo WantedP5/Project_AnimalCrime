@@ -35,14 +35,14 @@ void AACTestMafiaCharacter::BeginPlay()
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
 }
 
-bool AACTestMafiaCharacter::CanInteract(AACCharacter* Interactor)
+bool AACTestMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
 {
 	return true;
 }
 
-void AACTestMafiaCharacter::OnInteract(AACCharacter* Interactor)
+void AACTestMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 }
 
 FString AACTestMafiaCharacter::GetInteractableName() const

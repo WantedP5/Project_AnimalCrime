@@ -125,14 +125,14 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	return SuperDamage;
 }
 
-bool AACCitizen::CanInteract(AACCharacter* Interactor)
+bool AACCitizen::CanInteract(AACCharacter* ACPlayer)
 {
 	return true;
 }
 
-void AACCitizen::OnInteract(AACCharacter* Interactor)
+void AACCitizen::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 }
 
 FString AACCitizen::GetInteractableName() const

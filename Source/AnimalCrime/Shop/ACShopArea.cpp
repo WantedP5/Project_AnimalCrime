@@ -28,22 +28,22 @@ void AACShopArea::BeginPlay()
 	
 }
 
-bool AACShopArea::CanInteract(AACCharacter* Interactor)
+bool AACShopArea::CanInteract(AACCharacter* ACPlayer)
 {
 	// 모든 플레이어가 상호작용 가능
 	return true;
 
 	// 특정 타입만 허용하려면:
-	// return Interactor->GetCharacterType() == EACCharacterType::Mafia;
+	// return ACPlayer->GetCharacterType() == EACCharacterType::Mafia;
 }
 
-void AACShopArea::OnInteract(AACCharacter* Interactor)
+void AACShopArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(Interactor);
+    ShowInteractDebug(ACPlayer);
 
-    if (Interactor == nullptr)
+    if (ACPlayer == nullptr)
     {
-        UE_LOG(LogHG, Warning, TEXT("OnInteract: Interactor is null"));
+        UE_LOG(LogHG, Warning, TEXT("OnInteract: ACPlayer is null"));
         return;
     }
 
@@ -53,10 +53,10 @@ void AACShopArea::OnInteract(AACCharacter* Interactor)
         return;
     }
 
-    if (Interactor->IsLocallyControlled())
+    if (ACPlayer->IsLocallyControlled())
     {
-        UACShopWidget** FoundWidget = ActiveShopWidgets.Find(Interactor);
-        APlayerController* PC = Interactor->GetController<APlayerController>();
+        UACShopWidget** FoundWidget = ActiveShopWidgets.Find(ACPlayer);
+        APlayerController* PC = ACPlayer->GetController<APlayerController>();
 
         if (PC == nullptr)
         {
@@ -66,7 +66,7 @@ void AACShopArea::OnInteract(AACCharacter* Interactor)
         if (FoundWidget != nullptr && *FoundWidget != nullptr)
         {
             // ===== 상점 닫기 =====
-            UE_LOG(LogHG, Log, TEXT("Closing Shop UI for %s"), *Interactor->GetName());
+            UE_LOG(LogHG, Log, TEXT("Closing Shop UI for %s"), *ACPlayer->GetName());
 
             UACShopWidget* ShopWidget = *FoundWidget;
             ShopWidget->RemoveFromParent();
@@ -77,15 +77,15 @@ void AACShopArea::OnInteract(AACCharacter* Interactor)
             PC->SetIgnoreMoveInput(false);    // 움직임 입력 허용
             PC->SetIgnoreLookInput(false);    // 시야 입력 허용
 
-            ActiveShopWidgets.Remove(Interactor);
+            ActiveShopWidgets.Remove(ACPlayer);
         }
         else
         {
             // ===== 상점 열기 =====
-            UE_LOG(LogHG, Log, TEXT("Opening Shop UI for %s"), *Interactor->GetName());
+            UE_LOG(LogHG, Log, TEXT("Opening Shop UI for %s"), *ACPlayer->GetName());
 
             UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(
-                Interactor->GetWorld(),
+                ACPlayer->GetWorld(),
                 ShopWidgetClass
             );
 
@@ -106,7 +106,7 @@ void AACShopArea::OnInteract(AACCharacter* Interactor)
                 PC->SetIgnoreLookInput(true);     // 마우스 시야 입력 차단
 
                 ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
-                ActiveShopWidgets.Add(Interactor, ShopWidget);
+                ActiveShopWidgets.Add(ACPlayer, ShopWidget);
             }
         }
     }

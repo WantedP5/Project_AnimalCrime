@@ -30,8 +30,8 @@ public:	// 좌표
 	
 #pragma region 인터랙션 인터페이스
 protected:
-	virtual bool CanInteract(class AACCharacter* Interactor) override;
-	virtual void OnInteract(class AACCharacter* Interactor) override;
+	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
+	virtual void OnInteract(class AACCharacter* ACPlayer) override;
 	virtual FString GetInteractableName() const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")

@@ -43,6 +43,7 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
+	InteractBoxComponent->SetMargin(FVector(20.f));
 
 	// 네트워크 복제 설정. 서버에 이 액터가 생성되면 클라이언트로 복제됨, 삭제도 동기화
 	bReplicates = true;
@@ -128,14 +129,14 @@ void AACEscapeMissionBomb::DetachFromCharacter()
 	@param  Interactor - 겹친 대상
 	@retval            - 상호작용 가능 여부
 **/
-bool AACEscapeMissionBomb::CanInteract(AACCharacter* Interactor)
+bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
 {
-	if (Interactor == nullptr)
+	if (ACPlayer == nullptr)
 	{
 		AC_LOG(LogSW, Log, TEXT("Sorry aaaaa"));
 		return false;
 	}
-	if (Interactor->GetCharacterType() != EACCharacterType::Mafia)
+	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
 	{
 		AC_LOG(LogSW, Log, TEXT("Sorry Only For MAFIA!!!!!"));
 		return false;
@@ -145,11 +146,11 @@ bool AACEscapeMissionBomb::CanInteract(AACCharacter* Interactor)
 	return true;
 }
 
-void AACEscapeMissionBomb::OnInteract(AACCharacter* Interactor)
+void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 
-	AACTestMafiaCharacter* ACPlayerMafia = Cast<AACTestMafiaCharacter>(Interactor);
+	AACTestMafiaCharacter* ACPlayerMafia = Cast<AACTestMafiaCharacter>(ACPlayer);
 
 	if (ACPlayerMafia == nullptr)
 	{
