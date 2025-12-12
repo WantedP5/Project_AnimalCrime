@@ -46,6 +46,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeAttackFalse();
 
+	// 상점 위젯 토글 (서버 → 클라이언트 명령)
+	UFUNCTION(Client, Reliable)
+	void ClientToggleShopWidget(TSubclassOf<class UACShopWidget> WidgetClass);
+
+private:
+	// 현재 열려있는 상점 위젯
+	UPROPERTY()
+	TObjectPtr<class UACShopWidget> CurrentShopWidget;
+
 public:
 	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }

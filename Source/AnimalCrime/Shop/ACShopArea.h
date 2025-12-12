@@ -28,9 +28,4 @@ protected:
 	// 상점 UI 위젯 클래스(블루프린트에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	TSubclassOf<class UACShopWidget> ShopWidgetClass;
-
-private:
-	// 각 플레이어별로 열려있는 위젯 저장
-	UPROPERTY()
-	TMap<AACCharacter*, UACShopWidget*> ActiveShopWidgets;
 };

@@ -22,6 +22,7 @@
 #include "AnimalCrime.h"
 
 #include "Component/ACShopComponent.h"
+#include "UI/ACShopWidget.h"
 
 
 AACCharacter::AACCharacter()
@@ -464,4 +465,59 @@ void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 EACCharacterType AACCharacter::GetCharacterType()
 {
 	return EACCharacterType::Citizen;
+}
+
+void AACCharacter::ClientToggleShopWidget_Implementation(TSubclassOf<class UACShopWidget> WidgetClass)
+{
+	if (WidgetClass == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ClientToggleShopWidget: WidgetClass is null"));
+		return;
+	}
+
+	APlayerController* PC = GetController<APlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	// 이미 위젯이 열려있으면 닫기
+	if (CurrentShopWidget != nullptr && CurrentShopWidget->IsInViewport())
+	{
+		// ===== 상점 닫기 =====
+		UE_LOG(LogHG, Log, TEXT("Client: Closing Shop UI for %s"), *GetName());
+
+		CurrentShopWidget->RemoveFromParent();
+		CurrentShopWidget = nullptr;
+
+		PC->SetShowMouseCursor(false);
+		PC->SetInputMode(FInputModeGameOnly());
+		PC->SetIgnoreMoveInput(false);
+		PC->SetIgnoreLookInput(false);
+	}
+	else
+	{
+		// ===== 상점 열기 =====
+		UE_LOG(LogHG, Log, TEXT("Client: Opening Shop UI for %s"), *GetName());
+
+		UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(GetWorld(), WidgetClass);
+
+		if (ShopWidget != nullptr)
+		{
+			ShopWidget->AddToViewport();
+			CurrentShopWidget = ShopWidget;
+
+			PC->SetShowMouseCursor(true);
+
+			FInputModeGameAndUI InputMode;
+			InputMode.SetWidgetToFocus(ShopWidget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			PC->SetInputMode(InputMode);
+
+			PC->SetIgnoreMoveInput(true);
+			PC->SetIgnoreLookInput(true);
+
+			ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
+		}
+	}
 }
