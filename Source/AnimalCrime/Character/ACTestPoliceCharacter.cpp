@@ -23,15 +23,15 @@ EACCharacterType AACTestPoliceCharacter::GetCharacterType()
 	return EACCharacterType::Police;
 }
 
-bool AACTestPoliceCharacter::CanInteract(AACCharacter* Interactor)
+bool AACTestPoliceCharacter::CanInteract(AACCharacter* ACPlayer)
 {
 	// 경찰끼리도 소통 가능?
 	return true;
 }
 
-void AACTestPoliceCharacter::OnInteract(AACCharacter* Interactor)
+void AACTestPoliceCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 }
 
 FString AACTestPoliceCharacter::GetInteractableName() const

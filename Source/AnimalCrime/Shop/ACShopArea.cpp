@@ -28,22 +28,22 @@ void AACShopArea::BeginPlay()
 	
 }
 
-bool AACShopArea::CanInteract(AACCharacter* Interactor)
+bool AACShopArea::CanInteract(AACCharacter* ACPlayer)
 {
 	// 모든 플레이어가 상호작용 가능
 	return true;
 
 	// 특정 타입만 허용하려면:
-	// return Interactor->GetCharacterType() == EACCharacterType::Mafia;
+	// return ACPlayer->GetCharacterType() == EACCharacterType::Mafia;
 }
 
-void AACShopArea::OnInteract(AACCharacter* Interactor)
+void AACShopArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(Interactor);
+    ShowInteractDebug(ACPlayer);
 
-    if (Interactor == nullptr)
+    if (ACPlayer == nullptr)
     {
-        UE_LOG(LogHG, Warning, TEXT("OnInteract: Interactor is null"));
+        UE_LOG(LogHG, Warning, TEXT("OnInteract: ACPlayer is null"));
         return;
     }
 
@@ -54,8 +54,8 @@ void AACShopArea::OnInteract(AACCharacter* Interactor)
     }
 
     // 서버에서 클라이언트에게 위젯 토글 명령 전송
-    UE_LOG(LogHG, Log, TEXT("Server: Sending toggle command to %s"), *Interactor->GetName());
-    Interactor->ClientToggleShopWidget(ShopWidgetClass);
+    UE_LOG(LogHG, Log, TEXT("Server: Sending toggle command to %s"), *ACPlayer->GetName());
+    ACPlayer->ClientToggleShopWidget(ShopWidgetClass);
 }
 
 FString AACShopArea::GetInteractableName() const

@@ -36,8 +36,8 @@ public:
 	FORCEINLINE TObjectPtr<class UBoxComponent> GetRootComp() const { return RootComp; }
 
 protected:
-	virtual bool CanInteract(class AACCharacter* Interactor) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
-	virtual void OnInteract(class AACCharacter* Interactor) override;		// 실제 상호작용 로직(서버에서 실행) |
+	virtual bool CanInteract(class AACCharacter* ACPlayer) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
+	virtual void OnInteract(class AACCharacter* ACPlayer) override;		// 실제 상호작용 로직(서버에서 실행) |
 	virtual FString GetInteractableName() const override;
 
 protected:

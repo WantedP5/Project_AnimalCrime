@@ -128,14 +128,14 @@ public:
 	void AddInteractable(AActor* Interactor);
 	void RemoveInteractable(AActor* Interactor);
 protected:
-	virtual bool CanInteract(AACCharacter* Interactor) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
-	virtual void OnInteract(AACCharacter* Interactor) override;		// 실제 상호작용 로직(서버에서 실행) |
+	virtual bool CanInteract(AACCharacter* ACPlayer) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
+	virtual void OnInteract(AACCharacter* ACPlayer) override;		// 실제 상호작용 로직(서버에서 실행) |
 	virtual FString GetInteractableName() const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 private:
-	void SortNearInteractables();
+	bool SortNearInteractables();
 private:
 	TArray<AActor*> NearInteractables;
 

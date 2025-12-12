@@ -232,11 +232,12 @@ void AACCharacter::Look(const FInputActionValue& Value)
 **/
 void AACCharacter::Interact(const FInputActionValue& Value)
 {
-	AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
+	//AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
 
-	SortNearInteractables();
-
-	ServerInteract();  // 서버에 요청
+	if (SortNearInteractables() == true)
+	{
+		ServerInteract();
+	}	
 }
 
 void AACCharacter::ItemDrop(const FInputActionValue& Value)
@@ -269,6 +270,7 @@ void AACCharacter::ServerInteract_Implementation()
 	if (NearInteractables.Num() == 0)
 	{
 		AC_LOG(LogSW, Log, TEXT("No Near Interactables!!"));
+		return;
 	}
 
 	for (AActor* Target : NearInteractables)
@@ -362,15 +364,15 @@ void AACCharacter::AttackHitCheck()
 	}
 }
 
-bool AACCharacter::CanInteract(AACCharacter* Interactor)
+bool AACCharacter::CanInteract(AACCharacter* ACPlayer)
 {
 	// 시민과 시민은 상호작용 가능하다?
 	return true;
 }
 
-void AACCharacter::OnInteract(AACCharacter* Interactor)
+void AACCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 }
 
 FString AACCharacter::GetInteractableName() const
@@ -392,21 +394,21 @@ void AACCharacter::RemoveInteractable(AActor* Interactor)
 }
 
 /**
-    @brief  NearInteractables Set의 Actor들 중 가장 플레이어와 거리가 가까운 하나의 Actor를 반환.
-    @retval  - 플레이어와 거리가 가까운 하나의 Actor
+    @brief  NearInteractables Array의 Actor들을 플레이어와 거리가 가까운 순서로 Sort. Sort 여부를 반환.
+    @retval  - NearInteractables가 Sort되었으면 true, 아니면 false 반환
 **/
-void AACCharacter::SortNearInteractables()
+bool AACCharacter::SortNearInteractables()
 {
 	if (NearInteractables.Num() == 0)
 	{
 		AC_LOG(LogSW, Log, TEXT("No Close Interactables!!"));
-		return;
+		return false;
 	}
 
 	if (NearInteractables.Num() == 1)
 	{
 		AC_LOG(LogSW, Log, TEXT("NO NEED TO SORT!!"));
-		return;
+		return true;
 	}
 
 	const FVector PlayerLocation  = GetActorLocation();
@@ -416,6 +418,8 @@ void AACCharacter::SortNearInteractables()
 			float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
 			return DistA < DistB;
 		});
+
+	return true;
 }
 
 void AACCharacter::MulticastPlayAttackMontage_Implementation()

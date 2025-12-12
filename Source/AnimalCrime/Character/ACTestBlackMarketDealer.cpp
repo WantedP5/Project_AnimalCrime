@@ -15,14 +15,18 @@ AACTestBlackMarketDealer::AACTestBlackMarketDealer()
 
 }
 
-bool AACTestBlackMarketDealer::CanInteract(AACCharacter* Interactor)
+EACCharacterType AACTestBlackMarketDealer::GetCharacterType()
 {
-	if (Interactor == nullptr)
+	return EACCharacterType::BlackMarketDealer;
+}
+
+bool AACTestBlackMarketDealer::CanInteract(AACCharacter* ACPlayer)
+{
+	if (ACPlayer == nullptr)
 	{
-		AC_LOG(LogSW, Log, TEXT("Sorry aaaaa"));
 		return false;
 	}
-	if (Interactor->GetCharacterType() != EACCharacterType::Mafia)
+	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
 	{
 		AC_LOG(LogSW, Log, TEXT("Sorry Only For MAFIA!!!!!"));
 		return false;
@@ -32,13 +36,13 @@ bool AACTestBlackMarketDealer::CanInteract(AACCharacter* Interactor)
 	return true;
 }
 
-void AACTestBlackMarketDealer::OnInteract(AACCharacter* Interactor)
+void AACTestBlackMarketDealer::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(Interactor);
+	ShowInteractDebug(ACPlayer);
 
 	if (BlackMarketComponent)
 	{
-		BlackMarketComponent->OpenBlackMarket(Interactor);
+		BlackMarketComponent->OpenBlackMarket(ACPlayer);
 	}
 }
 
