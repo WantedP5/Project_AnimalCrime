@@ -1,0 +1,36 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Interface/ACInteractInterface.h"
+#include "ACShopArea.generated.h"
+
+UCLASS()
+class ANIMALCRIME_API AACShopArea : public AActor, public IACInteractInterface
+{
+	GENERATED_BODY()
+	
+public:	
+	AACShopArea();
+
+protected:
+	virtual void BeginPlay() override;
+
+	virtual bool CanInteract(class AACCharacter* Interactor) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
+	virtual void OnInteract(class AACCharacter* Interactor) override;		// 실제 상호작용 로직(서버에서 실행) |
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
+
+	// 상점 UI 위젯 클래스(블루프린트에서 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
+	TSubclassOf<class UACShopWidget> ShopWidgetClass;
+
+private:
+	// 각 플레이어별로 열려있는 위젯 저장
+	UPROPERTY()
+	TMap<AACCharacter*, UACShopWidget*> ActiveShopWidgets;
+};
