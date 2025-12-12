@@ -11,7 +11,7 @@
 #include "Components/TextBlock.h"
 #include "ACSlotWidget.h"
 #include "Item/ACItemData.h"
-#include "AssetRegistry/AssetRegistryModule.h"
+#include "Game/ACAssetManager.h"
 
 UACShopWidget::UACShopWidget(const FObjectInitializer& ObjectInitializer)
 {
@@ -55,27 +55,30 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
 {
     if (SlotWidgetClass == nullptr)
     {
-        UE_LOG(LogHG, Error, TEXT("ACShopWidget: SlotWidgetClass is not set! Please set it in Blueprint."));
+        UE_LOG(LogHG, Error, TEXT("ACShopWidget: SlotWidgetClass is not set!"));
         return;
     }
 
-    // AssetRegistry 모듈 로드
-    FAssetRegistryModule& AssetRegistryModule =
-        FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-    IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+    // ===== AssetManager에서 자동으로 가져오기 =====
+    UE_LOG(LogHG, Warning, TEXT("Attempting to get AssetManager..."));
 
-    // 모든 ItemData 에셋 검색
-    TArray<FAssetData> AssetDataList;
-    FARFilter Filter;
-    Filter.ClassPaths.Add(UACItemData::StaticClass()->GetClassPathName());
-    Filter.PackagePaths.Add(FName(*SearchPath));
-    Filter.bRecursivePaths = true; // 하위 폴더도 검색
+    if (!GEngine || !GEngine->AssetManager)
+    {
+        UE_LOG(LogHG, Error, TEXT("GEngine or AssetManager is null!"));
+        return;
+    }
 
-    AssetRegistry.GetAssets(Filter, AssetDataList);
+    UACAssetManager* AssetManager = Cast<UACAssetManager>(GEngine->AssetManager);
+    if (!AssetManager)
+    {
+        UE_LOG(LogHG, Error, TEXT("AssetManager is not UACAssetManager! Check DefaultEngine.ini AssetManagerClassName"));
+        return;
+    }
 
-    UE_LOG(LogHG, Warning, TEXT("Found %d ItemData assets in %s"), AssetDataList.Num(), *SearchPath);
+    UE_LOG(LogHG, Warning, TEXT("AssetManager obtained successfully"));
+    TArray<UACItemData*> LoadedItems = AssetManager->GetAllItemData();
 
-    // 3. 에셋 로드 및 타입별 분류
+    // 배열 초기화
     AllItemData.Empty();
     WeaponItems.Empty();
     HeadItems.Empty();
@@ -84,44 +87,51 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
     BottomItems.Empty();
     ShoesItems.Empty();
 
-    for (const FAssetData& AssetData : AssetDataList)
-    {
-        UACItemData* ItemData = Cast<UACItemData>(AssetData.GetAsset());
-        if (ItemData != nullptr)
-        {
-            AllItemData.Add(ItemData);
+    AllItemData = LoadedItems;
 
-            // 타입별 분류
-            if (ItemData->ItemType == EItemType::Weapon)
+    UE_LOG(LogHG, Warning, TEXT("Loaded %d ItemData from AssetManager"), AllItemData.Num());
+
+    if (AllItemData.Num() == 0)
+    {
+        UE_LOG(LogHG, Error, TEXT("No ItemData loaded from AssetManager!"));
+        return;
+    }
+
+    // 타입별 분류
+    for (UACItemData* ItemData : AllItemData)
+    {
+        if (ItemData == nullptr) continue;
+
+        if (ItemData->ItemType == EItemType::Weapon)
+        {
+            WeaponItems.Add(ItemData);
+        }
+        else if (ItemData->ItemType == EItemType::Clothing)
+        {
+            switch (ItemData->ClothingSlot)
             {
-                WeaponItems.Add(ItemData);
-            }
-            else if (ItemData->ItemType == EItemType::Clothing)
-            {
-                // 의류는 슬롯별로 세부 분류
-                switch (ItemData->ClothingSlot)
-                {
-                case EClothingSlot::Head:
-                    HeadItems.Add(ItemData);
-                    break;
-                case EClothingSlot::FaceAcc:
-                    FaceAccItems.Add(ItemData);
-                    break;
-                case EClothingSlot::Top:
-                    TopItems.Add(ItemData);
-                    break;
-                case EClothingSlot::Bottom:
-                    BottomItems.Add(ItemData);
-                    break;
-                case EClothingSlot::Shoes:
-                    ShoesItems.Add(ItemData);
-                    break;
-                }
+            case EClothingSlot::Head:
+                HeadItems.Add(ItemData);
+                break;
+            case EClothingSlot::FaceAcc:
+                FaceAccItems.Add(ItemData);
+                break;
+            case EClothingSlot::Top:
+                TopItems.Add(ItemData);
+                break;
+            case EClothingSlot::Bottom:
+                BottomItems.Add(ItemData);
+                break;
+            case EClothingSlot::Shoes:
+                ShoesItems.Add(ItemData);
+                break;
             }
         }
     }
-   
-    // 초기 카테고리 슬롯 생성
+
+    UE_LOG(LogHG, Warning, TEXT("Categorized: Weapon=%d, Head=%d, FaceAcc=%d, Top=%d, Bottom=%d, Shoes=%d"),
+        WeaponItems.Num(), HeadItems.Num(), FaceAccItems.Num(), TopItems.Num(), BottomItems.Num(), ShoesItems.Num());
+
     CreateSlotsForCategory(CurrentCategory);
 }
 
@@ -243,3 +253,4 @@ void UACShopWidget::ShowCategory(EShopCategory Category)
     // 선택된 카테고리에 맞는 슬롯 생성
     CreateSlotsForCategory(Category);
 }
+

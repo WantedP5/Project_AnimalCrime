@@ -112,6 +112,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	TSubclassOf<class UACSlotWidget> SlotWidgetClass;
 
+	
+
 	// ===== 런타임 데이터 =====
 
 	// 로드된 모든 아이템 데이터

@@ -3,3 +3,7 @@
 
 #include "Item/ACItemData.h"
 
+FPrimaryAssetId UACItemData::GetPrimaryAssetId() const
+{
+    return FPrimaryAssetId("ItemData", GetFName());
+}

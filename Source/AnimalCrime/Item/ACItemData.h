@@ -34,6 +34,9 @@ class ANIMALCRIME_API UACItemData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+    virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+
+public:
     // 아이템 이름
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText ItemName;
