@@ -8,14 +8,16 @@
 
 /**
  *  에디터에서 아이템 프리뷰 이미지를 자동으로 생성하는 헬퍼 클래스
+ *  (에디터 전용 - 런타임에서는 사용 불가)
  */
 UCLASS(Blueprintable)
 class ANIMALCRIME_API UACItemPreviewGenerator : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
 
+#if WITH_EDITOR
  /**
      @brief  단일 아이템 데이터의 프리뷰 이미지 생성
      @param  ItemData       - 이미지를 생성할 아이템 데이터
@@ -43,4 +45,5 @@ public:
         @retval              - 생성된 Textrue2D 또는 nullptr
     **/
     static UTexture2D* SaveRenderTargetAsTexture2D(class UTextureRenderTarget2D* RenderTarget, const FString& PackageName);
+#endif // WITH_EDITOR
 };

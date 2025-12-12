@@ -2,6 +2,9 @@
 
 
 #include "Helper/ACItemPreviewGenerator.h"
+
+#if WITH_EDITOR
+
 #include "ACItemPreviewGenerator.h"
 #include "Item/ACItemData.h"
 #include "Item/ACItemPreviewCapture.h"
@@ -11,7 +14,7 @@
 #include "UObject/SavePackage.h"
 #include "ImageUtils.h"
 #include "Editor.h"
-#include "Engine/World.h" 
+#include "Engine/World.h"
 #include "AnimalCrime.h"
 
 UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemData, AACItemPreviewCapture* PreviewCapture, const FString& SavePath)
@@ -190,3 +193,5 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
 
     return NewTexture;
 }
+
+#endif // WITH_EDITOR

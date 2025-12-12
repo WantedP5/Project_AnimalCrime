@@ -15,8 +15,15 @@ public class AnimalCrime : ModuleRules
             "AnimalCrime"
         });
 
-        // Uncomment if you are using Slate UI
-        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "UnrealEd", "EditorSubsystem", "LevelEditor" });
+        // 기본 UI 모듈은 항상 포함
+        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+
+        // 에디터 전용 모듈은 에디터 빌드에서만 포함
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "EditorSubsystem", "LevelEditor" });
+        }
+
 
         // Uncomment if you are using online features
         // PrivateDependencyModuleNames.Add("OnlineSubsystem");
