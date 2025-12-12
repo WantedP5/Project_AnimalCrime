@@ -228,12 +228,9 @@ void AACCharacter::Interact(const FInputActionValue& Value)
 {
 	AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
 
-	AActor* Target = GetClosestInteractable();
-	if (Target != nullptr)
-	{
-		AC_LOG(LogSW, Log, TEXT("%s Selected!"), *Target->GetName());
-		ServerInteract(Target);  // 서버에 요청
-	}
+	SortNearInteractables();
+
+	ServerInteract();  // 서버에 요청
 }
 
 void AACCharacter::ItemDrop(const FInputActionValue& Value)
@@ -261,29 +258,40 @@ void AACCharacter::Attack()
 	}
 }
 
-void AACCharacter::ServerInteract_Implementation(AActor* Target)
+void AACCharacter::ServerInteract_Implementation()
 {
-	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
-	if (Interactable == nullptr)
+	if (NearInteractables.Num() == 0)
 	{
-		AC_LOG(LogSW, Warning, TEXT("aaaaaa1"));
+		AC_LOG(LogSW, Log, TEXT("No Near Interactables!!"));
+	}
+
+	for (AActor* Target : NearInteractables)
+	{
+		AC_LOG(LogSW, Log, TEXT("%s Selected!"), *Target->GetName());
+
+		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+		if (Interactable == nullptr)
+		{
+			continue;
+		}
+
+		// 1. 상호작용 가능한지 체크( 현재 캐릭터 roll과 상호작용 가능한 물체인가?)
+		if (Interactable->CanInteract(this) == false)
+		{
+			continue;
+		}
+
+		// todo: 2. 거리 체크 (치트 방지)	???
+		//float Dist = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
+		//if (Dist > 300.f) return;
+
+		// 3. 상호작용 실행
+		Interactable->OnInteract(this);
 		return;
 	}
 
-	// 1. 상호작용 가능한지 체크( 현재 캐릭터 roll과 상호작용 가능한 물체인가?)
-	if (Interactable->CanInteract(this) == false)
-	{
-		AC_LOG(LogSW, Warning, TEXT("aaaaaa2"));
-		return;
-	}
-	
-	// todo: 2. 거리 체크 (치트 방지)	???
-	//float Dist = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
-	//if (Dist > 300.f) return;
-
-	// 3. 상호작용 실행
-	AC_LOG(LogSW, Warning, TEXT("aaaaaa3"));
-	Interactable->OnInteract(this);
+	// 여기까지 오면 배열에 상호작용 인터페이스 구현한 액터가 없음.
+	AC_LOG(LogSW, Log, TEXT("No Actor has Interface!!"));
 }
 
 bool AACCharacter::CheckProcessAttack() const
@@ -356,45 +364,47 @@ bool AACCharacter::CanInteract(AACCharacter* Interactor)
 
 void AACCharacter::OnInteract(AACCharacter* Interactor)
 {
-	AC_LOG(LogSW, Log, TEXT("Interacted with Character!"));
+	AC_LOG(LogSW, Log, TEXT("Interacted with Citizen!"));
 }
 
 
 void AACCharacter::AddInteractable(AActor* Interactor)
 {
-	ensureAlways(Interactor);
-	NearInteractables.Add(Interactor);
+	//ensureAlways(Interactor);
+	NearInteractables.AddUnique(Interactor);
 }
 
 void AACCharacter::RemoveInteractable(AActor* Interactor)
 {
-	ensureAlways(Interactor);
+	//ensureAlways(Interactor);
 	NearInteractables.Remove(Interactor);
 }
 
-AActor* AACCharacter::GetClosestInteractable()
+/**
+    @brief  NearInteractables Set의 Actor들 중 가장 플레이어와 거리가 가까운 하나의 Actor를 반환.
+    @retval  - 플레이어와 거리가 가까운 하나의 Actor
+**/
+void AACCharacter::SortNearInteractables()
 {
 	if (NearInteractables.Num() == 0)
 	{
 		AC_LOG(LogSW, Log, TEXT("No Close Interactables!!"));
-		return nullptr;
+		return;
 	}
 
-	AActor* ClosestActor = nullptr;
-	float MinDistance = MAX_FLT;
-
-	for (AActor* InteractedActor : NearInteractables)
+	if (NearInteractables.Num() == 1)
 	{
-		float Dist = FVector::Dist(GetActorLocation(), InteractedActor->GetActorLocation());
-		if (Dist < MinDistance)
-		{
-			MinDistance = Dist;
-			ClosestActor = InteractedActor;
-		}
+		AC_LOG(LogSW, Log, TEXT("NO NEED TO SORT!!"));
+		return;
 	}
 
-	ensure(ClosestActor != nullptr);
-	return ClosestActor;
+	const FVector PlayerLocation  = GetActorLocation();
+	NearInteractables.Sort([PlayerLocation](const AActor& A, const AActor& B)
+		{
+			float DistA = FVector::DistSquared(PlayerLocation, A.GetActorLocation());
+			float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
+			return DistA < DistB;
+		});
 }
 
 void AACCharacter::MulticastPlayAttackMontage_Implementation()

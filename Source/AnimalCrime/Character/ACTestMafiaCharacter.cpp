@@ -35,6 +35,16 @@ void AACTestMafiaCharacter::BeginPlay()
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
 }
 
+bool AACTestMafiaCharacter::CanInteract(AACCharacter* Interactor)
+{
+	return true;
+}
+
+void AACTestMafiaCharacter::OnInteract(AACCharacter* Interactor)
+{
+	AC_LOG(LogSW, Log, TEXT("Interacted with Mafia!"));
+}
+
 EACCharacterType AACTestMafiaCharacter::GetCharacterType()
 {
 	return EACCharacterType::Mafia;
