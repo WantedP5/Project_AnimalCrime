@@ -53,66 +53,9 @@ void AACShopArea::OnInteract(AACCharacter* ACPlayer)
         return;
     }
 
-    if (ACPlayer->IsLocallyControlled())
-    {
-        UACShopWidget** FoundWidget = ActiveShopWidgets.Find(ACPlayer);
-        APlayerController* PC = ACPlayer->GetController<APlayerController>();
-
-        if (PC == nullptr)
-        {
-            return;
-        }
-
-        if (FoundWidget != nullptr && *FoundWidget != nullptr)
-        {
-            // ===== 상점 닫기 =====
-            UE_LOG(LogHG, Log, TEXT("Closing Shop UI for %s"), *ACPlayer->GetName());
-
-            UACShopWidget* ShopWidget = *FoundWidget;
-            ShopWidget->RemoveFromParent();
-
-            // ⭐ 게임 입력 복구
-            PC->SetShowMouseCursor(false);
-            PC->SetInputMode(FInputModeGameOnly());
-            PC->SetIgnoreMoveInput(false);    // 움직임 입력 허용
-            PC->SetIgnoreLookInput(false);    // 시야 입력 허용
-
-            ActiveShopWidgets.Remove(ACPlayer);
-        }
-        else
-        {
-            // ===== 상점 열기 =====
-            UE_LOG(LogHG, Log, TEXT("Opening Shop UI for %s"), *ACPlayer->GetName());
-
-            UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(
-                ACPlayer->GetWorld(),
-                ShopWidgetClass
-            );
-
-            if (ShopWidget != nullptr)
-            {
-                ShopWidget->AddToViewport();
-
-                // UI + 게임 입력 동시 허용 (E키로 닫을 수 있게)
-                PC->SetShowMouseCursor(true);
-
-                FInputModeGameAndUI InputMode;
-                InputMode.SetWidgetToFocus(ShopWidget->TakeWidget());
-                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-                PC->SetInputMode(InputMode);
-
-                // 캐릭터 움직임 멈추기
-                PC->SetIgnoreMoveInput(true);     // WASD 입력 차단
-                PC->SetIgnoreLookInput(true);     // 마우스 시야 입력 차단
-
-                ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
-                ActiveShopWidgets.Add(ACPlayer, ShopWidget);
-            }
-        }
-    }
     // 서버에서 클라이언트에게 위젯 토글 명령 전송
-    UE_LOG(LogHG, Log, TEXT("Server: Sending toggle command to %s"), *Interactor->GetName());
-    Interactor->ClientToggleShopWidget(ShopWidgetClass);
+    UE_LOG(LogHG, Log, TEXT("Server: Sending toggle command to %s"), *ACPlayer->GetName());
+    ACPlayer->ClientToggleShopWidget(ShopWidgetClass);
 }
 
 FString AACShopArea::GetInteractableName() const
