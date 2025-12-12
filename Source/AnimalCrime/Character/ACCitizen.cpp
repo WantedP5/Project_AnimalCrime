@@ -8,6 +8,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Component/ACInteractableComponent.h"
 
 
 // Sets default values
@@ -42,6 +43,10 @@ AACCitizen::AACCitizen()
 	{
 		MeshComp->SetAnimInstanceClass(AnimRef.Class);
 	}
+
+	// 인터랙션 컴포넌트
+	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
+	InteractBoxComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -120,3 +125,17 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	return SuperDamage;
 }
 
+bool AACCitizen::CanInteract(AACCharacter* Interactor)
+{
+	return true;
+}
+
+void AACCitizen::OnInteract(AACCharacter* Interactor)
+{
+	ShowInteractDebug(Interactor);
+}
+
+FString AACCitizen::GetInteractableName() const
+{
+	return TEXT("Citizen");
+}

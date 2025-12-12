@@ -147,14 +147,14 @@ bool AACEscapeMissionBomb::CanInteract(AACCharacter* Interactor)
 
 void AACEscapeMissionBomb::OnInteract(AACCharacter* Interactor)
 {
+	ShowInteractDebug(Interactor);
+
 	AACTestMafiaCharacter* ACPlayerMafia = Cast<AACTestMafiaCharacter>(Interactor);
 
 	if (ACPlayerMafia == nullptr)
 	{
 		return;
 	}
-
-	AC_LOG(LogSW, Log, TEXT("Mafia Held BOMB!!"));
 
 	// 1. 캐릭터가 이미 폭탄을 들고 있으면 불가
 	if (ACPlayerMafia->HandBomb != nullptr)
@@ -179,4 +179,9 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* Interactor)
 	AC_LOG(LogSY, Log, TEXT("Bomb Interact Success"));
 
 	AttachToCharacter();
+}
+
+FString AACEscapeMissionBomb::GetInteractableName() const
+{
+	return TEXT("Bomb");
 }

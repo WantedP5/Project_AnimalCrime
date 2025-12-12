@@ -31,5 +31,10 @@ bool AACTestPoliceCharacter::CanInteract(AACCharacter* Interactor)
 
 void AACTestPoliceCharacter::OnInteract(AACCharacter* Interactor)
 {
-	AC_LOG(LogSW, Log, TEXT("Interacted with Police!"));
+	ShowInteractDebug(Interactor);
+}
+
+FString AACTestPoliceCharacter::GetInteractableName() const
+{
+	return TEXT("Police");
 }

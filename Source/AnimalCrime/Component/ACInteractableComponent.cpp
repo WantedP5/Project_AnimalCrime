@@ -41,12 +41,12 @@ void UACInteractableComponent::OnInteractOverlapBegin(
 	AACCharacter* ACPlayer = Cast<AACCharacter>(OtherActor);
 	if (ACPlayer == GetOwner())
 	{
-		UE_LOG(LogSW, Log, TEXT("SELF OverlapBegin"));
+		//UE_LOG(LogSW, Log, TEXT("SELF OverlapBegin"));
 		return;
 	}
 	else
 	{
-		UE_LOG(LogSW, Log, TEXT("%s OverlapBegin"),*OtherActor->GetName());
+		//UE_LOG(LogSW, Log, TEXT("%s OverlapBegin"),*OtherActor->GetName());
 	}
 
 	if (ACPlayer != nullptr && ACPlayer != GetOwner())
@@ -59,10 +59,10 @@ void UACInteractableComponent::OnInteractOverlapEnd(
 	UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AACCharacter* ACPlayer = Cast<AACCharacter>(OtherActor);
-	UE_LOG(LogSW, Log, TEXT("OverlapEnd???"));
+	//UE_LOG(LogSW, Log, TEXT("OverlapEnd???"));
 	if (ACPlayer != nullptr)
 	{
-		UE_LOG(LogSW, Log, TEXT("%s OverlapEnd"), *OtherActor->GetName());
+		//UE_LOG(LogSW, Log, TEXT("%s OverlapEnd"), *OtherActor->GetName());
 		ACPlayer->RemoveInteractable(GetOwner());
 	}
 }

@@ -42,7 +42,12 @@ bool AACTestMafiaCharacter::CanInteract(AACCharacter* Interactor)
 
 void AACTestMafiaCharacter::OnInteract(AACCharacter* Interactor)
 {
-	AC_LOG(LogSW, Log, TEXT("Interacted with Mafia!"));
+	ShowInteractDebug(Interactor);
+}
+
+FString AACTestMafiaCharacter::GetInteractableName() const
+{
+	return TEXT("Mafia");
 }
 
 EACCharacterType AACTestMafiaCharacter::GetCharacterType()

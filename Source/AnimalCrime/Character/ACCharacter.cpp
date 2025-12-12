@@ -369,7 +369,12 @@ bool AACCharacter::CanInteract(AACCharacter* Interactor)
 
 void AACCharacter::OnInteract(AACCharacter* Interactor)
 {
-	AC_LOG(LogSW, Log, TEXT("Interacted with Citizen!"));
+	ShowInteractDebug(Interactor);
+}
+
+FString AACCharacter::GetInteractableName() const
+{
+	return TEXT("ACCharacter");
 }
 
 
