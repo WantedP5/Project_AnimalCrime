@@ -20,6 +20,7 @@ enum class EACCharacterType : uint8
 	Police,
 	Mafia,
 	Citizen,
+	BlackMarketDealer,
 	Total
 };
 

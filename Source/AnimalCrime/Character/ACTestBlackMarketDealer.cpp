@@ -15,6 +15,11 @@ AACTestBlackMarketDealer::AACTestBlackMarketDealer()
 
 }
 
+EACCharacterType AACTestBlackMarketDealer::GetCharacterType()
+{
+	return EACCharacterType::BlackMarketDealer;
+}
+
 bool AACTestBlackMarketDealer::CanInteract(AACCharacter* Interactor)
 {
 	if (Interactor == nullptr)
