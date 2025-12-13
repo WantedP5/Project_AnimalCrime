@@ -3,8 +3,10 @@
 
 #include "ACCitizen.h"
 
+#include "BrainComponent.h"
 #include "NavigationSystem.h"
 #include "AI/ACCitizenAIController.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -43,6 +45,22 @@ AACCitizen::AACCitizen()
 	{
 		MeshComp->SetAnimInstanceClass(AnimRef.Class);
 	}
+	
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DamagedMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/Project/Character/AM_OnDamaged.AM_OnDamaged'"));
+	if (DamagedMontageRef.Succeeded())
+	{
+		DamagedMontage = DamagedMontageRef.Object;
+	}
+	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
+	
+	HeadMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
+	HeadMesh->SetupAttachment(GetMesh()); // 캐릭터의 메인 Mesh에 붙임
+
+	TopMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TopMesh"));
+	TopMesh->SetupAttachment(GetMesh());
+
+	BottomMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BottomMesh"));
+	BottomMesh->SetupAttachment(GetMesh());
 
 	// 인터랙션 컴포넌트
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
@@ -62,6 +80,87 @@ void AACCitizen::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AACCitizen::PlayDamagedMontage(const FVector& Attack)
+{
+	FVector ForwardVector = GetActorForwardVector();
+	FVector RightVector = GetActorRightVector();
+	FVector DirVector = (Attack - GetActorLocation()).GetSafeNormal2D();
+	float FrontBackResult = ForwardVector.Dot(DirVector);
+	float RightLeftResult = RightVector.Dot(DirVector);
+	
+	GetMesh()->GetAnimInstance()->Montage_Play(DamagedMontage);
+	if (FrontBackResult >= 0)
+	{
+		if (RightLeftResult >= 0)
+		{
+			// Front
+			if (FrontBackResult >= RightLeftResult)
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Front"), DamagedMontage);
+				
+				UE_LOG(LogTemp, Log, TEXT("Front - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Right"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Right - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		else
+		{
+			// Front
+			if (FrontBackResult >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Front"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Front - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Left"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Left - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+	}
+	else
+	{
+		if (RightLeftResult >= 0)
+		{
+			// Front
+			if (abs(FrontBackResult) >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Back"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Back - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Right"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Right - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		else
+		{
+			// Front
+			if (abs(FrontBackResult) >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Back"), DamagedMontage);
+
+				UE_LOG(LogTemp, Log, TEXT("Back - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Left"), DamagedMontage);
+				UE_LOG(LogTemp, Log, TEXT("Left - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		
+	}
+}
+
 FVector AACCitizen::GetNextPosition() const
 {
 	// 현재 액터의 위치
@@ -78,13 +177,135 @@ FVector AACCitizen::GetNextPosition() const
 	FNavLocation RandomLocation;
     
 	// 반경 (원하는 만큼 조절)
-	float Radius = 500.0f;
+	float Radius = 2000.0f;
 
 	// NavMesh에서 랜덤 reachable 포인트 얻기
 	NavSys->GetRandomReachablePointInRadius(CurrentLocation, Radius, RandomLocation);
 
 	return RandomLocation.Location;
 }
+
+FVector AACCitizen::GetRunPosition(const FVector& Attack) const
+{
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (NavSys == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No navigation found1"));
+		return FVector(0.0f, 0.0f, 0.0f);
+	}
+	
+	FNavLocation Result;
+	FVector MyLocation = GetActorLocation();
+	FVector DirVector = (MyLocation - Attack).GetSafeNormal2D();
+	FVector Desired = MyLocation + (DirVector * 3000.f);
+	bool bFound = NavSys->ProjectPointToNavigation(Desired, Result, FVector(1000.f, 1000.f, 200.f));
+	if (bFound == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No navigation found2"));
+		return FVector(0.0f, 0.0f, 0.0f);
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("(%f, %f, %f)"), Result.Location.X, Result.Location.Y, Result.Location.Z);
+	return Result.Location;
+}
+
+void AACCitizen::OnDamaged()
+{
+	DamagedFlag += 1;
+	if (DamagedFlag > 1)
+	{
+		AAIController* AICon = GetController<AAIController>();
+		AICon->GetBrainComponent()->StopLogic("HitAbort");
+
+		AICon->GetBrainComponent()->StartLogic();
+	}
+
+}
+
+void AACCitizen::OnArrive()
+{
+	DamagedFlag = 0;
+}
+
+float AACCitizen::GetLastHitTime() const
+{
+	return LastHitTime;
+}
+
+void AACCitizen::MulticastOnPlayMontage_Implementation(const FVector& Attack)
+{
+	FVector ForwardVector = GetActorForwardVector();
+	FVector RightVector = GetActorRightVector();
+	FVector DirVector = (Attack - GetActorLocation()).GetSafeNormal2D();
+	float FrontBackResult = ForwardVector.Dot(DirVector);
+	float RightLeftResult = RightVector.Dot(DirVector);
+	
+	GetMesh()->GetAnimInstance()->Montage_Play(DamagedMontage);
+	if (FrontBackResult >= 0)
+	{
+		if (RightLeftResult >= 0)
+		{
+			// Front
+			if (FrontBackResult >= RightLeftResult)
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Front"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Front - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Right"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Right - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		else
+		{
+			// Front
+			if (FrontBackResult >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Front"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Front - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Left"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Left - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+	}
+	else
+	{
+		if (RightLeftResult >= 0)
+		{
+			// Front
+			if (abs(FrontBackResult) >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Back"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Back - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Right"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Right - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		else
+		{
+			// Front
+			if (abs(FrontBackResult) >= abs(RightLeftResult))
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Back"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Back - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+			else
+			{
+				GetMesh()->GetAnimInstance()->Montage_JumpToSection(TEXT("Left"), DamagedMontage);
+				// UE_LOG(LogTemp, Log, TEXT("Left - F:%f, R:%f"), FrontBackResult, RightLeftResult);
+			}
+		}
+		
+	}
+}
+
 
 float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
@@ -97,25 +318,16 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		UBlackboardComponent* BBComp = AIControler->GetBlackboardComponent();
 		if (BBComp)
 		{
+			// 의미가 있는 코드일까? 언제 전송되는데
 			BBComp->SetValueAsBool("bDamage", true);
-			FNavLocation Result;
-			UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-			UE_LOG(LogTemp, Log, TEXT("Welcome1"));
-			if (NavSys)
-			{
-				FVector Cur = GetActorLocation();
-				FVector Dir = (Cur - DamageCauser->GetActorLocation()).GetSafeNormal2D();
-				FVector Desired = Cur + (Dir * 2000.f);
-				FVector ForwardVector = Dir;
-				bool bFound = NavSys->ProjectPointToNavigation(Desired, Result, FVector(200.f, 200.f, 200.f));
-				UE_LOG(LogTemp, Log, TEXT("Welcome2 Actor Location(%f, %f, %f) Forward(%f, %f, %f)"), Cur.X, Cur.Y, Cur.Z, ForwardVector.X, ForwardVector.Y, ForwardVector.Z);
-				if (bFound)
-				{
-					FVector FleeLocation = Result.Location;
-					BBComp->SetValueAsVector("Position", FleeLocation);
-					UE_LOG(LogTemp, Log, TEXT("Welcome3 (%f, %f, %f) dist:%f"), FleeLocation.X, FleeLocation.Y, FleeLocation.Z, FVector::Dist(Cur, FleeLocation));
-				}
-			}
+			
+			FVector RunPosition = GetRunPosition(DamageCauser->GetActorLocation());
+			BBComp->SetValueAsVector("RunPosition", RunPosition);
+			LastHitTime = GetWorld()->GetTimeSeconds();
+			BBComp->SetValueAsFloat("LastHitTime", LastHitTime);
+			OnDamaged();
+			//PlayDamagedMontage(DamageCauser->GetActorLocation());
+			MulticastOnPlayMontage(DamageCauser->GetActorLocation());
 		}
 	}
 	else

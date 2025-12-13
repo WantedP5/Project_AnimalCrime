@@ -12,6 +12,14 @@ class ANIMALCRIME_API AACCitizen : public ACharacter, public IACInteractInterfac
 {
 	GENERATED_BODY()
 
+	enum class State
+	{
+		Front,
+		Back,
+		Left,
+		Right
+	};
+	
 #pragma region 특수 맴버 함수
 public:
 	AACCitizen();
@@ -21,7 +29,8 @@ public:
 public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
+
+	void PlayDamagedMontage(const FVector& Attack);
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 #pragma endregion
 	
@@ -38,10 +47,42 @@ protected:
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 #pragma endregion
 
+	
+	FVector GetRunPosition(const FVector& Attack) const;
+	
+	UFUNCTION(BlueprintCallable)
+	int32 GetDamageFlag() {return DamagedFlag;}
+	
+	void OnDamaged();
+	
+	void OnArrive();
+	
+	float GetLastHitTime() const;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnPlayMontage(const FVector& Attack);
 #pragma region 맴버 변수
 public:
 
 protected:
+	
+public:
+	UPROPERTY(meta=(AllowPrivateAccess=true))
+	int32 DamagedFlag;
+	
+	UPROPERTY(meta=(AllowPrivateAccess=true))
+	float LastHitTime;
+	
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess=true))
+	TObjectPtr<class UAnimMontage> DamagedMontage;
+	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> HeadMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> TopMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
 
 private:
 #pragma endregion

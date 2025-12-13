@@ -3,6 +3,7 @@
 
 #include "ACMainGameState.h"
 
+#include "AnimalCrime.h"
 #include "Net/UnrealNetwork.h"
 
 #include "Character/ACTestMafiaCharacter.h"
@@ -13,6 +14,32 @@ void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	
 	DOREPLIFETIME(AACMainGameState, TeamScore);
 	DOREPLIFETIME(AACMainGameState, EscapeState);
+}
+
+void AACMainGameState::RegisterDestination(AActor* Actor)
+{
+	for (auto InObject:DestinationObjects)
+	{
+		if (InObject == Actor)
+		{
+			AC_LOG(LogHY, Error, TEXT("Already In..."));
+			return ;
+		}
+	}
+	
+	// 객체 추가.
+	DestinationObjects.Add(Actor);
+}
+
+AActor* AACMainGameState::GetDestinationActor() const
+{
+	if (DestinationObjects.Num() == 0)
+	{
+		return nullptr;
+	}
+	
+	// @InComplete
+	return DestinationObjects[0];
 }
 
 void AACMainGameState::ServerChangeEscapeState_Implementation(EEscapeState NewEscapeState)
