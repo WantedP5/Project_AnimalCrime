@@ -47,7 +47,7 @@ protected:
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 #pragma endregion
 
-	
+public:
 	FVector GetRunPosition(const FVector& Attack) const;
 	
 	UFUNCTION(BlueprintCallable)
