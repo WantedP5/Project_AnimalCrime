@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"UMG",
 				"Engine",
-				"CoreUObject"
+				"CoreUObject",
+				"AdvancedSessions"
 			]
 		}
 	],
@@ -22,6 +23,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "SteamSockets",
+			"Enabled": true
 		}
 	]
 }

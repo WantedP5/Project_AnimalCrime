@@ -1,6 +1,7 @@
 ﻿
 #include "ACMainPlayerController.h"
 #include "Blueprint/UserWidget.h"
+#include "ACTitlePlayerController.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
