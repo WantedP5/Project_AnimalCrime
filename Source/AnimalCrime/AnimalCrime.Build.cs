@@ -14,7 +14,7 @@ public class AnimalCrime : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem", "Niagara"});
 
         // 스팀 연동을 위한 모듈 추가 (작업자: 이상윤)
-        PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemUtils", "AdvancedSessions", "AdvancedSteamSessions", "NetCore" });
+        PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemUtils", "AdvancedSessions", "AdvancedSteamSessions", "NetCore", "SteamSockets" });
 
         // 모듈 경로도 Include할 때 검색하도록 설정.
         PublicIncludePaths.AddRange(new string[] {
