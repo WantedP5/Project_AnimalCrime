@@ -2,12 +2,15 @@
 
 #include "ACMainGameMode.h"
 
+#include "ACGameRuleManager.h"
 #include "ACMainGameState.h"
 #include "ACMainPlayerController.h"
 #include "NavigationSystem.h"
 #include "Character/ACCharacter.h"
 #include "Character/ACCitizen.h"
 #include "Character/ACTestMafiaCharacter.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 
 AACMainGameMode::AACMainGameMode()
 {
@@ -20,8 +23,23 @@ AACMainGameMode::AACMainGameMode()
 void AACMainGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	GenerateOutfitPool();
-	SpawnAllAI();
+	
+	// Game Rule Manager 생성 및 초기화
+	GameRuleManager = NewObject<UACGameRuleManager>(this);
+	GameRuleManager->Init(this);
+	
+	// GenerateOutfitPool();
+	// SpawnAllAI();
+}
+
+AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	Super::ChoosePlayerStart_Implementation(Player);
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+
+	int32 PlayerIndex = GameState ? GameState->PlayerArray.Num() - 1 : 0;
+	return PlayerStarts.Num() > 0 ? PlayerStarts[PlayerIndex % PlayerStarts.Num()] : nullptr;
 }
 
 void AACMainGameMode::AddTeamScore(int32 Score)
@@ -51,6 +69,28 @@ int32 AACMainGameMode::GetTeamScore() const
 		UE_LOG(LogTemp, Log, TEXT(" GetTeamScore Nullptr"));
 	}
 	return -1;
+}
+
+void AACMainGameMode::UpdateGameScoreFromPolice(EPoliceAction PoliceActionType, float Score)
+{
+	GameRuleManager->RewardPoliceForAction(PoliceActionType, Score);
+}
+
+void AACMainGameMode::UpdateGameScoreFromMafia(EMafiaAction MafiaActionType, float Score)
+{
+	GameRuleManager->RewardMafiaForAction(MafiaActionType, Score);
+}
+
+void AACMainGameMode::UpdateGameScoreFromObject(float Score)
+{
+	// @Todo: 나중에 구현
+}
+
+float AACMainGameMode::GetGameScore() const
+{
+	UE_LOG(LogTemp, Log, TEXT("[GetGameScore]에서 GameRuleManager->GetScoreGauge을 호출합니다."));
+
+	return GameRuleManager->GetScoreGauge();
 }
 
 void AACMainGameMode::SpawnAllAI()
