@@ -7,7 +7,13 @@
 #include "Item/ACItemData.h"
 #include "ACShopComponent.generated.h"
 
+/**
 
+    @class   UACShopComponent
+    @brief   상점 관련 데이터 로직을 수행하는 컴포넌트 클래스
+    @details 아이템을 구매 후 캐릭터에게 적용했을 때 남에게도 보여야 하므로 서버에게 요청(RPC)
+
+**/
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ANIMALCRIME_API UACShopComponent : public UActorComponent
 {

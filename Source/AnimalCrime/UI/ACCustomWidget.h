@@ -7,8 +7,12 @@
 #include "ACCustomWidget.generated.h"
 
 /**
- * 
- */
+
+    @class   UACCustomWidget
+    @brief   이 프로젝트의 모든 UI는 이것을 상속받도록 함
+    @details UserWidet클래스를 상속받아 만든 자체 Widget Class
+
+**/
 UCLASS()
 class ANIMALCRIME_API UACCustomWidget : public UUserWidget
 {

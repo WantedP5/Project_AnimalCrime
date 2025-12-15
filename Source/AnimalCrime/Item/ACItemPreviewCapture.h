@@ -6,6 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "ACItemPreviewCapture.generated.h"
 
+/**
+
+    @class   AACItemPreviewCapture
+    @brief   아이템 이미지를 찍기 위한 클래스
+    @details 아이템이 3D메시이고 이미지도 없어서 
+			 직접 에디터 월드에서 아이템을 찍어서 이미지를 만들기 위한 클래스
+
+**/
 UCLASS()
 class ANIMALCRIME_API AACItemPreviewCapture : public AActor
 {

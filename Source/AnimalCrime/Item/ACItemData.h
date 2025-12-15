@@ -19,15 +19,19 @@ enum class EClothingSlot : uint8
 {
     FullBody,   // 전신
     Head,       // 모자
-    FaceAcc,     // 악세사리
+    FaceAcc,    // 악세사리
     Top,        // 상의
     Bottom,     // 하의
     Shoes,      // 신발
 };
 
 /**
- * 
- */
+
+    @class   UACItemData
+    @brief   아이템 DA를 만들기 위한 클래스
+    @details 변수들을 선언해 아이템에 어떤 정보를 가지고 있을지 정함
+
+**/
 UCLASS()
 class ANIMALCRIME_API UACItemData : public UPrimaryDataAsset
 {

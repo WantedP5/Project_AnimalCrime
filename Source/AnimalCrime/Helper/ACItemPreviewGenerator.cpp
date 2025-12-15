@@ -19,15 +19,15 @@
 
 UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemData, AACItemPreviewCapture* PreviewCapture, const FString& SavePath)
 {
-    if (!ItemData || !PreviewCapture)
+    if (ItemData == nullptr || PreviewCapture == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: Invalid parameters"));
         return nullptr;
     }
 
-    // ⭐ 에디터 월드 가져오기
+    // 에디터 월드 가져오기
     UWorld* EditorWorld = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
-    if (!EditorWorld)
+    if (EditorWorld == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: No Editor World found"));
         return nullptr;
@@ -39,7 +39,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
     // 아이템 설정
     PreviewCapture->SetItemData(ItemData);
 
-    // ⭐⭐⭐ 핵심: 월드 틱을 수동으로 실행하여 렌더링 강제 ⭐⭐⭐
+    // 월드 틱을 수동으로 실행하여 렌더링 강제 
     EditorWorld->Tick(LEVELTICK_All, 0.1f); // 0.1초 틱
     FlushRenderingCommands();
 
@@ -49,7 +49,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
 
     // RenderTarget 가져오기
     UTextureRenderTarget2D* RenderTarget = PreviewCapture->GetRenderTarget();
-    if (!RenderTarget)
+    if (RenderTarget == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("GeneratePreviewForItem: RenderTarget is null"));
         return nullptr;
@@ -62,7 +62,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
     // RenderTarget을 Texture2D로 저장
     UTexture2D* SavedTexture = SaveRenderTargetAsTexture2D(RenderTarget, PackageName);
 
-    if (SavedTexture)
+    if (SavedTexture != nullptr)
     {
         ItemData->PreviewImage = SavedTexture;
         ItemData->MarkPackageDirty();
@@ -75,7 +75,7 @@ UTexture2D* UACItemPreviewGenerator::GeneratePreviewForItem(UACItemData* ItemDat
 
 int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AACItemPreviewCapture* PreviewCapture, const FString& SavePath)
 {
-    if (!PreviewCapture)
+    if (PreviewCapture == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("GenerateAllPreviews: PreviewCapture is null"));
         return 0;
@@ -103,10 +103,10 @@ int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AA
     for (const FAssetData& AssetData : AssetDataList)
     {
         UACItemData* ItemData = Cast<UACItemData>(AssetData.GetAsset());
-        if (ItemData)
+        if (ItemData != nullptr)
         {
             UTexture2D* PreviewTexture = GeneratePreviewForItem(ItemData, PreviewCapture, SavePath);
-            if (PreviewTexture)
+            if (PreviewTexture != nullptr)
             {
                 GeneratedCount++;
             }
@@ -119,14 +119,14 @@ int32 UACItemPreviewGenerator::GenerateAllPreviews(const FString& SearchPath, AA
 
 UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderTarget2D* RenderTarget, const FString& PackageName)
 {
-    if (!RenderTarget)
+    if (RenderTarget == nullptr)
     {
         return nullptr;
     }
 
     // RenderTarget 데이터를 읽어오기
     FTextureRenderTargetResource* RTResource = RenderTarget->GameThread_GetRenderTargetResource();
-    if (!RTResource)
+    if (RTResource == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("Failed to get RenderTarget resource"));
         return nullptr;
@@ -134,7 +134,7 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
 
     // 이미지 데이터 읽기
     TArray<FColor> SurfaceData;
-    if (!RTResource->ReadPixels(SurfaceData))
+    if (RTResource->ReadPixels(SurfaceData) == false)
     {
         UE_LOG(LogHG, Error, TEXT("Failed to read pixels from RenderTarget"));
         return nullptr;
@@ -178,7 +178,7 @@ UTexture2D* UACItemPreviewGenerator::SaveRenderTargetAsTexture2D(UTextureRenderT
     FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName,
         FPackageName::GetAssetPackageExtension());
 
-    if (UPackage::SavePackage(Package, NewTexture, *PackageFileName, SaveArgs))
+    if (UPackage::SavePackage(Package, NewTexture, *PackageFileName, SaveArgs) == true)
     {
         UE_LOG(LogHG, Log, TEXT("Successfully saved texture: %s"), *PackageName);
 

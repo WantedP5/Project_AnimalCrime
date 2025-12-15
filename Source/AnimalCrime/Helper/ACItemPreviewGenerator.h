@@ -7,9 +7,12 @@
 #include "ACItemPreviewGenerator.generated.h"
 
 /**
- *  에디터에서 아이템 프리뷰 이미지를 자동으로 생성하는 헬퍼 클래스
- *  (에디터 전용 - 런타임에서는 사용 불가)
- */
+
+    @class   UACItemPreviewGenerator
+    @brief   에디터 월드에서 찍었던 아이템의 이미지를 텍스쳐2D로 생성해주는 클래스
+    @details 에디터 전용이어서 런타임에서는 사용 불가 
+
+**/
 UCLASS(Blueprintable)
 class ANIMALCRIME_API UACItemPreviewGenerator : public UObject
 {

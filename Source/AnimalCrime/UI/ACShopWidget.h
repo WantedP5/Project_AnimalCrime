@@ -6,6 +6,7 @@
 #include "ACCustomWidget.h"
 #include "ACShopWidget.generated.h"
 
+
 UENUM()
 enum class EShopCategory
 {
@@ -19,8 +20,12 @@ enum class EShopCategory
 };
 
 /**
- * 
- */
+
+    @class   UACShopWidget
+    @brief   상점 위젯 클래스
+    @details 슬롯 위젯의 정보를 불러오고 생성해줌
+
+**/
 UCLASS()
 class ANIMALCRIME_API UACShopWidget : public UACCustomWidget
 {
@@ -35,7 +40,7 @@ public:
 public:
 	/**
 		@brief 모든 아이템 데이터를 로드하여 슬롯 생성
-		@param SearchPath - 아이템 검색 경로 (예: "/Game/Item/")
+		@param SearchPath - 아이템 검색 경로 (예: "/Game/Project/Item/")
 	**/
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	void LoadAndCreateSlots(const FString& SearchPath = TEXT("/Game/Project/Item/"));
@@ -49,6 +54,9 @@ public:
 
 private:
 
+ /**
+     @brief ===== 카테고리별 구매 버튼 클릭 이벤트 함수 =====
+ **/
 	UFUNCTION()
 	void OnWeaponButtonClicked();
 
@@ -67,7 +75,12 @@ private:
 	UFUNCTION()
 	void OnShoesButtonClicked();
 
-	void ShowCategory(EShopCategory Type);
+
+ /**
+     @brief 카테고리 보여주기
+     @param Category - 해당 카테고리 보여주기
+ **/
+	void ShowCategory(EShopCategory Category);
 
 protected:
 
@@ -102,9 +115,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> MyMoneyText;
-
-	//UPROPERTY()
-	//TArray<TObjectPtr<class UBorder>> Borders;
 
 	// ===== 설정 =====
 	

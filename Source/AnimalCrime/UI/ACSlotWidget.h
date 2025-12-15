@@ -7,8 +7,12 @@
 #include "ACSlotWidget.generated.h"
 
 /**
- * 
- */
+
+    @class   UACSlotWidget
+    @brief   상점의 슬롯 역할을 하는 클래스
+    @details 슬롯에 담길 정보를 변수로 선언
+
+**/
 UCLASS()
 class ANIMALCRIME_API UACSlotWidget : public UACCustomWidget
 {

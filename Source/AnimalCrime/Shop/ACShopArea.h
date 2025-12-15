@@ -7,6 +7,13 @@
 #include "Interface/ACInteractInterface.h"
 #include "ACShopArea.generated.h"
 
+/**
+
+    @class   AACShopArea
+    @brief   상점 구역에서 인터랙트를 하게 해주는 클래스
+    @details ACInteractInterface를 상속받아 오버라이드로 구현
+
+**/
 UCLASS()
 class ANIMALCRIME_API AACShopArea : public AActor, public IACInteractInterface
 {
@@ -18,8 +25,23 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual bool CanInteract(class AACCharacter* ACPlayer) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
-	virtual void OnInteract(class AACCharacter* ACPlayer) override;		// 실제 상호작용 로직(서버에서 실행) |
+ /**
+     @brief  누가 상호작용 가능한지 
+     @param  ACPlayer - 타입 체크를 위한 캐릭터 가져오기
+     @retval          - 마피아 또는 경찰(현재는 모두 가능하도록 바로 return true)
+ **/
+	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
+
+ /**
+     @brief 실제 상호작용 로직(서버에서 실행)
+     @param ACPlayer - 타입 체크를 위한 캐릭터 가져오기
+ **/
+	virtual void OnInteract(class AACCharacter* ACPlayer) override;
+
+ /**
+     @brief  어떤 이름을 가진 액터를 상호작용 할지 이름값 가져오는 함수
+     @retval  - 상점이므로 "Shop"
+ **/
 	virtual FString GetInteractableName() const override;
 
 protected:

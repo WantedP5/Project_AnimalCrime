@@ -124,10 +124,6 @@ void UACShopComponent::EquipClothing(UACItemData* ItemData)
 
     switch (ItemData->ClothingSlot)
     {
-   //case EClothingSlot::FullBody:
-     //   TargetMeshComponent = Character->GetTopMesh();
-       // break;
-
     case EClothingSlot::Head:
         TargetMeshComponent = Character->GetHeadMesh();
         if (GetOwner()->HasAuthority())

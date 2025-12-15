@@ -23,22 +23,22 @@ void UACShopWidget::NativeConstruct()
 	Super::NativeConstruct();
 
     // 버튼 이벤트 바인딩
-    if (WeaponButton)
+    if (WeaponButton != nullptr)
         WeaponButton->OnClicked.AddDynamic(this, &UACShopWidget::OnWeaponButtonClicked);
 
-    if (HeadButton)
+    if (HeadButton != nullptr)
         HeadButton->OnClicked.AddDynamic(this, &UACShopWidget::OnHeadButtonClicked);
 
-    if (FaceAccButton)
+    if (FaceAccButton != nullptr)
         FaceAccButton->OnClicked.AddDynamic(this, &UACShopWidget::OnFaceAccButtonClicked);
 
-    if (TopButton)
+    if (TopButton != nullptr)
         TopButton->OnClicked.AddDynamic(this, &UACShopWidget::OnTopButtonClicked);
 
-    if (BottomButton)
+    if (BottomButton != nullptr)
         BottomButton->OnClicked.AddDynamic(this, &UACShopWidget::OnBottomButtonClicked);
 
-    if (ShoesButton)
+    if (ShoesButton != nullptr)
         ShoesButton->OnClicked.AddDynamic(this, &UACShopWidget::OnShoesButtonClicked);
 
     // 보더 배열에 등록
@@ -62,14 +62,14 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
     // ===== AssetManager에서 자동으로 가져오기 =====
     UE_LOG(LogHG, Warning, TEXT("Attempting to get AssetManager..."));
 
-    if (!GEngine || !GEngine->AssetManager)
+    if (GEngine == nullptr || GEngine->AssetManager == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("GEngine or AssetManager is null!"));
         return;
     }
 
     UACAssetManager* AssetManager = Cast<UACAssetManager>(GEngine->AssetManager);
-    if (!AssetManager)
+    if (AssetManager == nullptr)
     {
         UE_LOG(LogHG, Error, TEXT("AssetManager is not UACAssetManager! Check DefaultEngine.ini AssetManagerClassName"));
         return;
@@ -97,7 +97,7 @@ void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
         return;
     }
 
-    // 타입별 분류
+    // 카테고리별 분류
     for (UACItemData* ItemData : AllItemData)
     {
         if (ItemData == nullptr) continue;
