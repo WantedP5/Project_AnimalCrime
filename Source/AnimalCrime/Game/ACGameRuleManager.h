@@ -98,10 +98,4 @@ private:
 	float GameScoreGauge = 5000.0f;
 	float MafiaWinThreshold = 0.0f;
 	float PoliceWinThreshold = 7000.0f;
-	
-	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = true))
-	FString LobbyMapName;
-	
-	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = true))
-	FString GameMapName;
 };

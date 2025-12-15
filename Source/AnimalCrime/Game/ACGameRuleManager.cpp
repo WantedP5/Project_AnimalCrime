@@ -10,8 +10,6 @@
 
 UACGameRuleManager::UACGameRuleManager()
 {
-	LobbyMapName = TEXT("LobbyMap");
-	GameMapName = TEXT("HenaMap");
 }
 
 void UACGameRuleManager::Init(AACMainGameMode* InGameMode)
@@ -134,20 +132,6 @@ void UACGameRuleManager::LoadNextMap()
 		UE_LOG(LogTemp, Warning, TEXT("%s 승리!"), TEXT("?????"));
 		return;
 	}
-	EMapType CurrentMapType = GameInstance->GetMapType();
-	UE_LOG(LogTemp, Log, TEXT("CurrentMap"))
-	switch (CurrentMapType)
-	{
-	case EMapType::Lobby:
-		GameInstance->UpdateMap(EMapType::Game);
-		GameMode->GetWorld()->ServerTravel(GameMapName);
-		break;
-	case EMapType::Game:
-		GameInstance->UpdateMap(EMapType::Lobby);
-		GameMode->GetWorld()->ServerTravel(LobbyMapName);
-		break;
-	default:
-		break;
-	}
 	
+	GameInstance->LoadLobbyMap();
 }
