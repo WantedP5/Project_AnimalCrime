@@ -43,7 +43,7 @@ EBTNodeResult::Type UBTTask_DecideDestinationPosition::ExecuteTask(UBehaviorTree
 	
 	
 	FVector DestinationPosition = DestinationActor->GetActorLocation();
-	FVector TargetLocation;
+	FVector TargetLocation = FVector::Zero();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 	FNavLocation Projected;
 	const FVector Extent(200.f, 200.f, 300.f);

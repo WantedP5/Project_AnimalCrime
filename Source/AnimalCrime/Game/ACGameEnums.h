@@ -27,4 +27,5 @@ enum class ESettingMode : uint8
 	None			UMETA(DisplayName = "Sholder"),		// 없음
 	Default			UMETA(DisplayName = "Sholder"),		// 기본 설정창
 	SteamFriendList	UMETA(DisplayName = "Settings"),	// 스팀 친구창
+	Interact		UMETA(DisplayName = "Interact"),    // 인터랙트
 };

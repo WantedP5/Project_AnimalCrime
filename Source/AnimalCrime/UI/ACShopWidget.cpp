@@ -12,6 +12,7 @@
 #include "ACSlotWidget.h"
 #include "Item/ACItemData.h"
 #include "Game/ACAssetManager.h"
+#include "Components/Image.h"
 
 UACShopWidget::UACShopWidget(const FObjectInitializer& ObjectInitializer)
 {

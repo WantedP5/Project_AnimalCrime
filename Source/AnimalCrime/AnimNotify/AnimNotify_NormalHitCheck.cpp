@@ -14,8 +14,6 @@ void UAnimNotify_NormalHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 	
-	UE_LOG(LogTemp, Log, TEXT("QWER")); 
-	
 	AACCharacter* Character = Cast<AACCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr)
 	{

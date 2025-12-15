@@ -15,12 +15,10 @@ class ANIMALCRIME_API UACDestroyableStatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-#pragma region 특수 맴버 함수
+#pragma region 생성자
 public:
-	
 	UACDestroyableStatComponent();
 #pragma endregion
-
 
 #pragma region 엔진 제공 함수
 public:

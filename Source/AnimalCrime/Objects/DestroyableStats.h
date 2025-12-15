@@ -22,5 +22,5 @@ struct FDestroyableStats
 	
 	/** 파괴 시 획득 가능한 점수 */
 	UPROPERTY(EditAnywhere)
-	float ScorePoint = 10;
+	float ScorePoint = 5000;
 };
