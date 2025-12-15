@@ -3,6 +3,7 @@
 
 #include "ACGameRuleManager.h"
 
+#include "ACMainGameInstance.h"
 #include "ACMainGameMode.h"
 #include "ACMainGameState.h"
 #include "Kismet/GameplayStatics.h"
@@ -127,5 +128,26 @@ void UACGameRuleManager::HandleVictory()
 void UACGameRuleManager::LoadNextMap()
 {
 	// @Todo: World 체크해야할 수도...
-	GameMode->GetWorld()->ServerTravel(LobbyMapName);
+	UACMainGameInstance* GameInstance = GetOwner()->GetWorld()->GetGameInstance<UACMainGameInstance>();
+	if (GameInstance == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s 승리!"), TEXT("?????"));
+		return;
+	}
+	EMapType CurrentMapType = GameInstance->GetMapType();
+	UE_LOG(LogTemp, Log, TEXT("CurrentMap"))
+	switch (CurrentMapType)
+	{
+	case EMapType::Lobby:
+		GameInstance->UpdateMap(EMapType::Game);
+		GameMode->GetWorld()->ServerTravel(GameMapName);
+		break;
+	case EMapType::Game:
+		GameInstance->UpdateMap(EMapType::Lobby);
+		GameMode->GetWorld()->ServerTravel(LobbyMapName);
+		break;
+	default:
+		break;
+	}
+	
 }
