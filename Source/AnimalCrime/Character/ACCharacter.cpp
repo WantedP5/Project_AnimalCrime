@@ -518,7 +518,6 @@ bool AACCharacter::SortNearInteractables()
 
 void AACCharacter::MulticastPlayAttackMontage_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("Multicast"));
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(MeleeMontage, 2.0f);
