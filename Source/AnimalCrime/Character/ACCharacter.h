@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Game/ACGameEnums.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Interface/ACInteractInterface.h"
@@ -23,6 +24,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+ /**
+     @brief 현재 입력매핑 컨텍스트를 전부 지우고 새로운 입력매핑 컨텍스트로 바꾸는 함수
+     @param NewMode - 입력모드 Enum
+ **/
+	void ChangeInputMode(EInputMode NewMode);
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -30,6 +38,9 @@ protected:
 	virtual void ItemDrop(const FInputActionValue& Value);
 	
 	virtual void Attack();
+
+	virtual void SetSteamFriendsList(const FInputActionValue& Value);
+	virtual void SettingsClose(const FInputActionValue& Value);
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
@@ -86,7 +97,7 @@ protected:
 	TObjectPtr<class UCameraComponent> FollowCamera;
 
 protected:
-	//!< 키 입력
+	//!< 기본 키 입력
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -103,7 +114,17 @@ protected:
 	/** Input Action: 기본 공격 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Input", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> MeleeAction;
-	
+
+	//!< 스팀 친구창 띄우기 <- 키 입력 컨트롤러로 이전 시 LobbyController로 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> SteamFriendListAction;
+
+	//!< 설정창 키 입력
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputMappingContext> SettingsMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> SettingsCloseAction;
+
 	/** 몽타주: 기본 공격  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> MeleeMontage;
@@ -144,4 +165,7 @@ protected:
 	// 상점 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	TObjectPtr<class UACShopComponent> ShopComponent;
+
+protected:
+	ESettingMode SettingMode = ESettingMode::None;
 };

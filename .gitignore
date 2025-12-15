@@ -62,6 +62,9 @@ SourceArt/**/*.tga
 Binaries/*
 Plugins/**/Binaries/*
 
+# steam_appid.txt 는 예외로 추적
+!Binaries/Win64/steam_appid.txt
+
 # Builds
 Build/*
 

@@ -12,7 +12,10 @@ public class AnimalCrime : ModuleRules
 
         // 모듈 추가 (작업자: 나희영)
         PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem", "Niagara"});
-        
+
+        // 스팀 연동을 위한 모듈 추가 (작업자: 이상윤)
+        PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemUtils", "AdvancedSessions", "AdvancedSteamSessions", "NetCore", "SteamSockets" });
+
         // 모듈 경로도 Include할 때 검색하도록 설정.
         PublicIncludePaths.AddRange(new string[] {
             "AnimalCrime"
@@ -26,11 +29,5 @@ public class AnimalCrime : ModuleRules
         {
             PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "EditorSubsystem", "LevelEditor" });
         }
-
-
-        // Uncomment if you are using online features
-        // PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-        // To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
     }
 }

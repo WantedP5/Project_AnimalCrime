@@ -21,6 +21,8 @@
 
 #include "AnimalCrime.h"
 
+#include "Game/ACLobbyPlayerController.h"
+
 #include "Component/ACShopComponent.h"
 #include "UI/ACShopWidget.h"
 
@@ -141,7 +143,7 @@ AACCharacter::AACCharacter()
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
-	//입력
+	//기본 키 입력
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
 	if (InputMappingContextRef.Succeeded())
 	{
@@ -184,7 +186,25 @@ AACCharacter::AACCharacter()
 	{
 		MeleeAction = MeleeActionRef.Object;
 	}
-	
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> SteamFriendListActionRef(TEXT("/Game/Project/Input/Actions/IA_SteamFriendList.IA_SteamFriendList"));
+	if (SteamFriendListActionRef.Succeeded())
+	{
+		SteamFriendListAction = SteamFriendListActionRef.Object;
+	}
+
+	//설정창 키 입력
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
+	if (SettingsMappingContextRef.Succeeded())
+	{
+		SettingsMappingContext = SettingsMappingContextRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
+	if (SettingsCloseActionRef.Succeeded())
+	{
+		SettingsCloseAction = SettingsCloseActionRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
 	if (MeleeMontageRef.Succeeded())
 	{
@@ -202,6 +222,36 @@ void AACCharacter::BeginPlay()
 {
 
 	Super::BeginPlay();
+}
+
+void AACCharacter::ChangeInputMode(EInputMode NewMode)
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (Subsystem == nullptr)
+	{
+		return;
+	}
+
+	// 현재 등록된 모든 매핑 제거
+	Subsystem->ClearAllMappings();
+
+	// 새로운 Context 추가
+	switch (NewMode)
+	{
+	case EInputMode::Sholder:
+		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		break;
+	case EInputMode::Settings:
+		Subsystem->AddMappingContext(SettingsMappingContext, 0);
+		break;
+	default:
+		break;
+	}
 }
 
 void AACCharacter::Move(const FInputActionValue& Value)
@@ -263,6 +313,50 @@ void AACCharacter::Attack()
 	{
 		ServerAttack();
 	}
+}
+
+void AACCharacter::SetSteamFriendsList(const FInputActionValue& Value)
+{
+	AACLobbyPlayerController* PC = Cast<AACLobbyPlayerController>(GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	//설정창이 꺼져있으면 스팀친구창 오픈, 스팀 친구창이 켜져있으면 끄기, 다른 설정창이면 아무것도 안함.
+	if (SettingMode == ESettingMode::None)
+	{
+		PC->SteamFriendListToggle(true);
+		ChangeInputMode(EInputMode::Settings);
+		SettingMode = ESettingMode::SteamFriendList;
+	}
+	else if (SettingMode == ESettingMode::SteamFriendList)
+	{
+		PC->SteamFriendListToggle(false);
+		ChangeInputMode(EInputMode::Sholder);
+		SettingMode = ESettingMode::None;
+	}
+
+}
+
+void AACCharacter::SettingsClose(const FInputActionValue& Value)
+{
+	switch (SettingMode)
+	{
+	case ESettingMode::None:
+		break;
+	case ESettingMode::Default:
+		break;
+	case ESettingMode::SteamFriendList:
+		SetSteamFriendsList(Value);
+		break;
+
+	default:
+		break;
+	}
+	
+	//ChangeInputMode(EInputMode::Sholder);
+	//SettingMode = ESettingMode::None;
 }
 
 void AACCharacter::ServerInteract_Implementation()
@@ -468,6 +562,8 @@ void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACCharacter::Interact);
 	EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Triggered, this, &AACCharacter::ItemDrop);
 	EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AACCharacter::Attack);
+	EnhancedInputComponent->BindAction(SteamFriendListAction, ETriggerEvent::Triggered, this, &AACCharacter::SetSteamFriendsList);
+	EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Triggered, this, &AACCharacter::SettingsClose);
 }
 
 
