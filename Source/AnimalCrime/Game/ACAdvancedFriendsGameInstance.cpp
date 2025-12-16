@@ -99,7 +99,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
             // }
             // else
             // {
-                World->ServerTravel("/Game/Project/Map/henaMap");
+                World->ServerTravel("/Game/Project/Map/henaMap?listen");
             //}
             // if (GEngine->IsEditor() && World->WorldType == EWorldType::PIE)
             // {
