@@ -15,10 +15,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//!< 상호작용 인터페이스
 protected:
-	virtual bool CanInteract(AACCharacter* ACPlayer) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
-	virtual void OnInteract(AACCharacter* ACPlayer) override;		// 실제 상호작용 로직(서버에서 실행) |
+	virtual bool CanInteract(AACCharacter* ACPlayer) override;
+	virtual void OnInteract(AACCharacter* ACPlayer) override;
 	virtual FString GetInteractableName() const override;
+
+
 public:
 /**
 	@brief 클라이언트에서 폭탄 설치 가능 영역 표시 여부를 갱신함.

@@ -13,6 +13,11 @@ class UACInteractInterface : public UInterface
 	GENERATED_BODY()
 };
 
+
+/**
+    @enum  EACCharacterType
+    @brief 캐릭터의 타입 체크에 사용되는 열거형
+**/
 UENUM(BlueprintType)
 enum class EACCharacterType : uint8
 {
@@ -24,8 +29,12 @@ enum class EACCharacterType : uint8
 };
 
 /**
- *
- */
+
+    @class   IACInteractInterface
+    @brief   상호작용의 구체적인 구현을 위한 인터페이스.
+    @details ~ 플레이어와의 상호작용을 위해서라면 반드시 상속받아야한다.
+
+**/
 class ANIMALCRIME_API IACInteractInterface
 {
 	GENERATED_BODY()
@@ -54,5 +63,18 @@ public:
 	//virtual void OnInteractRangeEnter() = 0;				// Exit | 범위 진입 / 이탈 시(UI 힌트 표시용) |
 
 protected:
+/**
+	@brief 화면에 붉은 글씨로 플레이어와 충돌 액터를 표시.
+	상호작용 확인이 필요시, OnInteraction에 호출함.
+	@param ACPlayer - OnInteraction에서 받은 오버랩된 플레이어
+**/
 	void ShowInteractDebug(class AACCharacter* ACPlayer);
+
+private:
+
+
+
+public:
+protected:
+private:
 };

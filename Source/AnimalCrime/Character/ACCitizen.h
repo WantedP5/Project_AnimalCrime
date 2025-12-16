@@ -38,13 +38,11 @@ public:	// 좌표
 	FVector GetNextPosition() const;
 	
 #pragma region 인터랙션 인터페이스
+	//!< 상호작용 인터페이스
 protected:
 	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
 	virtual void OnInteract(class AACCharacter* ACPlayer) override;
 	virtual FString GetInteractableName() const override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
-	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 #pragma endregion
 
 public:
@@ -65,6 +63,9 @@ public:
 public:
 
 protected:
+	//!< 상호작용 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 	
 public:
 	UPROPERTY(meta=(AllowPrivateAccess=true))

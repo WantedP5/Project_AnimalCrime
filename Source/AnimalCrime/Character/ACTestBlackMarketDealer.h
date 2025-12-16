@@ -14,9 +14,11 @@ public:
 	AACTestBlackMarketDealer();
 
 	virtual EACCharacterType GetCharacterType() override;
+
+	//!< 상호작용 인터페이스
 protected:
-	virtual bool CanInteract(class AACCharacter* ACPlayer) override;		// 누가 상호작용 가능한지(캐릭터 타입 체크) |
-	virtual void OnInteract(class AACCharacter* ACPlayer) override;		// 실제 상호작용 로직(서버에서 실행) |
+	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
+	virtual void OnInteract(class AACCharacter* ACPlayer) override;
 	virtual FString GetInteractableName() const override;
 
 protected:
