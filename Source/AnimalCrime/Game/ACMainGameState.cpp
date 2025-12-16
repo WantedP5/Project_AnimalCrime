@@ -6,7 +6,7 @@
 #include "AnimalCrime.h"
 #include "Net/UnrealNetwork.h"
 
-#include "Character/ACTestMafiaCharacter.h"
+#include "Character/ACMafiaCharacter.h"
 
 void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -55,7 +55,7 @@ void AACMainGameState::ServerChangeEscapeState_Implementation(EEscapeState NewEs
 	case EEscapeState::Escape:
 
 		//마피아들의 폭탄설치가능구역 Visible 끄기
-		for (AACTestMafiaCharacter* Mafia : MafiaPlayers)
+		for (AACMafiaCharacter* Mafia : MafiaPlayers)
 		{
 			if (Mafia == nullptr)
 			{

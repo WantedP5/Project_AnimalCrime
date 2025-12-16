@@ -21,6 +21,12 @@ public:
 	void UpdatePlayerReadyText(int32 AllplayerNum);
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
+
+	// ===== 입력 처리 핸들러 =====
+protected:
+	void HandleSteamFriendList(const struct FInputActionValue& Value);
+	void HandleGameReady(const struct FInputActionValue& Value);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
@@ -32,4 +38,11 @@ protected:
 	TSubclassOf<class UUserWidget> SteamFriendListClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<class UUserWidget> SteamFriendList;
+
+	// ===== 입력 관련 =====
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> SteamFriendListAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ReadyAction;
 };

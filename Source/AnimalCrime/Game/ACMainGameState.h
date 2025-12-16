@@ -48,7 +48,7 @@ public:
 public:
 //!< 서버 전용. Replicated 안 함.
 	UPROPERTY()
-	TArray<TObjectPtr<class AACTestMafiaCharacter>> MafiaPlayers;
+	TArray<TObjectPtr<class AACMafiaCharacter>> MafiaPlayers;
 	
 private:
 	/** 목적지 정보 */

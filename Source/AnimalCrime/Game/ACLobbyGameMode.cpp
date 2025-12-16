@@ -3,7 +3,7 @@
 #include "ACLobbyPlayerController.h"
 #include "ACLobbyGameState.h"
 #include "Character/ACLobbyCharacter.h"
-#include "Character/ACTestMafiaCharacter.h"
+#include "Character/ACMafiaCharacter.h"
 #include "AnimalCrime.h"
 
 AACLobbyGameMode::AACLobbyGameMode()

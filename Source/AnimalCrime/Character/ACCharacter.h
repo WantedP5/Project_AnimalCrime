@@ -14,7 +14,6 @@ class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterf
 
 public:
 	AACCharacter();
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
  /**
      @brief  캐릭터 정보를 반환하는 함수. 캐릭터 베이스는 시민.
      @retval  - 캐릭터 정보 Enum
@@ -31,15 +30,15 @@ public:
  **/
 	void ChangeInputMode(EInputMode NewMode);
 
-protected:
+	// ===== 입력 핸들러 (PlayerController가 호출) =====
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	virtual void Interact(const FInputActionValue& Value); 
+	virtual void Interact(const FInputActionValue& Value);
 	virtual void ItemDrop(const FInputActionValue& Value);
-	
 	virtual void Attack();
-
 	virtual void SettingsClose(const FInputActionValue& Value);
+
+protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
@@ -88,30 +87,6 @@ protected:
 	TObjectPtr<class UCameraComponent> FollowCamera;
 
 protected:
-	//!< 기본 키 입력
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> MoveAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> InteractAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ItemDropAction;
-	
-	/** Input Action: 기본 공격 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Input", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> MeleeAction;
-
-	//!< 설정창 키 입력
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputMappingContext> SettingsMappingContext;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> SettingsCloseAction;
-
 	/** 몽타주: 기본 공격  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> MeleeMontage;

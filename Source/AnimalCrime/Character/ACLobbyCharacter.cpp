@@ -5,33 +5,6 @@
 
 AACLobbyCharacter::AACLobbyCharacter()
 {
-	static ConstructorHelpers::FObjectFinder<UInputAction> SteamFriendListActionRef(TEXT("/Game/Project/Input/Actions/IA_SteamFriendList.IA_SteamFriendList"));
-	if (SteamFriendListActionRef.Succeeded())
-	{
-		SteamFriendListAction = SteamFriendListActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> ReadyActionRef(TEXT("/Game/Project/Input/Actions/IA_Ready.IA_Ready"));
-	if (ReadyActionRef.Succeeded())
-	{
-		ReadyAction = ReadyActionRef.Object;
-	}
-}
-
-void AACLobbyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-
-	EnhancedInputComponent->BindAction(SteamFriendListAction, ETriggerEvent::Triggered, this, &AACLobbyCharacter::SetSteamFriendsList);
-	EnhancedInputComponent->BindAction(ReadyAction, ETriggerEvent::Triggered, this, &AACLobbyCharacter::GameReady);
 }
 
 void AACLobbyCharacter::SetSteamFriendsList(const FInputActionValue& Value)

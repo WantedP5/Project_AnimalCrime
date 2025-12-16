@@ -8,7 +8,7 @@
 #include "NavigationSystem.h"
 #include "Character/ACCharacter.h"
 #include "Character/ACCitizen.h"
-#include "Character/ACTestMafiaCharacter.h"
+#include "Character/ACMafiaCharacter.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -16,7 +16,7 @@ AACMainGameMode::AACMainGameMode()
 {
 	PlayerControllerClass = AACMainPlayerController::StaticClass();
 	//DefaultPawnClass = AACCharacter::StaticClass();
-	DefaultPawnClass = AACTestMafiaCharacter::StaticClass();
+	DefaultPawnClass = AACMafiaCharacter::StaticClass();
 	GameStateClass = AACMainGameState::StaticClass();
 }
 

@@ -2,6 +2,9 @@
 #include "ACLobbyPlayerController.h"
 #include "UI/GameStart/ACLobbyScreen.h"
 #include "Blueprint/UserWidget.h"
+#include "EnhancedInputComponent.h"
+#include "InputActionValue.h"
+#include "Character/ACLobbyCharacter.h"
 #include "AnimalCrime.h"
 
 AACLobbyPlayerController::AACLobbyPlayerController()
@@ -18,6 +21,19 @@ AACLobbyPlayerController::AACLobbyPlayerController()
     if (SteamFriendListRef.Succeeded())
     {
         SteamFriendListClass = SteamFriendListRef.Class;
+    }
+
+    // ===== 입력 관련 로드 =====
+    static ConstructorHelpers::FObjectFinder<UInputAction> SteamFriendListActionRef(TEXT("/Game/Project/Input/Actions/IA_SteamFriendList.IA_SteamFriendList"));
+    if (SteamFriendListActionRef.Succeeded())
+    {
+        SteamFriendListAction = SteamFriendListActionRef.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> ReadyActionRef(TEXT("/Game/Project/Input/Actions/IA_GameReady.IA_GameReady"));
+    if (ReadyActionRef.Succeeded())
+    {
+        ReadyAction = ReadyActionRef.Object;
     }
 }
 
@@ -89,4 +105,44 @@ void AACLobbyPlayerController::BeginPlay()
 
     // SteamFriendList 생성
     SteamFriendList = CreateWidget<UUserWidget>(this, SteamFriendListClass);
+}
+
+void AACLobbyPlayerController::SetupInputComponent()
+{
+    Super::SetupInputComponent();
+
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+    if (EnhancedInputComponent == nullptr)
+    {
+        AC_LOG(LogTemp, Error, TEXT("EnhancedInputComponent is nullptr"));
+        return;
+    }
+
+    // 입력 액션 바인딩
+    if (SteamFriendListAction)
+    {
+        EnhancedInputComponent->BindAction(SteamFriendListAction, ETriggerEvent::Started, this, &AACLobbyPlayerController::HandleSteamFriendList);
+    }
+    if (ReadyAction)
+    {
+        EnhancedInputComponent->BindAction(ReadyAction, ETriggerEvent::Started, this, &AACLobbyPlayerController::HandleGameReady);
+    }
+}
+
+void AACLobbyPlayerController::HandleSteamFriendList(const FInputActionValue& Value)
+{
+    AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
+    if (LobbyChar)
+    {
+        LobbyChar->SetSteamFriendsList(Value);
+    }
+}
+
+void AACLobbyPlayerController::HandleGameReady(const FInputActionValue& Value)
+{
+    AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
+    if (LobbyChar)
+    {
+        LobbyChar->GameReady(Value);
+    }
 }

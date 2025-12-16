@@ -51,5 +51,5 @@ protected:
 public:
 	//!< 누가 이 폭탄을 들고 있는지 저장하는 변수
 	UPROPERTY(ReplicatedUsing = OnRep_AttachedCharacter)
-	TObjectPtr<class AACTestMafiaCharacter> AttachedCharacter;
+	TObjectPtr<class AACMafiaCharacter> AttachedCharacter;
 };

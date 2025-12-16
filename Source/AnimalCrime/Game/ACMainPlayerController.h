@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Game/ACGameEnums.h"
 #include "ACMainPlayerController.generated.h"
 
 /**
@@ -19,6 +20,25 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
+
+	// ===== 입력 처리 핸들러 =====
+protected:
+	void HandleMove(const struct FInputActionValue& Value);
+	void HandleLook(const struct FInputActionValue& Value);
+	void HandleJump(const struct FInputActionValue& Value);
+	void HandleStopJumping(const struct FInputActionValue& Value);
+	void HandleInteract(const struct FInputActionValue& Value);
+	void HandleItemDrop(const struct FInputActionValue& Value);
+	void HandleAttack(const struct FInputActionValue& Value);
+	void HandleSettingsClose(const struct FInputActionValue& Value);
+
+public:
+	/**
+		@brief 입력 모드 변경 (기본 입력 ↔ 설정 메뉴 입력)
+		@param NewMode - 새로운 입력 모드
+	**/
+	void ChangeInputMode(EInputMode NewMode);
 
 public:
 	UFUNCTION(Client, Reliable)
@@ -55,6 +75,29 @@ protected:
 	TSubclassOf<class UUserWidget> EscapeScreenClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<class UUserWidget> EscapeScreen;
+
+	// ===== 입력 관련 =====
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> MoveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> JumpAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> InteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ItemDropAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> MeleeAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputMappingContext> SettingsMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> SettingsCloseAction;
 
 
     // ===== 상점 관련 =====

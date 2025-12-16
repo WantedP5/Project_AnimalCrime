@@ -145,62 +145,6 @@ AACCharacter::AACCharacter()
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
-	//기본 키 입력
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
-	if (InputMappingContextRef.Succeeded())
-	{
-		DefaultMappingContext = InputMappingContextRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project/Input/Actions/IA_Move.IA_Move"));
-	if (MoveActionRef.Succeeded())
-	{
-		MoveAction = MoveActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project/Input/Actions/IA_Look.IA_Look"));
-	if (LookActionRef.Succeeded())
-	{
-		LookAction = LookActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project/Input/Actions/IA_Jump.IA_Jump"));
-	if (JumpActionRef.Succeeded())
-	{
-		JumpAction = JumpActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project/Input/Actions/IA_Interact.IA_Interact"));
-	if (InteractActionRef.Succeeded())
-	{
-		InteractAction = InteractActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> ItemDropActionRef(TEXT("/Game/Project/Input/Actions/IA_ItemDrop.IA_ItemDrop"));
-	if (ItemDropActionRef.Succeeded())
-	{
-		ItemDropAction = ItemDropActionRef.Object;
-	}
-	
-	// 
-	static ConstructorHelpers::FObjectFinder<UInputAction> MeleeActionRef(TEXT("/Game/Project/Input/Actions/IA_Attack.IA_Attack"));
-	if (MeleeActionRef.Succeeded())
-	{
-		MeleeAction = MeleeActionRef.Object;
-	}
-
-	//설정창 키 입력
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
-	if (SettingsMappingContextRef.Succeeded())
-	{
-		SettingsMappingContext = SettingsMappingContextRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
-	if (SettingsCloseActionRef.Succeeded())
-	{
-		SettingsCloseAction = SettingsCloseActionRef.Object;
-	}
-
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
 	if (MeleeMontageRef.Succeeded())
 	{
@@ -223,31 +167,10 @@ void AACCharacter::BeginPlay()
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
 {
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC)
 	{
-		return;
-	}
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (Subsystem == nullptr)
-	{
-		return;
-	}
-
-	// 현재 등록된 모든 매핑 제거
-	Subsystem->ClearAllMappings();
-
-	// 새로운 Context 추가
-	switch (NewMode)
-	{
-	case EInputMode::Sholder:
-		Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		break;
-	case EInputMode::Settings:
-		Subsystem->AddMappingContext(SettingsMappingContext, 0);
-		break;
-	default:
-		break;
+		PC->ChangeInputMode(NewMode);
 	}
 }
 
@@ -500,38 +423,6 @@ void AACCharacter::ServerItemDrop_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
 }
-
-
-void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (InputSystem == nullptr)
-	{
-		return;
-	}
-
-	InputSystem->AddMappingContext(DefaultMappingContext, 0);
-	
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AACCharacter::Move);
-	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AACCharacter::Look);
-	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACCharacter::Interact);
-	EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Triggered, this, &AACCharacter::ItemDrop);
-	EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AACCharacter::Attack);
-	//EnhancedInputComponent->BindAction(SteamFriendListAction, ETriggerEvent::Triggered, this, &AACCharacter::SetSteamFriendsList);
-	EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Triggered, this, &AACCharacter::SettingsClose);
-}
-
 
 EACCharacterType AACCharacter::GetCharacterType()
 {

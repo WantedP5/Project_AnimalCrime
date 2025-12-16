@@ -2,7 +2,7 @@
 #include "ACEscapeMissionBomb.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Character/ACTestMafiaCharacter.h"
+#include "Character/ACMafiaCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "Component/ACInteractableComponent.h"
 #include "Game/ACMainGameState.h"
@@ -150,7 +150,7 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 {
 	ShowInteractDebug(ACPlayer);
 
-	AACTestMafiaCharacter* ACPlayerMafia = Cast<AACTestMafiaCharacter>(ACPlayer);
+	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 
 	if (ACPlayerMafia == nullptr)
 	{

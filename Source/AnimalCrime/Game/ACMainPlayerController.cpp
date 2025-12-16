@@ -5,9 +5,12 @@
 #include "UI/Shop/ACShopWidget.h"
 #include "AnimalCrime.h"
 #include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+#include "InputActionValue.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Character/ACCharacter.h"
+#include "EnhancedInput/Public/InputMappingContext.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -17,6 +20,61 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		EscapeScreenClass = EscapeScreenRef.Class;
 	}
+
+	// ===== 입력 관련 로드 =====
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
+	if (DefaultMappingContextRef.Succeeded())
+	{
+		DefaultMappingContext = DefaultMappingContextRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
+	if (SettingsMappingContextRef.Succeeded())
+	{
+		SettingsMappingContext = SettingsMappingContextRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project/Input/Actions/IA_Move.IA_Move"));
+	if (MoveActionRef.Succeeded())
+	{
+		MoveAction = MoveActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project/Input/Actions/IA_Look.IA_Look"));
+	if (LookActionRef.Succeeded())
+	{
+		LookAction = LookActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project/Input/Actions/IA_Jump.IA_Jump"));
+	if (JumpActionRef.Succeeded())
+	{
+		JumpAction = JumpActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project/Input/Actions/IA_Interact.IA_Interact"));
+	if (InteractActionRef.Succeeded())
+	{
+		InteractAction = InteractActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> ItemDropActionRef(TEXT("/Game/Project/Input/Actions/IA_ItemDrop.IA_ItemDrop"));
+	if (ItemDropActionRef.Succeeded())
+	{
+		ItemDropAction = ItemDropActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> MeleeActionRef(TEXT("/Game/Project/Input/Actions/IA_Attack.IA_Attack"));
+	if (MeleeActionRef.Succeeded())
+	{
+		MeleeAction = MeleeActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
+	if (SettingsCloseActionRef.Succeeded())
+	{
+		SettingsCloseAction = SettingsCloseActionRef.Object;
+	}
 }
 
 void AACMainPlayerController::BeginPlay()
@@ -25,6 +83,151 @@ void AACMainPlayerController::BeginPlay()
 
 	//ConsoleCommand(TEXT("show Collision"));
 	ConsoleCommand(TEXT("Stat FPS"));
+}
+
+void AACMainPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	// Enhanced Input Component 획득
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+	if (EnhancedInputComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("EnhancedInputComponent is nullptr"));
+		return;
+	}
+
+	// Enhanced Input Subsystem에 기본 매핑 컨텍스트 추가
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		if (DefaultMappingContext)
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+
+	// 입력 액션 바인딩
+	if (MoveAction)
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleMove);
+	}
+	if (LookAction)
+	{
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleLook);
+	}
+	if (JumpAction)
+	{
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleStopJumping);
+	}
+	if (InteractAction)
+	{
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleInteract);
+	}
+	if (ItemDropAction)
+	{
+		EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleItemDrop);
+	}
+	if (MeleeAction)
+	{
+		EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleAttack);
+	}
+	if (SettingsCloseAction)
+	{
+		EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSettingsClose);
+	}
+}
+
+// ===== 입력 핸들러 구현 =====
+void AACMainPlayerController::HandleMove(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->Move(Value);
+	}
+}
+
+void AACMainPlayerController::HandleLook(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->Look(Value);
+	}
+}
+
+void AACMainPlayerController::HandleJump(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->Jump();
+	}
+}
+
+void AACMainPlayerController::HandleStopJumping(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->StopJumping();
+	}
+}
+
+void AACMainPlayerController::HandleInteract(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->Interact(Value);
+	}
+}
+
+void AACMainPlayerController::HandleItemDrop(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->ItemDrop(Value);
+	}
+}
+
+void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->Attack();
+	}
+}
+
+void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->SettingsClose(Value);
+	}
+}
+
+void AACMainPlayerController::ChangeInputMode(EInputMode NewMode)
+{
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		// 모든 매핑 컨텍스트 제거
+		Subsystem->ClearAllMappings();
+
+		// 모드에 따라 적절한 매핑 컨텍스트 추가
+		if (NewMode == EInputMode::Sholder && DefaultMappingContext)
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+		else if (NewMode == EInputMode::Settings && SettingsMappingContext)
+		{
+			Subsystem->AddMappingContext(SettingsMappingContext, 0);
+		}
+	}
 }
 
 void AACMainPlayerController::ShowEscapeUI_Implementation()
@@ -78,16 +281,12 @@ void AACMainPlayerController::ClientToggleShopWidget_Implementation(TSubclassOf<
             SetInputMode(InputMode);
 
             SetShowMouseCursor(true); // 마우스 커서 보이도록
-  
+
             // 상점의 슬롯들 로드
             ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
 
-            // Character의 입력 모드도 변경
-            AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-            if (ControlledCharacter != nullptr)
-            {
-                ControlledCharacter->ChangeInputMode(EInputMode::Settings);
-            }
+            // 입력 모드 변경
+            ChangeInputMode(EInputMode::Settings);
         }
     }
 }
@@ -117,12 +316,8 @@ void AACMainPlayerController::CloseShop()
     InputMode.SetConsumeCaptureMouseDown(false);
     SetInputMode(InputMode);
 
-    // Character의 입력 모드도 변경
-    AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-    if (ControlledCharacter != nullptr)
-    {
-        ControlledCharacter->ChangeInputMode(EInputMode::Sholder);
-    }
+    // 입력 모드 변경
+    ChangeInputMode(EInputMode::Sholder);
 }
 
 void AACMainPlayerController::SetShopCamera()
