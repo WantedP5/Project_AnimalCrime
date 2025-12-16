@@ -7,6 +7,8 @@
 #include "GameFramework/GameState.h"
 #include "ACMainGameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChanged, float, NewScore);
+
 /**
  * 
  */
@@ -23,9 +25,21 @@ public:
 	void ServerChangeEscapeState(EEscapeState NewEscapeState);
 
 public:
+public:
+	FOnScoreChanged OnScoreChanged;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_TeamScore)
+	float TeamScore = 5000;
+	
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int32 TeamScore = 0;
+	float MaxScore = 7000;
+	
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	float MinScore = 0;
 
+	UFUNCTION()
+	void OnRep_TeamScore();
+	
 public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterDestination(AActor* Actor);
@@ -43,14 +57,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<class AACEscapeArea>> EscapeAreas;
 	
-	
-
 public:
 //!< 서버 전용. Replicated 안 함.
 	UPROPERTY()
 	TArray<TObjectPtr<class AACTestMafiaCharacter>> MafiaPlayers;
 	
 private:
+	
+	
+	
 	/** 목적지 정보 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TArray<TObjectPtr<class AActor>> DestinationObjects;

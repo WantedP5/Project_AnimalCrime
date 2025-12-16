@@ -16,6 +16,13 @@ void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AACMainGameState, EscapeState);
 }
 
+void AACMainGameState::OnRep_TeamScore()
+{
+	UE_LOG(LogTemp, Error, TEXT("OnRep_Score 호출 :%f"), TeamScore);
+	
+	OnScoreChanged.Broadcast(TeamScore);
+}
+
 void AACMainGameState::RegisterDestination(AActor* Actor)
 {
 	for (auto InObject:DestinationObjects)
