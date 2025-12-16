@@ -48,7 +48,7 @@ void AACMainGameMode::AddTeamScore(int32 Score)
 	AACMainGameState* MainGameState = GetGameState<AACMainGameState>();
 	if (MainGameState)
 	{
-		MainGameState->TeamScore += Score;  // Replicate → 모든 클라 업데이트됨
+		MainGameState->UpdateTeamScore(MainGameState->GetTeamScore() + Score);
 	}
 	else
 	{
@@ -62,7 +62,7 @@ int32 AACMainGameMode::GetTeamScore() const
 	AACMainGameState* MainGameState = GetGameState<AACMainGameState>();
 	if (MainGameState)
 	{
-		return MainGameState->TeamScore;
+		return MainGameState->GetTeamScore();
 	}
 	else
 	{
