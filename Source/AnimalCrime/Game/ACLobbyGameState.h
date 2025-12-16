@@ -14,6 +14,18 @@ class ANIMALCRIME_API AACLobbyGameState : public AGameState
 	GENERATED_BODY()
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+protected:
+ /**
+     @brief 플레이어가 들어오면 호출됨
+     @param PlayerState - 새로운 플레이어의 플레이어 스테이트
+ **/
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+ /**
+     @brief 플레이어가 제거되면 호출됨
+     @param PlayerState - 삭제된 플레이어의 플레이어 스테이트
+ **/
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
 public:
 	void UpdateReadyPlayer();
 

@@ -13,6 +13,18 @@ void AACLobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AACLobbyGameState, AllPlayerCount);
 }
 
+void AACLobbyGameState::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+	UpdateReadyPlayer();
+}
+
+void AACLobbyGameState::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+	UpdateReadyPlayer();
+}
+
 void AACLobbyGameState::UpdateReadyPlayer()
 {
 	AC_LOG(LogSY, Log, TEXT("UpdateReady Player %d, %d"), AllPlayerCount, PlayerArray.Num());
@@ -33,5 +45,5 @@ void AACLobbyGameState::UpdateReadyPlayer()
 void AACLobbyGameState::OnRep_PlayerCount()
 {
 	AC_LOG(LogSY, Log, TEXT("UpdateReady Player3 %d, %d"), AllPlayerCount, PlayerArray.Num());
-	OnPlayerCountChanged.Broadcast(0,AllPlayerCount);
+	OnPlayerCountChanged.Broadcast(ReadyPlayerCount,AllPlayerCount);
 }

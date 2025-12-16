@@ -11,7 +11,7 @@ class ANIMALCRIME_API AACLobbyGameMode : public AGameMode
 public:
 	AACLobbyGameMode();
 	
-	virtual void PostLogin(APlayerController* NewPlayer) override;
+	//virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	virtual void Logout(AController* Exiting) override;
+	//virtual void Logout(AController* Exiting) override;
 };
