@@ -203,3 +203,26 @@ FOutfitCombo AACMainGameMode::GiveOutfitFromPool()
 
 	return OutfitPool[CurrentOutfitIndex];
 }
+
+void AACMainGameMode::PostSeamlessTravel()
+{
+	Super::PostSeamlessTravel();
+
+	UE_LOG(LogTemp, Warning, TEXT("Seamless Travel 완료, 서버 PostSeamlessTravel 호출"));
+
+	// 모든 PlayerController 초기화
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("들어오니"));
+			// 새로운 Pawn Spawn 후 Possess
+			APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, PC->GetSpawnLocation(), FRotator::ZeroRotator);
+			PC->Possess(NewPawn);
+
+			// 클라이언트에서도 새 Pawn Possess 필요하면 RPC 호출 가능
+			PC->ClientRestart(NewPawn);
+		}
+	}
+}
