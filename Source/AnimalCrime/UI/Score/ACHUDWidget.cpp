@@ -14,7 +14,7 @@ void UACHUDWidget::BindGameState()
 		{
 			GS->OnScoreChanged.AddDynamic(this, &UACHUDWidget::HandleScoreChanged);
 			
-			HandleScoreChanged(GS->TeamScore);
+			HandleScoreChanged(GS->GetTeamScore());
 		}
 	}
 }
@@ -34,7 +34,7 @@ void UACHUDWidget::HandleScoreChanged(float NewScore)
 	{
 		if (AACMainGameState* MainGameState = World->GetGameState<AACMainGameState>())
 		{
-			WBP_Score->UpdateScore(NewScore, MainGameState->MaxScore);
+			WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
 		}
 	}
 
