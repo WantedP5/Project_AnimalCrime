@@ -18,27 +18,36 @@ class ANIMALCRIME_API AACMainGameState : public AGameState
 	GENERATED_BODY()
 	
 public:
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
 	UFUNCTION(Server, Reliable)
 	void ServerChangeEscapeState(EEscapeState NewEscapeState);
 
 public:
+#pragma region GameRuleManager와 동기화 및 테스트 함수
 public:
-	FOnScoreChanged OnScoreChanged;
-	
-	UPROPERTY(ReplicatedUsing=OnRep_TeamScore)
-	float TeamScore = 5000;
-	
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	float MaxScore = 7000;
-	
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	float MinScore = 0;
+	/**
+		@brief UACGameRuleManager의 점수를 각 클라이언트에게 동기화 시키는 함수.
+		@param InScore - 변경될 점수
+	**/
+	void UpdateTeamScore(float InScore);
 
+	/**
+		@brief  MainGameState가 가지고 있는 TeamScore를 반환하는 함수
+		@retval  - 현재 TeamScore
+	**/
+	float GetTeamScore() const;
+#pragma endregion
+	
 	UFUNCTION()
 	void OnRep_TeamScore();
+	
+	UFUNCTION()
+	float GetMaxScore() const{return MaxScore;}
+	
+	UFUNCTION()
+	float GetMinScore() const{return MinScore;}
 	
 public:
 	UFUNCTION(BlueprintCallable)
@@ -62,10 +71,20 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<class AACTestMafiaCharacter>> MafiaPlayers;
 	
+public:
+	FOnScoreChanged OnScoreChanged;
+	
 private:
+	UPROPERTY(ReplicatedUsing=OnRep_TeamScore)
+	float TeamScore = 5000;
 	
+	UPROPERTY(Replicated, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+	float MaxScore = 7000;
 	
+	UPROPERTY(Replicated, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+	float MinScore = 0;
 	
+private:
 	/** 목적지 정보 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TArray<TObjectPtr<class AActor>> DestinationObjects;
