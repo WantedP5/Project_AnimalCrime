@@ -106,6 +106,8 @@ private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = true))
 	TObjectPtr<class UACGameRuleManager> GameRuleManager;
 #pragma endregion 
+
+	virtual void PostSeamlessTravel() override;
 	
 public:
 	void HandleVictory();

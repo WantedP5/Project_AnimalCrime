@@ -18,6 +18,8 @@ AACMainGameMode::AACMainGameMode()
 	//DefaultPawnClass = AACCharacter::StaticClass();
 	DefaultPawnClass = AACMafiaCharacter::StaticClass();
 	GameStateClass = AACMainGameState::StaticClass();
+	
+	bUseSeamlessTravel = true;
 }
 
 void AACMainGameMode::BeginPlay()
@@ -52,7 +54,7 @@ void AACMainGameMode::AddTeamScore(int32 Score)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT(" AddTeamScore Nullptr"));
+		UE_LOG(LogTemp, Log, TEXT("AddTeamScore Nullptr"));
 	}
 }
 
@@ -66,7 +68,7 @@ int32 AACMainGameMode::GetTeamScore() const
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT(" GetTeamScore Nullptr"));
+		UE_LOG(LogTemp, Log, TEXT("GetTeamScore Nullptr"));
 	}
 	return -1;
 }
@@ -202,4 +204,27 @@ FOutfitCombo AACMainGameMode::GiveOutfitFromPool()
 		   CurrentOutfitIndex, OutfitPool.Num());
 
 	return OutfitPool[CurrentOutfitIndex];
+}
+
+void AACMainGameMode::PostSeamlessTravel()
+{
+	Super::PostSeamlessTravel();
+
+	UE_LOG(LogTemp, Warning, TEXT("Seamless Travel 완료, 서버 PostSeamlessTravel 호출"));
+
+	// 모든 PlayerController 초기화
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("들어오니"));
+			// 새로운 Pawn Spawn 후 Possess
+			APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, PC->GetSpawnLocation(), FRotator::ZeroRotator);
+			PC->Possess(NewPawn);
+
+			// 클라이언트에서도 새 Pawn Possess 필요하면 RPC 호출 가능
+			PC->ClientRestart(NewPawn);
+		}
+	}
 }

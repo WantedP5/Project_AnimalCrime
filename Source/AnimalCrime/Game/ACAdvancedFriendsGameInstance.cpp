@@ -24,7 +24,7 @@ void UACAdvancedFriendsGameInstance::Init()
     CurrentMapType = EMapType::Game;
 	
     LobbyMapName = TEXT("LobbyMap");
-    GameMapName = TEXT("HenaMap");
+    GameMapName = TEXT("henaMap");
 	
     UE_LOG(LogTemp, Warning, TEXT("UACMainGameInstance::Init"));
 }
@@ -71,10 +71,10 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
     switch (InMapType)
     {
     case EMapType::Lobby:
-        GetWorld()->ServerTravel(LobbyMapName);
+        GetWorld()->ServerTravel("LobbyMap", true);
         break;
     case EMapType::Game:
-        GetWorld()->ServerTravel(GameMapName);
+        GetWorld()->ServerTravel("henaMap", true);
         break;
     default:
         break;

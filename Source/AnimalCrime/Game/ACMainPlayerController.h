@@ -119,4 +119,13 @@ private:
     bool bSavedUsePawnControlRotation;
 
     uint8 bShopCameraActive : 1 = false;
+	
+#pragma region HUD
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+	TSubclassOf<class UACHUDWidget> ACHUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+	TObjectPtr<class UACHUDWidget> ACHUDWidget;
+#pragma endregion
 };

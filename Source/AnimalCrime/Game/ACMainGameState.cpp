@@ -22,7 +22,6 @@ void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AACMainGameState, TeamScore);
 	DOREPLIFETIME(AACMainGameState, EscapeState);
 }
-#pragma endregion
 
 #pragma region GameRuleManager와 동기화 및 테스트 함수
 void AACMainGameState::UpdateTeamScore(float InScore)
@@ -34,9 +33,15 @@ float AACMainGameState::GetTeamScore() const
 {
 	return TeamScore;
 }
+
+void AACMainGameState::OnRep_TeamScore()
+{
+	UE_LOG(LogTemp, Error, TEXT("OnRep_Score 호출 :%f"), TeamScore);
+	
+	OnScoreChanged.Broadcast(TeamScore);
+}
 #pragma endregion
 
-#pragma region AI 행동을 위한 함수
 void AACMainGameState::RegisterDestination(AActor* Actor)
 {
 	for (auto InObject:DestinationObjects)
