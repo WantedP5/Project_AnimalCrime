@@ -31,7 +31,6 @@ float UACGameRuleManager::GetScoreGauge() const
 
 void UACGameRuleManager::OnObjectDestroyed(float InScore)
 {
-	UE_LOG(LogHY, Log, TEXT("[OnObjectDestroyed]"));
 	// 스코어가 음수인 경우는 불가능
 	if (InScore <= 0)
 	{
@@ -45,16 +44,13 @@ void UACGameRuleManager::OnObjectDestroyed(float InScore)
 	}
 	
 	GameScoreGauge -= InScore;
-	UE_LOG(LogHY, Log, TEXT("[Before]: %f"), MainGameState->TeamScore);
-	MainGameState->TeamScore = GameScoreGauge;
-	UE_LOG(LogHY, Log, TEXT("[After ]: %f"), MainGameState->TeamScore);
+	MainGameState->UpdateTeamScore(GameScoreGauge);
 	if (GetOwner()->HasAuthority())
 	{
 		MainGameState->OnRep_TeamScore();
 	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		UE_LOG(LogHY, Log, TEXT("어머나 마피아 승"));
 		UWorld* World = GameMode->GetWorld();
 		if (World && GameMode->HasAuthority())
 		{
