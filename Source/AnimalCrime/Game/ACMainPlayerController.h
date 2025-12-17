@@ -33,6 +33,8 @@ protected:
 	void HandleAttack(const struct FInputActionValue& Value);
 	void HandleSettingsClose(const struct FInputActionValue& Value);
 
+	// ===== 퀵슬롯 관련 (하나의 핸들러로 통합) =====
+	void HandleQuickSlot(const struct FInputActionValue& Value);
 public:
 	/**
 		@brief 입력 모드 변경 (기본 입력 ↔ 설정 메뉴 입력)
@@ -94,6 +96,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> MeleeAction;
 
+	// ===== 퀵슬롯 관련 (하나만) =====
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> QuickSlotAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputMappingContext> SettingsMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -121,7 +127,7 @@ private:
     uint8 bShopCameraActive : 1 = false;
 	
 #pragma region HUD
-protected:
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<class UACHUDWidget> ACHUDWidgetClass;
 

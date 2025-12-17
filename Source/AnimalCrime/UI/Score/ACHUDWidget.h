@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -20,7 +20,10 @@ public:
 	UFUNCTION()
 	void HandleScoreChanged(float NewScore);
 	
-private:
+public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACScoreWidget> WBP_Score;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACQuickSlotWidget> WBP_QuickSlot;
 };

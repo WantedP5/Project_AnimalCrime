@@ -75,6 +75,17 @@ void UACSlotWidget::OnPurchaseButtonClicked()
     UACShopComponent* ShopComponent = Character->FindComponentByClass<UACShopComponent>();
     if (ShopComponent == nullptr) return;
 
-    // 이 함수가 내부적으로 Server RPC 호출
-    ShopComponent->PurchaseAndEquipItem(ItemData);
+    // 아이템 타입에 따라 다르게 처리
+    if (ItemData->ItemType == EItemType::Weapon)
+    {
+        // 무기는 퀵슬롯에 추가 (로컬 처리만, 캐릭터에 부착 안 함)
+        ShopComponent->PurchaseAndAddToQuickSlot(ItemData);
+        UE_LOG(LogHG, Log, TEXT("Weapon purchased, adding to quickslot: %s"), *ItemData->ItemName.ToString());
+    }
+    else
+    {
+        // 의류는 바로 착용 (서버 RPC 처리)
+        ShopComponent->PurchaseAndEquipItem(ItemData);
+        UE_LOG(LogHG, Log, TEXT("Clothing purchased and equipped: %s"), *ItemData->ItemName.ToString());
+    }
 }
