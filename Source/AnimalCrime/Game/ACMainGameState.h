@@ -77,9 +77,8 @@ public:
 public:
 //!< 서버 전용. Replicated 안 함.
 	UPROPERTY()
-	TArray<TObjectPtr<class AACTestMafiaCharacter>> MafiaPlayers;
-
-#pragma region AI 행동
+	TArray<TObjectPtr<class AACMafiaCharacter>> MafiaPlayers;
+	
 private:
 	/** 목적지 정보 배열 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))

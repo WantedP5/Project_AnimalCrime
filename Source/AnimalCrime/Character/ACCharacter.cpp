@@ -21,12 +21,13 @@
 
 #include "AnimalCrime.h"
 
-#include "Game/ACLobbyPlayerController.h"
-
 #include "Component/ACShopComponent.h"
-#include "UI/ACShopWidget.h"
+#include "UI/Shop/ACShopWidget.h"
 #include "Game/ACMainPlayerController.h"
-
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 AACCharacter::AACCharacter()
 {
@@ -52,7 +53,7 @@ AACCharacter::AACCharacter()
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	MeshComp->SetReceivesDecals(false);
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayerHena.ABP_ACPlayerHena_C'"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
 	if (AnimRef.Succeeded())
 	{
 		MeshComp->SetAnimInstanceClass(AnimRef.Class);
@@ -144,68 +145,6 @@ AACCharacter::AACCharacter()
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
-	//기본 키 입력
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
-	if (InputMappingContextRef.Succeeded())
-	{
-		DefaultMappingContext = InputMappingContextRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project/Input/Actions/IA_Move.IA_Move"));
-	if (MoveActionRef.Succeeded())
-	{
-		MoveAction = MoveActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project/Input/Actions/IA_Look.IA_Look"));
-	if (LookActionRef.Succeeded())
-	{
-		LookAction = LookActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project/Input/Actions/IA_Jump.IA_Jump"));
-	if (JumpActionRef.Succeeded())
-	{
-		JumpAction = JumpActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project/Input/Actions/IA_Interact.IA_Interact"));
-	if (InteractActionRef.Succeeded())
-	{
-		InteractAction = InteractActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> ItemDropActionRef(TEXT("/Game/Project/Input/Actions/IA_ItemDrop.IA_ItemDrop"));
-	if (ItemDropActionRef.Succeeded())
-	{
-		ItemDropAction = ItemDropActionRef.Object;
-	}
-	
-	// 
-	static ConstructorHelpers::FObjectFinder<UInputAction> MeleeActionRef(TEXT("/Game/Project/Input/Actions/IA_Attack.IA_Attack"));
-	if (MeleeActionRef.Succeeded())
-	{
-		MeleeAction = MeleeActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> SteamFriendListActionRef(TEXT("/Game/Project/Input/Actions/IA_SteamFriendList.IA_SteamFriendList"));
-	if (SteamFriendListActionRef.Succeeded())
-	{
-		SteamFriendListAction = SteamFriendListActionRef.Object;
-	}
-
-	//설정창 키 입력
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
-	if (SettingsMappingContextRef.Succeeded())
-	{
-		SettingsMappingContext = SettingsMappingContextRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
-	if (SettingsCloseActionRef.Succeeded())
-	{
-		SettingsCloseAction = SettingsCloseActionRef.Object;
-	}
-
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
 	if (MeleeMontageRef.Succeeded())
 	{
@@ -216,6 +155,7 @@ AACCharacter::AACCharacter()
 	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
+
 }
 
 
@@ -227,31 +167,10 @@ void AACCharacter::BeginPlay()
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
 {
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC)
 	{
-		return;
-	}
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (Subsystem == nullptr)
-	{
-		return;
-	}
-
-	// 현재 등록된 모든 매핑 제거
-	Subsystem->ClearAllMappings();
-
-	// 새로운 Context 추가
-	switch (NewMode)
-	{
-	case EInputMode::Sholder:
-		Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		break;
-	case EInputMode::Settings:
-		Subsystem->AddMappingContext(SettingsMappingContext, 0);
-		break;
-	default:
-		break;
+		PC->ChangeInputMode(NewMode);
 	}
 }
 
@@ -277,10 +196,6 @@ void AACCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-/**
-    @brief 상호작용 키(E) 키 입력시, 구현 코드
-    @param Value - 
-**/
 void AACCharacter::Interact(const FInputActionValue& Value)
 {
 	//AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
@@ -316,48 +231,18 @@ void AACCharacter::Attack()
 	}
 }
 
-void AACCharacter::SetSteamFriendsList(const FInputActionValue& Value)
-{
-	AACLobbyPlayerController* PC = Cast<AACLobbyPlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	//설정창이 꺼져있으면 스팀친구창 오픈, 스팀 친구창이 켜져있으면 끄기, 다른 설정창이면 아무것도 안함.
-	if (SettingMode == ESettingMode::None)
-	{
-		PC->SteamFriendListToggle(true);
-		ChangeInputMode(EInputMode::Settings);
-		SettingMode = ESettingMode::SteamFriendList;
-	}
-	else if (SettingMode == ESettingMode::SteamFriendList)
-	{
-		PC->SteamFriendListToggle(false);
-		ChangeInputMode(EInputMode::Sholder);
-		SettingMode = ESettingMode::None;
-	}
-
-}
-
 void AACCharacter::SettingsClose(const FInputActionValue& Value)
 {
+	//자식에서 추가로 구현
 	switch (SettingMode)
 	{
 	case ESettingMode::None:
 		break;
 	case ESettingMode::Default:
 		break;
-	case ESettingMode::SteamFriendList:
-		SetSteamFriendsList(Value);
-		break;
-
 	default:
 		break;
 	}
-	
-	//ChangeInputMode(EInputMode::Sholder);
-	//SettingMode = ESettingMode::None;
 }
 
 void AACCharacter::ServerInteract_Implementation()
@@ -410,61 +295,6 @@ void AACCharacter::ChangeAttackTrue()
 void AACCharacter::ChangeAttackFalse()
 {
 	bAttackFlag = false;
-}
-
-void AACCharacter::SetShopCamera()
-{
-	if (bShopCameraActive == true)
-	{
-		// 이미 상점 카메라 모드
-		return; 
-	}
-
-	APlayerController* PC = GetController<APlayerController>();
-	if (PC == nullptr || CameraBoom == nullptr)
-	{
-		return;
-	}
-
-	// 현재 카메라 상태 저장
-	SavedControlRotation = PC->GetControlRotation();
-	SavedCameraArmLength = CameraBoom->TargetArmLength;
-	SavedCameraOffset = CameraBoom->TargetOffset;
-
-	// 캐릭터의 정면을 보도록 설정
-	FRotator CharacterRotation = GetActorRotation();
-	FRotator NewControlRotation = FRotator(0.f, CharacterRotation.Yaw + 170.f, 0.f);  // 캐릭터 정면
-	PC->SetControlRotation(NewControlRotation);
-
-	// 카메라 거리 조정 (캐릭터 전체가 보이도록)
-	CameraBoom->TargetArmLength = 450.0f;  // 필요에 따라 조정
-
-	// 오른쪽 화면에 캐릭터가 보이도록 오프셋 조정
-	// X: 전후, Y: 좌우, Z: 상하
-	CameraBoom->TargetOffset = FVector(0.f, -180.f, 60.f);  // Y값을 음수로 하면 왼쪽, 양수면 오른쪽
-
-	bShopCameraActive = true;
-}
-
-void AACCharacter::RestoreOriginalCamera()
-{
-	if (!bShopCameraActive)
-	{
-		return;  // 상점 카메라 모드가 아님
-	}
-
-	APlayerController* PC = GetController<APlayerController>();
-	if (PC == nullptr || CameraBoom == nullptr)
-	{
-		return;
-	}
-
-	// 저장된 카메라 상태 복원
-	PC->SetControlRotation(SavedControlRotation);
-	CameraBoom->TargetArmLength = SavedCameraArmLength;
-	CameraBoom->TargetOffset = SavedCameraOffset;
-
-	bShopCameraActive = false;
 }
 
 void AACCharacter::PerformAttackTrace()
@@ -543,10 +373,6 @@ void AACCharacter::RemoveInteractable(AActor* Interactor)
 	NearInteractables.Remove(Interactor);
 }
 
-/**
-    @brief  NearInteractables Array의 Actor들을 플레이어와 거리가 가까운 순서로 Sort. Sort 여부를 반환.
-    @retval  - NearInteractables가 Sort되었으면 true, 아니면 false 반환
-**/
 bool AACCharacter::SortNearInteractables()
 {
 	if (NearInteractables.Num() == 0)
@@ -590,93 +416,7 @@ void AACCharacter::ServerItemDrop_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
 }
 
-
-void AACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
-	if (InputSystem == nullptr)
-	{
-		return;
-	}
-
-	InputSystem->AddMappingContext(DefaultMappingContext, 0);
-	
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AACCharacter::Move);
-	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AACCharacter::Look);
-	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACCharacter::Interact);
-	EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Triggered, this, &AACCharacter::ItemDrop);
-	EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AACCharacter::Attack);
-	EnhancedInputComponent->BindAction(SteamFriendListAction, ETriggerEvent::Triggered, this, &AACCharacter::SetSteamFriendsList);
-	EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Triggered, this, &AACCharacter::SettingsClose);
-}
-
-
 EACCharacterType AACCharacter::GetCharacterType()
 {
 	return EACCharacterType::Citizen;
-}
-
-void AACCharacter::ClientToggleShopWidget_Implementation(TSubclassOf<class UACShopWidget> WidgetClass)
-{
-	if (WidgetClass == nullptr)
-	{
-		UE_LOG(LogHG, Error, TEXT("ClientToggleShopWidget: WidgetClass is null"));
-		return;
-	}
-
-	APlayerController* PC = GetController<APlayerController>();
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	// 이미 위젯이 열려있으면 닫기
-	if (CurrentShopWidget != nullptr && CurrentShopWidget->IsInViewport())
-	{
-		// ===== 상점 닫기 =====
-		UE_LOG(LogHG, Log, TEXT("Client: Closing Shop UI for %s"), *GetName());
-
-		CurrentShopWidget->RemoveFromParent();
-		CurrentShopWidget = nullptr;
-
-		// 카메라 복원
-		RestoreOriginalCamera();
-		PC->SetShowMouseCursor(false);
-
-		ChangeInputMode(EInputMode::Sholder);
-		SettingMode = ESettingMode::None;
-	}
-	else
-	{
-		// ===== 상점 열기 =====
-		UE_LOG(LogHG, Log, TEXT("Client: Opening Shop UI for %s"), *GetName());
-
-		UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(GetWorld(), WidgetClass);
-
-		if (ShopWidget != nullptr)
-		{
-			ShopWidget->AddToViewport();
-			CurrentShopWidget = ShopWidget;
-
-			// 상점용 카메라로 전환
-			SetShopCamera();
-			PC->SetShowMouseCursor(true);
-
-			ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
-
-			ChangeInputMode(EInputMode::Settings);
-			SettingMode = ESettingMode::Interact;
-		}
-	}
 }
