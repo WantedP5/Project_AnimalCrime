@@ -32,7 +32,6 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACHUDWidgetRef is empty"));
 	}
-}
 
 	// ===== 입력 관련 로드 =====
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
