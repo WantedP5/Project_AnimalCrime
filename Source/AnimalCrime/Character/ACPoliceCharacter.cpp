@@ -3,10 +3,14 @@
 
 #include "Character/ACPoliceCharacter.h"
 #include "AnimalCrime.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
 AACPoliceCharacter::AACPoliceCharacter()
 {
+	// Collision 세팅
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("PoliceCollision"));
+	
 	// Weapon Component
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	//todo: Load Weapon through Inventory
