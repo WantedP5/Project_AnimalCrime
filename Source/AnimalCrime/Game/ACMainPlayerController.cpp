@@ -12,6 +12,7 @@
 #include "Character/ACCharacter.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "UI/Score/ACHUDWidget.h"
+#include "UI/HUD/ACQuickSlotWidget.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -86,6 +87,13 @@ AACMainPlayerController::AACMainPlayerController()
 	if (SettingsCloseActionRef.Succeeded())
 	{
 		SettingsCloseAction = SettingsCloseActionRef.Object;
+	}
+
+	// ===== 퀵슬롯 Input Action 로드 (하나만) =====
+	static ConstructorHelpers::FObjectFinder<UInputAction> QuickSlotActionRef(TEXT("/Game/Project/Input/Actions/IA_QuickSlot.IA_QuickSlot"));
+	if (QuickSlotActionRef.Succeeded())
+	{
+		QuickSlotAction = QuickSlotActionRef.Object;
 	}
 }
 
@@ -167,6 +175,11 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSettingsClose);
 	}
+
+	if (QuickSlotAction)
+	{
+		EnhancedInputComponent->BindAction(QuickSlotAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleQuickSlot);
+	}
 }
 
 // ===== 입력 핸들러 구현 =====
@@ -240,6 +253,23 @@ void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value
 	{
 		ControlledCharacter->SettingsClose(Value);
 	}
+}
+
+void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)
+{
+	if (ACHUDWidget == nullptr || ACHUDWidget->WBP_QuickSlot == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HandleQuickSlot: QuickSlot widget is null"));
+		return;
+	}
+
+	// Value에서 슬롯 번호 가져오기 (1, 2, 3, ...)
+	int32 SlotIndex = FMath::RoundToInt(Value.Get<float>());
+
+	UE_LOG(LogTemp, Log, TEXT("QuickSlot pressed: %d"), SlotIndex);
+
+	// 통합된 함수 호출
+	ACHUDWidget->WBP_QuickSlot->ToggleSlotEquip(SlotIndex);
 }
 
 void AACMainPlayerController::ChangeInputMode(EInputMode NewMode)

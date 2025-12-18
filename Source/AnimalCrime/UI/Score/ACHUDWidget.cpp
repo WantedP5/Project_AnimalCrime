@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/Score/ACHUDWidget.h"
 
 #include "ACScoreWidget.h"
+#include "UI/HUD/ACQuickSlotWidget.h"
 #include "Game/ACMainGameState.h"
 
 void UACHUDWidget::BindGameState()
