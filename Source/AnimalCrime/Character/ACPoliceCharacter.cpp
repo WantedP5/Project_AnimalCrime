@@ -7,6 +7,17 @@
 
 AACPoliceCharacter::AACPoliceCharacter()
 {
+	HeadMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hat_057.SK_Hat_057")));
+	TopMesh->SetSkeletalMesh(nullptr);
+	BottomMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Costume_10_001.SK_Costume_10_001")));
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Male_emotion_angry_003.SK_Male_emotion_angry_003"));
+	if (FaceMeshRef.Succeeded() == true)
+	{
+		FaceMesh->SetSkeletalMesh(FaceMeshRef.Object);
+	}
+	
+
 	// Weapon Component
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	//todo: Load Weapon through Inventory
