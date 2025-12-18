@@ -72,6 +72,15 @@ protected:
     **/
     void RestoreOriginalCamera();
 
+	// ===== CCTV 관련 =====
+public:
+	/**
+		  @brief  CCTV 위젯 토글 (서버 → 클라이언트 명령)
+		  @param WidgetClass - CCTV 위젯
+  **/
+	UFUNCTION(Client, Reliable)
+	void ClientToggleCCTVWidget(TSubclassOf<class UACCCTVWidget> WidgetClass);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> EscapeScreenClass;
@@ -125,6 +134,16 @@ private:
     bool bSavedUsePawnControlRotation;
 
     uint8 bShopCameraActive : 1 = false;
+
+	// ===== CCTV 관련 =====
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|CCTV")
+	TSubclassOf<class UACCCTVWidget> CCTVWidgetClass;
+
+private:
+	// 현재 열려있는 CCTV 위젯
+	UPROPERTY()
+	TObjectPtr<class UACCCTVWidget> CurrentCCTVWidget;
 	
 #pragma region HUD
 public:

@@ -13,6 +13,7 @@
 #include "EnhancedInput/Public/InputMappingContext.h"
 #include "UI/Score/ACHUDWidget.h"
 #include "UI/HUD/ACQuickSlotWidget.h"
+#include "UI/CCTV/ACCCTVWidget.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -464,4 +465,55 @@ void AACMainPlayerController::RestoreOriginalCamera()
     CameraBoom->TargetOffset = SavedTargetOffset;
 
     bShopCameraActive = false;
+}
+
+void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<class UACCCTVWidget> WidgetClass)
+{
+	if (WidgetClass == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ClientToggleCCTVWidget: WidgetClass is null"));
+		return;
+	}
+
+	// 이미 위젯이 열려있으면 닫기
+	if (CurrentCCTVWidget != nullptr && CurrentCCTVWidget->IsInViewport())
+	{
+		// ===== CCTV 닫기 =====
+		UE_LOG(LogHG, Log, TEXT("Client: Closing CCTV UI"));
+
+		CurrentCCTVWidget->RemoveFromParent();
+		CurrentCCTVWidget = nullptr;
+
+		SetShowMouseCursor(false);
+
+		FInputModeGameOnly InputMode;
+		InputMode.SetConsumeCaptureMouseDown(false);
+		SetInputMode(InputMode);
+
+		ChangeInputMode(EInputMode::Sholder);
+	}
+	else
+	{
+		// ===== CCTV 열기 =====
+		UE_LOG(LogHG, Log, TEXT("Client: Opening CCTV UI"));
+
+		UACCCTVWidget* CCTVWidget = CreateWidget<UACCCTVWidget>(GetWorld(), WidgetClass);
+
+		if (CCTVWidget != nullptr)
+		{
+			CCTVWidget->AddToViewport();
+			CurrentCCTVWidget = CCTVWidget;
+
+			// 입력모드를 게임,UI로 변경
+			FInputModeGameAndUI InputMode;
+			InputMode.SetWidgetToFocus(CCTVWidget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetHideCursorDuringCapture(false);
+			SetInputMode(InputMode);
+
+			SetShowMouseCursor(true);
+
+			ChangeInputMode(EInputMode::Settings);
+		}
+	}
 }
