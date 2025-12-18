@@ -78,7 +78,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
         GetWorld()->ServerTravel("LobbyMap", true);
         break;
     case EMapType::Game:
-        GetWorld()->ServerTravel("henaMap", true);
+        GetWorld()->ServerTravel("DemoMap", true);
         break;
     default:
         break;

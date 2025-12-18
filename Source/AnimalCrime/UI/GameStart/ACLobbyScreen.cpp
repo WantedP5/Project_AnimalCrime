@@ -8,12 +8,10 @@ void UACLobbyScreen::NativeConstruct()
 {
 	Super::NativeConstruct();
 	AACLobbyGameState* GS = GetWorld()->GetGameState<AACLobbyGameState>();
-	UE_LOG(LogSY, Log, TEXT("UpdateScreen 0"));
 	if (GS == nullptr)
 	{	
 		return;
 	}
-	UE_LOG(LogSY, Log, TEXT("UpdateScreen "));
 	
 	//ReadyPlayer, Player 수가 변경되면 호출되도록 게임 스테이트 구독
 	GS->OnPlayerCountChanged.AddDynamic(this, &UACLobbyScreen::UpdatePlayerReadyText);
@@ -24,12 +22,11 @@ void UACLobbyScreen::NativeConstruct()
 
 void UACLobbyScreen::UpdatePlayerReadyText(int32 ReadyPlayerNum, int32 AllPlayerNum)
 {
-	UE_LOG(LogSY, Log, TEXT("UpdateScreen 1"));
 	if (ReadyPlayerText == nullptr)
 	{
 		UE_LOG(LogSY, Warning, TEXT("ReadyPlayerText is nullptr"));
 		return;
 	}
-	UE_LOG(LogSY, Log, TEXT("UpdateScreen 2"));
+	UE_LOG(LogSY, Log, TEXT("Update UI Screen"));
 	ReadyPlayerText->SetText( FText::Format(FText::FromString(TEXT("{0}/{1}")), ReadyPlayerNum, AllPlayerNum));
 }

@@ -33,6 +33,10 @@ public:
 	**/
 	UFUNCTION(Server, Reliable)
 	void ServerStartGame();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReadyToggle();
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -50,6 +54,7 @@ protected:
 	void HandleSteamFriendList(const struct FInputActionValue& Value);
 	void HandleGameReady(const struct FInputActionValue& Value);
 
+	// ===== UI =====
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UACLobbyScreen> LobbyScreenClass;
@@ -87,4 +92,8 @@ protected:
 	TObjectPtr<class UInputAction> SteamFriendListAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> ReadyAction;
+
+protected:
+
+	bool bIsReady = false;
 };

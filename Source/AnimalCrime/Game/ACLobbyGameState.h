@@ -27,7 +27,24 @@ protected:
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 
 public:
+ /**
+     @brief 준비한 플레이어 수 / 전체 플레이어 수를 갱신하고 UI에 알림
+ **/
 	void UpdateReadyPlayer();
+
+ /**
+     @brief 플레이어의 준비 상태를 설정
+     @param PS     - @brief 플레이어의 준비 상태를 설정
+     @param bReady - @brief 플레이어의 준비 상태를 설정
+ **/
+	void SetReadyPlayer(APlayerState* PS, bool bReady);
+
+ /**
+     @brief  PlayerState가 호스트인지 확인하는 함수
+     @param  PS - 확인할 PlayerState
+     @retval    - 호스트면 true, 아니면 false
+ **/
+	bool IsHostPlayer(APlayerState* PS);
 
 	UFUNCTION()
 	void OnRep_PlayerCount();
@@ -37,9 +54,14 @@ public:
 
 	FORCEINLINE int32 GetAllPlayerCount() { return AllPlayerCount; }
 	FORCEINLINE int32 GetReadyPlayerCount() { return ReadyPlayerCount; }
+
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerCount)
 	int32 AllPlayerCount = 0;
-	UPROPERTY(ReplicatedUsing = OnRep_PlayerCount)
+	UPROPERTY(Replicated)
 	int32 ReadyPlayerCount = 0;
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerCount)
+	TArray<TObjectPtr<APlayerState>> ReadyPlayerArray;
 };

@@ -48,23 +48,24 @@ void AACLobbyCharacter::SettingsClose(const FInputActionValue& Value)
 	}
 }
 
-void AACLobbyCharacter::GameReady(const FInputActionValue& Value)
-{
-	AACLobbyPlayerController* PC = Cast<AACLobbyPlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	// 호스트인지 확인
-	if (PC->IsLocalController() && HasAuthority())
-	{
-		AC_LOG(LogSY, Log, TEXT("호스트 맞음"));
-		//맵 이동
-		PC->ServerStartGame();
-	}
-	else
-	{
-		AC_LOG(LogSY, Log, TEXT("호스트 아님"));
-	}
-}
+//void AACLobbyCharacter::GameReady(const FInputActionValue& Value)
+//{
+//	AACLobbyPlayerController* PC = Cast<AACLobbyPlayerController>(GetController());
+//	if (PC == nullptr)
+//	{
+//		return;
+//	}
+//
+//	// 호스트인지 확인
+//	if (PC->IsLocalController() && HasAuthority())
+//	{
+//		AC_LOG(LogSY, Log, TEXT("호스트 맞음"));
+//		//맵 이동
+//		PC->ServerStartGame();
+//	}
+//	else
+//	{
+//		AC_LOG(LogSY, Log, TEXT("호스트 아님"));
+//		PC->ServerReadyToggle();
+//	}
+//}
