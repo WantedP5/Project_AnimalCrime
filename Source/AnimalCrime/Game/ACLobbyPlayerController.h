@@ -60,7 +60,10 @@ protected:
 	TSubclassOf<class UACLobbyScreen> LobbyScreenClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<class UACLobbyScreen> LobbyScreen;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUserWidget> FadeInScreenClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<class UUserWidget> FadeInScreen;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> SteamFriendListClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")

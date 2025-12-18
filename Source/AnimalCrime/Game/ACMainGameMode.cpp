@@ -4,13 +4,17 @@
 
 #include "ACGameRuleManager.h"
 #include "ACMainGameState.h"
+#include "ACPlayerState.h"
 #include "ACMainPlayerController.h"
 #include "NavigationSystem.h"
 #include "Character/ACCharacter.h"
 #include "Character/ACCitizen.h"
 #include "Character/ACMafiaCharacter.h"
+#include "Character/ACPoliceCharacter.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "AnimalCrime.h"
 
 AACMainGameMode::AACMainGameMode()
 {
@@ -18,6 +22,10 @@ AACMainGameMode::AACMainGameMode()
 	//DefaultPawnClass = AACCharacter::StaticClass();
 	DefaultPawnClass = AACMafiaCharacter::StaticClass();
 	GameStateClass = AACMainGameState::StaticClass();
+	PlayerStateClass = AACPlayerState::StaticClass();
+
+	MafiaPawnClass = AACMafiaCharacter::StaticClass();
+	PolicePawnClass = AACPoliceCharacter::StaticClass();
 	
 	bUseSeamlessTravel = true;
 }
@@ -25,11 +33,11 @@ AACMainGameMode::AACMainGameMode()
 void AACMainGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
 	GameRuleManager->Init(this);
-	
+
 	// GenerateOutfitPool();
 	// SpawnAllAI();
 }
@@ -42,6 +50,81 @@ AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 
 	int32 PlayerIndex = GameState ? GameState->PlayerArray.Num() - 1 : 0;
 	return PlayerStarts.Num() > 0 ? PlayerStarts[PlayerIndex % PlayerStarts.Num()] : nullptr;
+}
+
+void AACMainGameMode::HandleSeamlessTravelPlayer(AController*& Controller)
+{
+	Super::HandleSeamlessTravelPlayer(Controller);
+
+	APlayerController* PC = Cast<APlayerController>(Controller);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+	//직업으로 폰 지정
+	TSubclassOf<APawn> PawnClassToUse = nullptr;
+	switch (PS->CharacterType)
+	{
+	case EACCharacterType::Police:
+		PawnClassToUse = PolicePawnClass;
+		AC_LOG(LogSY, Log, TEXT("Police!"));
+		break;
+	case EACCharacterType::Mafia:
+		PawnClassToUse = MafiaPawnClass;
+		AC_LOG(LogSY, Log, TEXT("Mafia!"));
+		break;
+
+	default:
+		AC_LOG(LogSY, Log, TEXT("Default!"));
+		PawnClassToUse = DefaultPawnClass;
+		break;
+	}
+	if (PawnClassToUse == nullptr)
+	{
+		return;
+	}
+
+	// 기존 폰 제거
+	if (APawn* OldPawn = PC->GetPawn())
+	{
+		OldPawn->Destroy();
+	}
+
+
+	//플레이어 스타트 찾기
+	AActor* StartSpot = FindPlayerStart(PC);
+	if (StartSpot == nullptr)
+	{
+		return;
+	}
+
+	// Pawn 스폰
+	FActorSpawnParameters Params;
+	Params.Owner = PC;
+	Params.Instigator = nullptr;
+
+	APawn* NewPawn = GetWorld()->SpawnActor<APawn>(
+		PawnClassToUse,
+		StartSpot->GetActorTransform(),
+		Params
+	);
+
+	if (NewPawn == nullptr)
+	{
+		return;
+	}
+	// 컨트롤러에 빙의
+	PC->Possess(NewPawn);
+
+	//클라이언트 초기화
+	PC->ClientRestart(NewPawn);
 }
 
 void AACMainGameMode::AddTeamScore(int32 Score)
@@ -109,9 +192,9 @@ void AACMainGameMode::SpawnAllAI()
 		{
 			// AI 관리하는 애
 			AIObjectArray.Add(NewAI);
-			
+
 			FOutfitCombo OutfitCombo = GiveOutfitFromPool();
-			
+
 			USkeletalMesh* LoadedMesh = OutfitCombo.HairAsset.LoadSynchronous();
 			if (LoadedMesh)
 			{
@@ -135,7 +218,7 @@ void AACMainGameMode::SpawnAllAI()
 		}
 
 		NewAI->FinishSpawning(Transform);
-		
+
 	}
 
 }
@@ -146,7 +229,7 @@ FVector AACMainGameMode::GetRandomSpawnLocation() const
 
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	float Radius = 3000;
-	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector::ZeroVector,Radius , RandomLocation))
+	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector::ZeroVector, Radius, RandomLocation))
 	{
 		return RandomLocation.Location;
 	}
@@ -184,7 +267,7 @@ FOutfitCombo AACMainGameMode::GiveOutfitFromPool()
 {
 	// int32 CurrentOutfitIndex = NextOutfitIndex++;
 	// return OutfitPool[CurrentOutfitIndex];
-	
+
 	if (OutfitPool.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("OutfitPool is EMPTY!"));
@@ -194,14 +277,14 @@ FOutfitCombo AACMainGameMode::GiveOutfitFromPool()
 	if (NextOutfitIndex >= OutfitPool.Num())
 	{
 		UE_LOG(LogTemp, Error, TEXT("OutfitPool INDEX OUT OF RANGE: %d / %d"),
-			   NextOutfitIndex, OutfitPool.Num());
+			NextOutfitIndex, OutfitPool.Num());
 		return FOutfitCombo();
 	}
 
 	int32 CurrentOutfitIndex = NextOutfitIndex++;
 
 	UE_LOG(LogTemp, Warning, TEXT("GiveOutfitFromPool: %d / %d"),
-		   CurrentOutfitIndex, OutfitPool.Num());
+		CurrentOutfitIndex, OutfitPool.Num());
 
 	return OutfitPool[CurrentOutfitIndex];
 }

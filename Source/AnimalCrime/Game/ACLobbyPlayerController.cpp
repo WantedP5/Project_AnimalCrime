@@ -21,6 +21,12 @@ AACLobbyPlayerController::AACLobbyPlayerController()
 		LobbyScreenClass = LobbyScreenRef.Class;
 	}
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> FadeInScreenRef(TEXT("/Game/Project/UI/Common/WBP_FadeIn.WBP_FadeIn_C"));
+	if (FadeInScreenRef.Succeeded())
+	{
+		FadeInScreenClass = FadeInScreenRef.Class;
+	}
+
 	//SteamFriendList 로드
 	static ConstructorHelpers::FClassFinder<UUserWidget> SteamFriendListRef(TEXT("/Game/Project/UI/GameStart/WBP_FriendList.WBP_FriendList_C"));
 	if (SteamFriendListRef.Succeeded())
@@ -360,6 +366,14 @@ void AACLobbyPlayerController::HandleGameReady(const FInputActionValue& Value)
 		}
 
 		AC_LOG(LogSY, Log, TEXT("호스트 - 게임 시작"));
+
+		FadeInScreen = CreateWidget<UUserWidget>(this, FadeInScreenClass);
+		if (FadeInScreen == nullptr)
+		{
+			return;
+		}
+		FadeInScreen->AddToViewport();
+		
 		ServerStartGame();
 	}
 	else
