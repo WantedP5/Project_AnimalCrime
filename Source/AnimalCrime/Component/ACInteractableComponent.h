@@ -24,6 +24,10 @@ class ANIMALCRIME_API UACInteractableComponent : public UBoxComponent
 public:
 	UACInteractableComponent();
 
+ /**
+     @brief 델리게이트와 박스 컴포넌트의 크기를 지정해줌.
+	 주의사항: 만약 루트에 회전이 적용되어있다면, AABB를 염두에 둘것!!(빈 공간이 많이 생길 가능성 있음. 문제가 된다면 원으로 수정)
+ **/
 	virtual void BeginPlay() override;
 
 /**
@@ -63,6 +67,9 @@ public:
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FVector BoxMargin;
+
+	/*UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	uint64 ;*/
 
 private:
 	

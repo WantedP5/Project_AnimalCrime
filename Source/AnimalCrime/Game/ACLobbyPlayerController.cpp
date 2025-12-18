@@ -338,16 +338,16 @@ void AACLobbyPlayerController::HandleSettingsClose(const FInputActionValue& Valu
 
 
 
-void AACLobbyPlayerController::HandleSteamFriendList(const FInputActionValue& Value)
+void AACLobbyPlayerController::HandleSteamFriendList()
 {
-	AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
-	if (LobbyChar)
-	{
-		LobbyChar->SetSteamFriendsList(Value);
-	}
+    AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
+    if (LobbyChar)
+    {
+        LobbyChar->SetSteamFriendsList();
+    }
 }
 
-void AACLobbyPlayerController::HandleGameReady(const FInputActionValue& Value)
+void AACLobbyPlayerController::HandleGameReady()
 {
 
 	// 호스트인지 확인

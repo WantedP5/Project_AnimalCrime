@@ -61,7 +61,7 @@ EACCharacterType AACMafiaCharacter::GetCharacterType()
 	return EACCharacterType::Mafia;
 }
 
-void AACMafiaCharacter::ItemDrop(const FInputActionValue& Value)
+void AACMafiaCharacter::ItemDrop()
 {
 	AC_LOG(LogSY, Log, TEXT("ItemDrop Key!!"));
 	ServerItemDrop(); //서버에 알림.

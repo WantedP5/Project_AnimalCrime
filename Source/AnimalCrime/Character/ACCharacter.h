@@ -33,15 +33,19 @@ public:
 	// ===== 입력 핸들러 (PlayerController가 호출) =====
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	virtual void Interact(const FInputActionValue& Value);
-	virtual void ItemDrop(const FInputActionValue& Value);
+
+	virtual void InteractStarted();
+	virtual void InteractHolding(const float DeltaTime);
+	virtual void InteractReleased();
+
+	virtual void ItemDrop();
 	virtual void Attack();
-	virtual void SettingsClose(const FInputActionValue& Value);
+	virtual void SettingsClose();
 
 protected:
 
 	UFUNCTION(Server, Reliable)
-	void ServerInteract();
+	void ServerInteract(AActor* Target);
 
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
@@ -135,6 +139,17 @@ private:
 	**/
 	bool SortNearInteractables();
 
+ /**
+     @brief 홀드 상호작용 관련 멤버변수를 모두 초기화
+ **/
+	void ResetHoldInteract();
+
+ /**
+     @brief  홀드 상호작용의 UI에 사용될 진행도
+     @retval  - 진행도를 0.0~1.0 사이의 값으로 반환
+ **/
+	float GetHoldProgress() const;
+
 
 	//!< 상호작용 멤버변수
 public:
@@ -145,6 +160,10 @@ protected:
 private:
 	TArray<AActor*> NearInteractables;
 
+	AActor* CurrentHoldTarget;
+	float CurrentHoldTime = 0.f;
+	float RequiredHoldTime = 0.f;
+	bool bIsHoldingInteract = false;
 
 
 	// ===== 상점 관련 =====

@@ -54,13 +54,22 @@ public:
 	virtual void OnInteract(class AACCharacter* ACPlayer) = 0;
 
  /**
-     @brief  이 액터의 이름을 반환(디버그 메시지용)
+     @brief  이 액터의 이름을 반환(디버그 메시지용) ShowInteractDebug에서 상호작용당한 액터의 이름을 받아오기 위해 어쩔 수 없이 만든 함수.
      @retval  - 이름을 FString으로 반환
  **/
 	virtual FString GetInteractableName() const = 0;
 
 	// todo: 상호작용 UI 추가시 활용
 	//virtual void OnInteractRangeEnter() = 0;				// Exit | 범위 진입 / 이탈 시(UI 힌트 표시용) |
+
+ /**
+     @brief  즉시 or 홀드 상호작용 구분을 위한 함수. 또한 홀드가 필요하다면 몇 초간 홀드해야하는지 나타냄.
+	 홀드가 필요한 상호작용은 이 함수를 오버라이드해서 필요한 초 수를 반환시켜야함.
+     @retval  - 키 홀드가 필요한 상호작용의 필요한 초 수를 반환. 기본값은 0.f(즉발).
+	 GetRequiredHoldTime() == 0.f 이면 즉시 상호작용, > 0.f 라면 홀드 해야하는 상호작용임.
+ **/
+	//todo: TPair<FString, float>으로 반환값 바꿔서 상호작용 여러개여도 연동 가능하도록 수정
+	virtual float GetRequiredHoldTime() const;
 
 protected:
 /**

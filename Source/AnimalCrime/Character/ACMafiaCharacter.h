@@ -38,7 +38,7 @@ public:
 	virtual EACCharacterType GetCharacterType() override;
 protected:
 
-	void ItemDrop(const FInputActionValue& Value) override;
+	void ItemDrop() override;
 
 	virtual void ServerItemDrop_Implementation() override;
 

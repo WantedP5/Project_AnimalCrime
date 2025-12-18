@@ -133,16 +133,13 @@ bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
 {
 	if (ACPlayer == nullptr)
 	{
-		AC_LOG(LogSW, Log, TEXT("Sorry aaaaa"));
 		return false;
 	}
 	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
 	{
-		AC_LOG(LogSW, Log, TEXT("Sorry Only For MAFIA!!!!!"));
 		return false;
 	}
 
-	AC_LOG(LogSW, Log, TEXT("Bomb - Mafia Contacted!!"));
 	return true;
 }
 
@@ -180,6 +177,12 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 	AC_LOG(LogSY, Log, TEXT("Bomb Interact Success"));
 
 	AttachToCharacter();
+}
+
+// 폭탄 - 5초 홀드
+float AACEscapeMissionBomb::GetRequiredHoldTime() const
+{
+	return 3.0f;
 }
 
 FString AACEscapeMissionBomb::GetInteractableName() const
