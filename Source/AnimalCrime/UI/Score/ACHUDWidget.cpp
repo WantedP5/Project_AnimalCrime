@@ -4,8 +4,10 @@
 #include "UI/Score/ACHUDWidget.h"
 
 #include "ACScoreWidget.h"
+#include "AnimalCrime.h"
 #include "UI/HUD/ACQuickSlotWidget.h"
 #include "Game/ACMainGameState.h"
+#include "Game/ACPlayerState.h"
 #include "UI/Money/ACMoneyWidget.h"
 
 void UACHUDWidget::BindGameState()
@@ -17,6 +19,26 @@ void UACHUDWidget::BindGameState()
 			GS->OnScoreChanged.AddDynamic(this, &UACHUDWidget::HandleScoreChanged);
 			
 			HandleScoreChanged(GS->GetTeamScore());
+		}
+	}
+}
+
+// 문제였음.
+void UACHUDWidget::BindPlayerState()
+{
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		UE_LOG(LogHY, Error, TEXT("PC Success"));
+		if (AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>())
+		{
+			UE_LOG(LogHY, Error, TEXT("PS Success"));
+
+			PS->OnMoneyChanged.AddDynamic(
+				this,
+				&UACHUDWidget::HandleMoneyChanged
+			);
+
+			HandleMoneyChanged(PS->GetMoney());
 		}
 	}
 }
@@ -48,5 +70,7 @@ void UACHUDWidget::HandleMoneyChanged(int32 NewMoney)
 		return;
 	}
 
+	UE_LOG(LogTemp, Log, TEXT("[UACHUDWidget::HandleMoneyChanged]: %d"), NewMoney);
+	
 	WBP_Money->UpdateMoney(NewMoney);
 }
