@@ -11,9 +11,10 @@
 #include "Camera/CameraComponent.h"
 #include "Character/ACCharacter.h"
 #include "EnhancedInput/Public/InputMappingContext.h"
-#include "UI/Score/ACHUDWidget.h"
-#include "UI/HUD/ACQuickSlotWidget.h"
+#include "UI/ACHUDWidget.h"
+#include "UI/QuickSlot/ACQuickSlotWidget.h"
 #include "UI/CCTV/ACCCTVWidget.h"
+#include "UI/Interaction/ACInteractProgressWidget.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -25,7 +26,7 @@ AACMainPlayerController::AACMainPlayerController()
 	}
 	
 	// HUD Class 대입.
-	static ConstructorHelpers::FClassFinder<UACHUDWidget> ACHUDWidgetRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Project/UI/GameScore/WBP_ACHUD.WBP_ACHUD_C'"));
+	static ConstructorHelpers::FClassFinder<UACHUDWidget> ACHUDWidgetRef(TEXT("/Game/Project/UI/WBP_ACHUD.WBP_ACHUD_C"));
 	if (ACHUDWidgetRef.Succeeded())
 	{
 		ACHUDWidgetClass = ACHUDWidgetRef.Class;
@@ -549,4 +550,50 @@ void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<
 			ChangeInputMode(EInputMode::Settings);
 		}
 	}
+}
+
+void AACMainPlayerController::ShowInteractProgress(const FString& TargetName)
+{
+	UE_LOG(LogSW, Log, TEXT("Showing"));
+	if (ACHUDWidget == nullptr)
+	{
+		return;
+	}
+	if (ACHUDWidget->WBP_InteractProgress == nullptr)
+	{
+		return;
+	}
+
+	ACHUDWidget->WBP_InteractProgress->SetTargetName(TargetName);
+	ACHUDWidget->WBP_InteractProgress->SetProgress(0.f);
+	ACHUDWidget->WBP_InteractProgress->ShowWidget();
+}
+
+void AACMainPlayerController::UpdateInteractProgress(float Progress)
+{
+	if (ACHUDWidget == nullptr)
+	{
+		return;
+	}
+	if (ACHUDWidget->WBP_InteractProgress == nullptr)
+	{
+		return;
+	}
+
+	ACHUDWidget->WBP_InteractProgress->SetProgress(Progress);
+}
+
+void AACMainPlayerController::HideInteractProgress()
+{
+	UE_LOG(LogSW, Log, TEXT("Hiding"));
+	if (ACHUDWidget == nullptr)
+	{
+		return;
+	}
+	if (ACHUDWidget->WBP_InteractProgress == nullptr)
+	{
+		return;
+	}
+
+	ACHUDWidget->WBP_InteractProgress->HideWidget();
 }

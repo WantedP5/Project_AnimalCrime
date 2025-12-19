@@ -239,6 +239,14 @@ void AACCharacter::InteractStarted()
 				bIsHoldingInteract = true;
 				CurrentHoldTarget = Target;
 				CurrentHoldTime = 0.f;
+
+				// UI 표시
+				AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+				if (PC)
+				{
+					UE_LOG(LogSW, Log, TEXT("Show start"));
+					PC->ShowInteractProgress(Interactable->GetInteractableName());
+				}
 			}
 			
 			return;
@@ -256,12 +264,12 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	//todo: isvalid?
 	if (CurrentHoldTarget == nullptr)
 	{
-		ResetHoldInteract();
+		InteractReleased();
 		return;
 	}
 	if (!NearInteractables.Contains(CurrentHoldTarget))
 	{
-		ResetHoldInteract();
+		InteractReleased();
 		return;
 	}
 
@@ -270,11 +278,18 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	CurrentHoldTime += DeltaTime;
 	AC_LOG(LogSW, Log, TEXT("%s Holding at %f"), *CurrentHoldTarget->GetName(), CurrentHoldTime);
 
+	// UI 업데이트
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC)
+	{
+		PC->UpdateInteractProgress(GetHoldProgress());
+	}
+
 	// 완료 체크
 	if (CurrentHoldTime >= RequiredHoldTime)
 	{
 		ServerInteract(CurrentHoldTarget);
-		ResetHoldInteract();
+		InteractReleased();
 	}
 
 }
@@ -284,6 +299,14 @@ void AACCharacter::InteractReleased()
 	if (bIsHoldingInteract == false)
 	{
 		return;
+	}
+
+	// UI 표시
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC)
+	{
+		UE_LOG(LogSW, Log, TEXT("Hide start"));
+		PC->HideInteractProgress();
 	}
 
 	ResetHoldInteract();
