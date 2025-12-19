@@ -108,9 +108,10 @@ void AACMainPlayerController::BeginPlay()
 	
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
-	if (!IsLocalController())
+	if (IsLocalController() == false)
 	{
-		return;   // 🔥 이 줄이 핵심
+		UE_LOG(LogTemp, Warning, TEXT("IsLocalController false"));
+		return;
 	}
 	ACHUDWidget = CreateWidget<UACHUDWidget>(this, ACHUDWidgetClass);
 	if (ACHUDWidget == nullptr)
@@ -123,6 +124,11 @@ void AACMainPlayerController::BeginPlay()
 	ACHUDWidget->AddToViewport();
 	
 	ACHUDWidget->BindGameState();
+	
+	if (HasAuthority())
+	{
+		ACHUDWidget->BindPlayerState();
+	}
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -183,6 +189,13 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(QuickSlotAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleQuickSlot);
 	}
+}
+
+void AACMainPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	
+	ACHUDWidget->BindPlayerState();
 }
 
 // ===== 입력 핸들러 구현 =====

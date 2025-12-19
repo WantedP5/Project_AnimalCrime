@@ -13,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Component/ACInteractableComponent.h"
 #include "Component/ACMoneyComponent.h"
+#include "Game/ACPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -433,7 +434,6 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		}
 		
 		int32 Money = FMath::RandRange(1, 100);
-		UE_LOG(LogTemp, Warning, TEXT("Money: %d"), Money);
 		int32 Result = MoneyComp->LoseMoney(Money);
 		AACCharacter* Test = Cast<AACCharacter>(DamageCauser);
 		if (Test == nullptr)
@@ -442,6 +442,12 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		}
 		Test->MoneyComp->EarnMoney(Result);
 		UE_LOG(LogTemp, Warning, TEXT("Earn Money: %d Cur Money: %d"), Result, Test->MoneyComp->GetMoney());
+		AACPlayerState* ACPlayerState = Cast<AACPlayerState>(Test->GetPlayerState());
+		if (ACPlayerState == nullptr)
+		{
+			return SuperDamage;
+		}
+		ACPlayerState->SetMoney(Test->MoneyComp->GetMoney());
 	}
 	else
 	{

@@ -22,6 +22,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
+	
+	virtual void OnRep_PlayerState() override;
 	// ===== 입력 처리 핸들러 =====
 protected:
 	void HandleMove(const struct FInputActionValue& Value);

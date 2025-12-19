@@ -16,6 +16,7 @@ class ANIMALCRIME_API UACHUDWidget : public UUserWidget
 	
 public:
 	void BindGameState();
+	void BindPlayerState();
 	
 	UFUNCTION()
 	void HandleScoreChanged(float NewScore);
