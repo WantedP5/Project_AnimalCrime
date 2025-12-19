@@ -56,6 +56,19 @@ protected:
 	void HandleSteamFriendList(const struct FInputActionValue& Value);
 	void HandleGameReady(const struct FInputActionValue& Value);
 
+protected:
+
+	UFUNCTION(Client, Reliable)
+	void ClientPlayFadeIn();
+
+public:
+ /**
+     @brief 게임시작 FadeIn 애니메이션 종료시 호출되는 함수
+ **/
+	UFUNCTION()
+	void OnGameStartFadeInFinished();
+
+
 	// ===== UI =====
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
@@ -63,9 +76,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<class UACLobbyScreen> LobbyScreen;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UUserWidget> FadeInScreenClass;
+	TSubclassOf<class UACFadeInScreen> FadeInScreenClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	TObjectPtr<class UUserWidget> FadeInScreen;
+	TObjectPtr<class UACFadeInScreen> FadeInScreen;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> SteamFriendListClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")

@@ -93,6 +93,11 @@ public:
 
 
 protected:
+	UFUNCTION()
+	void OnRoleFadeInFinished();
+
+	void ScreenSetRole();
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> EscapeScreenClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
@@ -164,4 +169,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TObjectPtr<class UACHUDWidget> ACHUDWidget;
 #pragma endregion
+
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
+	TSubclassOf<class UACRoleScreen> RoleScreenClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
+	TObjectPtr<class UACRoleScreen> RoleScreen;
 };

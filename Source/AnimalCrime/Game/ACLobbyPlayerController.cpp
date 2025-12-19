@@ -1,6 +1,7 @@
 ﻿
 #include "ACLobbyPlayerController.h"
 #include "UI/GameStart/ACLobbyScreen.h"
+#include "UI/Common/ACFadeInScreen.h"
 #include "Blueprint/UserWidget.h"
 #include "ACLobbyGameMode.h"
 #include "EnhancedInputSubsystems.h"
@@ -11,6 +12,7 @@
 #include "ACLobbyGameState.h"
 #include "AnimalCrime.h"
 #include "GameFramework/PlayerState.h"
+#include "ACAdvancedFriendsGameInstance.h"
 
 AACLobbyPlayerController::AACLobbyPlayerController()
 {
@@ -21,7 +23,7 @@ AACLobbyPlayerController::AACLobbyPlayerController()
 		LobbyScreenClass = LobbyScreenRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> FadeInScreenRef(TEXT("/Game/Project/UI/Common/WBP_FadeIn.WBP_FadeIn_C"));
+	static ConstructorHelpers::FClassFinder<UACFadeInScreen> FadeInScreenRef(TEXT("/Game/Project/UI/Common/WBP_FadeIn.WBP_FadeIn_C"));
 	if (FadeInScreenRef.Succeeded())
 	{
 		FadeInScreenClass = FadeInScreenRef.Class;
@@ -407,20 +409,43 @@ void AACLobbyPlayerController::HandleGameReady(const struct FInputActionValue& V
 
 		AC_LOG(LogSY, Log, TEXT("호스트 - 게임 시작"));
 
-		FadeInScreen = CreateWidget<UUserWidget>(this, FadeInScreenClass);
-		if (FadeInScreen == nullptr)
+		//모든 플레이어에게 FadeIn 스크린 붙이기
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
-			return;
+			AACLobbyPlayerController* PC = Cast<AACLobbyPlayerController>(It->Get());
+			if (PC)
+			{
+				PC->ClientPlayFadeIn();
+			}
 		}
-		FadeInScreen->AddToViewport();
-		
-		ServerStartGame();
+
 	}
 	else
 	{
 		AC_LOG(LogSY, Log, TEXT("클라이언트 - Ready 토글"));
 		ServerReadyToggle();
 	}
+}
+
+void AACLobbyPlayerController::ClientPlayFadeIn_Implementation()
+{
+	FadeInScreen = CreateWidget<UACFadeInScreen>(this, FadeInScreenClass);
+	if (FadeInScreen == nullptr)
+	{
+		return;
+	}
+
+	FadeInScreen->AddToViewport();
+
+	if (HasAuthority())
+	{
+		FadeInScreen->OnFadeInFinished.AddDynamic(this, &AACLobbyPlayerController::OnGameStartFadeInFinished);
+	}
+}
+
+void AACLobbyPlayerController::OnGameStartFadeInFinished()
+{
+	ServerStartGame();
 }
 
 void AACLobbyPlayerController::ChangeInputMode(EInputMode NewMode)
