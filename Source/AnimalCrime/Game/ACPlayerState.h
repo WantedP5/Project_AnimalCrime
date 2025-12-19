@@ -13,6 +13,9 @@ class ANIMALCRIME_API AACPlayerState : public APlayerState
 	GENERATED_BODY()
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+protected:
+
+	virtual void CopyProperties(APlayerState* PlayerState) override;
 public:
 	UFUNCTION()
 	void OnRep_CharacterType();
