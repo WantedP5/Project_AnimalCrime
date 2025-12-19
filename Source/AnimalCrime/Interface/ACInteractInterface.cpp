@@ -4,6 +4,11 @@
 #include "Interface/ACInteractInterface.h"
 #include "Character/ACCharacter.h"
 
+float IACInteractInterface::GetRequiredHoldTime() const
+{
+	return 0.f;
+}
+
 void IACInteractInterface::ShowInteractDebug(AACCharacter* ACPlayer)
 {
 	if (GEngine == nullptr)

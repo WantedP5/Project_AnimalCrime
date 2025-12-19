@@ -15,7 +15,7 @@ public:
 	AACLobbyCharacter();
 
 	// ===== 입력 핸들러 (PlayerController가 호출) =====
-	virtual void SetSteamFriendsList(const FInputActionValue& Value);
-	virtual void SettingsClose(const FInputActionValue& Value) override;
-	//virtual void GameReady(const FInputActionValue& Value);
+	virtual void SetSteamFriendsList();
+	virtual void SettingsClose() override;
+	//virtual void GameReady();
 };

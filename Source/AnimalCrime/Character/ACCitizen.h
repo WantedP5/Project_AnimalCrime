@@ -59,6 +59,9 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastOnPlayMontage(const FVector& Attack);
+	
+	void AttackHitCheck();
+	
 #pragma region 맴버 변수
 public:
 
@@ -84,6 +87,14 @@ public:
 	TObjectPtr<class USkeletalMeshComponent> TopMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
+	TObjectPtr<class UACMoneyComponent> MoneyComp;
 
 private:
 #pragma endregion

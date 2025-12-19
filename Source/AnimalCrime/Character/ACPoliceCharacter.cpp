@@ -3,20 +3,38 @@
 
 #include "Character/ACPoliceCharacter.h"
 #include "AnimalCrime.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
 AACPoliceCharacter::AACPoliceCharacter()
 {
-	// Weapon Component
-	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
-	//todo: Load Weapon through Inventory
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> WeaponMeshRef(
-		TEXT("/Game/Weapons_Free/Meshes/SKM_baseball_bat_001.SKM_baseball_bat_001"));
-	if (WeaponMeshRef.Succeeded())
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> HeadMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hat_057.SK_Hat_057"));
+	if (HeadMeshRef.Succeeded() == true)
 	{
-		WeaponMesh->SetSkeletalMesh(WeaponMeshRef.Object);
+		HeadMesh->SetSkeletalMesh(HeadMeshRef.Object);
 	}
-	WeaponMesh->SetupAttachment(GetMesh(), TEXT("RightHandSocket"));
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
+	if (FaceAccMeshRef.Succeeded() == true)
+	{
+		FaceAccMesh->SetSkeletalMesh(FaceAccMeshRef.Object);
+	}
+	
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Male_emotion_angry_003.SK_Male_emotion_angry_003"));
+	if (FaceMeshRef.Succeeded() == true)
+	{
+		FaceMesh->SetSkeletalMesh(FaceMeshRef.Object);
+	}
+
+	TopMesh->SetSkeletalMesh(nullptr);
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BottomMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Costume_10_001.SK_Costume_10_001"));
+	if (BottomMeshRef.Succeeded() == true)
+	{
+		BottomMesh->SetSkeletalMesh(BottomMeshRef.Object);
+	}
+
+	ShoesMesh->SetSkeletalMesh(nullptr);
 }
 
 EACCharacterType AACPoliceCharacter::GetCharacterType()

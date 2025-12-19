@@ -300,12 +300,13 @@ void AACLobbyPlayerController::HandleStopJumping(const FInputActionValue& Value)
 	}
 }
 
+// todo: Interact 여기서도 사용해야함??
 void AACLobbyPlayerController::HandleInteract(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->Interact(Value);
+		//ControlledCharacter->Interact();
 	}
 }
 
@@ -314,7 +315,7 @@ void AACLobbyPlayerController::HandleItemDrop(const FInputActionValue& Value)
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->ItemDrop(Value);
+		ControlledCharacter->ItemDrop();
 	}
 }
 
@@ -332,22 +333,22 @@ void AACLobbyPlayerController::HandleSettingsClose(const FInputActionValue& Valu
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->SettingsClose(Value);
+		ControlledCharacter->SettingsClose();
 	}
 }
 
 
 
-void AACLobbyPlayerController::HandleSteamFriendList(const FInputActionValue& Value)
+void AACLobbyPlayerController::HandleSteamFriendList(const struct FInputActionValue& Value)
 {
-	AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
-	if (LobbyChar)
-	{
-		LobbyChar->SetSteamFriendsList(Value);
-	}
+    AACLobbyCharacter* LobbyChar = GetPawn<AACLobbyCharacter>();
+    if (LobbyChar)
+    {
+        LobbyChar->SetSteamFriendsList();
+    }
 }
 
-void AACLobbyPlayerController::HandleGameReady(const FInputActionValue& Value)
+void AACLobbyPlayerController::HandleGameReady(const struct FInputActionValue& Value)
 {
 
 	// 호스트인지 확인

@@ -3,6 +3,7 @@
 
 #include "ACCitizen.h"
 
+#include "ACCharacter.h"
 #include "BrainComponent.h"
 #include "NavigationSystem.h"
 #include "AI/ACCitizenAIController.h"
@@ -11,6 +12,9 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Component/ACInteractableComponent.h"
+#include "Component/ACMoneyComponent.h"
+#include "Game/ACPlayerState.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -24,7 +28,7 @@ AACCitizen::AACCitizen()
 	AIControllerClass = AACCitizenAIController::StaticClass();
 
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
-	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("CitizenCollision"));
 
 	// //캐릭터 무브먼트
 	// auto Move = GetCharacterMovement();
@@ -51,20 +55,63 @@ AACCitizen::AACCitizen()
 	{
 		DamagedMontage = DamagedMontageRef.Object;
 	}
+	
+	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
 	
 	HeadMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
-	HeadMesh->SetupAttachment(GetMesh()); // 캐릭터의 메인 Mesh에 붙임
-
+	HeadMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	HeadMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	HeadMesh->SetupAttachment(RootComponent);
+	HeadMesh->SetLeaderPoseComponent(MeshComp);
+	HeadMesh->SetReceivesDecals(false);
+	
+	
 	TopMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TopMesh"));
 	TopMesh->SetupAttachment(GetMesh());
+	TopMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	TopMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	TopMesh->SetupAttachment(RootComponent);
+	TopMesh->SetLeaderPoseComponent(MeshComp);
+	TopMesh->SetReceivesDecals(false);
 
 	BottomMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BottomMesh"));
 	BottomMesh->SetupAttachment(GetMesh());
+	BottomMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	BottomMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	BottomMesh->SetupAttachment(RootComponent);
+	BottomMesh->SetLeaderPoseComponent(MeshComp);
+	BottomMesh->SetReceivesDecals(false);
+	
+	ShoesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
+	if (ShoesMeshRef.Succeeded() == true)
+	{
+		ShoesMesh->SetSkeletalMesh(ShoesMeshRef.Object);
+	}
+	ShoesMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	ShoesMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	ShoesMesh->SetupAttachment(RootComponent);
+	ShoesMesh->SetLeaderPoseComponent(MeshComp);
+	ShoesMesh->SetReceivesDecals(false);
+
+	FaceAccMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
+	if (FaceAccMeshRef.Succeeded() == true)
+	{
+		FaceAccMesh->SetSkeletalMesh(FaceAccMeshRef.Object);
+	}
+	FaceAccMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	FaceAccMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	FaceAccMesh->SetupAttachment(RootComponent);
+	FaceAccMesh->SetLeaderPoseComponent(MeshComp);
+	FaceAccMesh->SetReceivesDecals(false);
 
 	// 인터랙션 컴포넌트
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
+	
+	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -72,6 +119,8 @@ void AACCitizen::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyCitizenType);
 }
 
 // Called every frame
@@ -218,6 +267,8 @@ void AACCitizen::OnDamaged()
 		AICon->GetBrainComponent()->StopLogic("HitAbort");
 
 		AICon->GetBrainComponent()->StartLogic();
+		
+		
 	}
 
 }
@@ -230,6 +281,58 @@ void AACCitizen::OnArrive()
 float AACCitizen::GetLastHitTime() const
 {
 	return LastHitTime;
+}
+
+void AACCitizen::AttackHitCheck()
+{
+	// 캡슐 크기
+	float CapsuleRadius = 30.0f;
+	float CapsuleHalfHeight = 60.0f;
+	
+	// 트레이스 길이
+	float TraceDistance = 200.0f;
+	
+	// 시작 위치 = 캐릭터 위치
+	FVector Start = GetActorLocation();
+	               
+	// 끝 위치 = 캐릭터 앞 방향 * 거리
+	FVector Forward = GetActorForwardVector();
+	FVector End = Start + Forward * TraceDistance;
+	
+	// 충돌 파라미터 설정
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);   // 자기 자신 무시
+	Params.bTraceComplex = false;
+	Params.bReturnPhysicalMaterial = false;
+	
+	FHitResult Hit;
+	
+	// bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2 | ECC_GameTraceChannel4, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
+	
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+	
+	bool bHit = GetWorld()->SweepSingleByObjectType(
+		Hit,
+		Start,
+		End,
+		FQuat::Identity,
+		ObjectParams,
+		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
+		Params
+	);
+	
+	// 디버그: 캡슐 그리기
+	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
+	
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
+	}
 }
 
 void AACCitizen::MulticastOnPlayMontage_Implementation(const FVector& Attack)
@@ -329,6 +432,22 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 			//PlayDamagedMontage(DamageCauser->GetActorLocation());
 			MulticastOnPlayMontage(DamageCauser->GetActorLocation());
 		}
+		
+		int32 Money = FMath::RandRange(1, 100);
+		int32 Result = MoneyComp->LoseMoney(Money);
+		AACCharacter* Test = Cast<AACCharacter>(DamageCauser);
+		if (Test == nullptr)
+		{
+			return SuperDamage;
+		}
+		Test->MoneyComp->EarnMoney(Result);
+		UE_LOG(LogTemp, Warning, TEXT("Earn Money: %d Cur Money: %d"), Result, Test->MoneyComp->GetMoney());
+		AACPlayerState* ACPlayerState = Cast<AACPlayerState>(Test->GetPlayerState());
+		if (ACPlayerState == nullptr)
+		{
+			return SuperDamage;
+		}
+		ACPlayerState->SetMoney(Test->MoneyComp->GetMoney());
 	}
 	else
 	{

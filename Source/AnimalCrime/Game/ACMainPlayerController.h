@@ -22,13 +22,17 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
+	
+	virtual void OnRep_PlayerState() override;
 	// ===== 입력 처리 핸들러 =====
 protected:
 	void HandleMove(const struct FInputActionValue& Value);
 	void HandleLook(const struct FInputActionValue& Value);
 	void HandleJump(const struct FInputActionValue& Value);
 	void HandleStopJumping(const struct FInputActionValue& Value);
-	void HandleInteract(const struct FInputActionValue& Value);
+	void HandleInteractStart(const struct FInputActionValue& Value);
+	void HandleInteractHold(const struct FInputActionValue& Value);
+	void HandleInteractRelease(const struct FInputActionValue& Value);
 	void HandleItemDrop(const struct FInputActionValue& Value);
 	void HandleAttack(const struct FInputActionValue& Value);
 	void HandleSettingsClose(const struct FInputActionValue& Value);

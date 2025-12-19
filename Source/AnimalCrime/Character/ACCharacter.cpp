@@ -26,8 +26,10 @@
 #include "Game/ACMainPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Component/ACMoneyComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Objects/MoneyData.h"
 
 AACCharacter::AACCharacter()
 {
@@ -156,13 +158,16 @@ AACCharacter::AACCharacter()
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
 
+	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
 }
 
 
 void AACCharacter::BeginPlay()
 {
-
 	Super::BeginPlay();
+	
+	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 }
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
@@ -196,17 +201,95 @@ void AACCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void AACCharacter::Interact(const FInputActionValue& Value)
+void AACCharacter::InteractStarted()
 {
 	//AC_LOG(LogSW, Log, TEXT("Interact Pressed"));
 
 	if (SortNearInteractables() == true)
 	{
-		ServerInteract();
-	}	
+		// 정렬된 NearInteractables에서 서버로 보내줄 하나의 액터를 찾는다.
+		for (AActor* Target : NearInteractables)
+		{
+			IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+			if (Interactable == nullptr)
+			{
+				AC_LOG(LogSW, Log, TEXT("%s has No Interface!!"), *Target->GetName());
+				continue;
+			}
+
+			// 클라에서 상호작용 가능한지 체크
+			if (Interactable->CanInteract(this) == false)
+			{
+				AC_LOG(LogSW, Log, TEXT("%s Cant Interact with %s!!"), *Target->GetName(), *GetName());
+				continue;
+			}
+
+			// 클라이언트에서 상호작용이 가능한지 판단이 완료되면 서버를 호출한다.
+			RequiredHoldTime = Interactable->GetRequiredHoldTime();
+
+			// 0초면 즉시 상호작용
+			if (RequiredHoldTime <= KINDA_SMALL_NUMBER)
+			{
+				ServerInteract(Target);
+			}
+			// 0초보다 크면 홀드 상호작용
+			else
+			{
+				// 홀드 시작
+				bIsHoldingInteract = true;
+				CurrentHoldTarget = Target;
+				CurrentHoldTime = 0.f;
+			}
+			
+			return;
+		}
+	}
 }
 
-void AACCharacter::ItemDrop(const FInputActionValue& Value)
+void AACCharacter::InteractHolding(const float DeltaTime)
+{
+	if (bIsHoldingInteract == false)
+	{
+		ResetHoldInteract();
+		return;
+	}
+	//todo: isvalid?
+	if (CurrentHoldTarget == nullptr)
+	{
+		ResetHoldInteract();
+		return;
+	}
+	if (!NearInteractables.Contains(CurrentHoldTarget))
+	{
+		ResetHoldInteract();
+		return;
+	}
+
+
+	// 시간 누적
+	CurrentHoldTime += DeltaTime;
+	AC_LOG(LogSW, Log, TEXT("%s Holding at %f"), *CurrentHoldTarget->GetName(), CurrentHoldTime);
+
+	// 완료 체크
+	if (CurrentHoldTime >= RequiredHoldTime)
+	{
+		ServerInteract(CurrentHoldTarget);
+		ResetHoldInteract();
+	}
+
+}
+
+void AACCharacter::InteractReleased()
+{
+	if (bIsHoldingInteract == false)
+	{
+		return;
+	}
+
+	ResetHoldInteract();
+}
+
+void AACCharacter::ItemDrop()
 {
 	UE_LOG(LogTemp, Log, TEXT("ItemDrop!!"));
 }
@@ -231,7 +314,7 @@ void AACCharacter::Attack()
 	}
 }
 
-void AACCharacter::SettingsClose(const FInputActionValue& Value)
+void AACCharacter::SettingsClose()
 {
 	//자식에서 추가로 구현
 	switch (SettingMode)
@@ -245,41 +328,30 @@ void AACCharacter::SettingsClose(const FInputActionValue& Value)
 	}
 }
 
-void AACCharacter::ServerInteract_Implementation()
+void AACCharacter::ServerInteract_Implementation(AActor* Target)
 {
-	if (NearInteractables.Num() == 0)
+	if (Target == nullptr)
 	{
-		AC_LOG(LogSW, Log, TEXT("No Near Interactables!!"));
+		AC_LOG(LogSW, Log, TEXT("NULL!!"));
 		return;
 	}
 
-	for (AActor* Target : NearInteractables)
+	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+	if (Interactable == nullptr)
 	{
-		AC_LOG(LogSW, Log, TEXT("%s Selected!"), *Target->GetName());
-
-		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
-		if (Interactable == nullptr)
-		{
-			continue;
-		}
-
-		// 1. 상호작용 가능한지 체크( 현재 캐릭터 roll과 상호작용 가능한 물체인가?)
-		if (Interactable->CanInteract(this) == false)
-		{
-			continue;
-		}
-
-		// todo: 2. 거리 체크 (치트 방지)	???
-		//float Dist = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
-		//if (Dist > 300.f) return;
-
-		// 3. 상호작용 실행
-		Interactable->OnInteract(this);
+		AC_LOG(LogSW, Log, TEXT("%s has No Interface!!"), *Target->GetName());
 		return;
 	}
 
-	// 여기까지 오면 배열에 상호작용 인터페이스 구현한 액터가 없음.
-	AC_LOG(LogSW, Log, TEXT("No Actor has Interface!!"));
+	// 상호작용 가능한지 서버에서 확실하게 체크
+	if (Interactable->CanInteract(this) == false)
+	{
+		AC_LOG(LogSW, Log, TEXT("%s Cant Interact with %s!!"), *Target->GetName(), *GetName());
+		return;
+	}
+
+	Interactable->OnInteract(this);
+	AC_LOG(LogSW, Log, TEXT("%s Interacted with %s!!"), *Target->GetName(), *GetName());
 }
 
 bool AACCharacter::CheckProcessAttack() const
@@ -310,38 +382,52 @@ void AACCharacter::PerformAttackTrace()
 
 void AACCharacter::AttackHitCheck()
 {
-	// 캡슐 크기
-	float CapsuleRadius = 30.0f;
-	float CapsuleHalfHeight = 60.0f;
-
-	// 트레이스 길이
-	float TraceDistance = 200.0f;
-
-	// 시작 위치 = 캐릭터 위치
-	FVector Start = GetActorLocation();
-                
-	// 끝 위치 = 캐릭터 앞 방향 * 거리
-	FVector Forward = GetActorForwardVector();
-	FVector End = Start + Forward * TraceDistance;
-
-	// 충돌 파라미터 설정
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);   // 자기 자신 무시
-	Params.bTraceComplex = false;
-	Params.bReturnPhysicalMaterial = false;
-
-	FHitResult Hit;
-
-	bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
-
-	// 디버그: 캡슐 그리기
-	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
-
-	if (bHit)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
-	}
+	// // 캡슐 크기
+	// float CapsuleRadius = 30.0f;
+	// float CapsuleHalfHeight = 60.0f;
+	//
+	// // 트레이스 길이
+	// float TraceDistance = 200.0f;
+	//
+	// // 시작 위치 = 캐릭터 위치
+	// FVector Start = GetActorLocation();
+ //                
+	// // 끝 위치 = 캐릭터 앞 방향 * 거리
+	// FVector Forward = GetActorForwardVector();
+	// FVector End = Start + Forward * TraceDistance;
+	//
+	// // 충돌 파라미터 설정
+	// FCollisionQueryParams Params;
+	// Params.AddIgnoredActor(this);   // 자기 자신 무시
+	// Params.bTraceComplex = false;
+	// Params.bReturnPhysicalMaterial = false;
+	//
+	// FHitResult Hit;
+	//
+	// // bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2 | ECC_GameTraceChannel4, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
+	//
+	// FCollisionObjectQueryParams ObjectParams;
+	// ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	// ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel5);
+	//
+	// bool bHit = GetWorld()->SweepSingleByObjectType(
+	// 	Hit,
+	// 	Start,
+	// 	End,
+	// 	FQuat::Identity,
+	// 	ObjectParams,
+	// 	FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
+	// 	Params
+	// );
+	//
+	// // 디버그: 캡슐 그리기
+	// DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
+	//
+	// if (bHit)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+	// 	UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
+	// }
 }
 
 bool AACCharacter::CanInteract(AACCharacter* ACPlayer)
@@ -396,6 +482,31 @@ bool AACCharacter::SortNearInteractables()
 		});
 
 	return true;
+}
+
+void AACCharacter::ResetHoldInteract()
+{
+	if (CurrentHoldTarget == nullptr)
+	{
+		return;
+	}
+
+	AC_LOG(LogSW, Log, TEXT("%s Reset"), *CurrentHoldTarget->GetName());
+
+	bIsHoldingInteract = false;
+	CurrentHoldTarget = nullptr;
+	CurrentHoldTime = 0.f;
+	RequiredHoldTime = 0.f;
+}
+
+float AACCharacter::GetHoldProgress() const
+{
+	if (RequiredHoldTime <= 0.f)
+	{
+		return 0.f;
+	}
+
+	return FMath::Clamp(CurrentHoldTime / RequiredHoldTime, 0.f, 1.f);
 }
 
 void AACCharacter::MulticastPlayAttackMontage_Implementation()

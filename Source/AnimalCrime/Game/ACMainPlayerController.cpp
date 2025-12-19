@@ -108,9 +108,10 @@ void AACMainPlayerController::BeginPlay()
 	
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
-	if (!IsLocalController())
+	if (IsLocalController() == false)
 	{
-		return;   // 🔥 이 줄이 핵심
+		UE_LOG(LogTemp, Warning, TEXT("IsLocalController false"));
+		return;
 	}
 	ACHUDWidget = CreateWidget<UACHUDWidget>(this, ACHUDWidgetClass);
 	if (ACHUDWidget == nullptr)
@@ -123,6 +124,11 @@ void AACMainPlayerController::BeginPlay()
 	ACHUDWidget->AddToViewport();
 	
 	ACHUDWidget->BindGameState();
+	
+	if (HasAuthority())
+	{
+		ACHUDWidget->BindPlayerState();
+	}
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -162,7 +168,9 @@ void AACMainPlayerController::SetupInputComponent()
 	}
 	if (InteractAction)
 	{
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleInteractStart);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleInteractHold);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleInteractRelease);
 	}
 	if (ItemDropAction)
 	{
@@ -181,6 +189,13 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(QuickSlotAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleQuickSlot);
 	}
+}
+
+void AACMainPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	
+	ACHUDWidget->BindPlayerState();
 }
 
 // ===== 입력 핸들러 구현 =====
@@ -220,12 +235,30 @@ void AACMainPlayerController::HandleStopJumping(const FInputActionValue& Value)
 	}
 }
 
-void AACMainPlayerController::HandleInteract(const FInputActionValue& Value)
+void AACMainPlayerController::HandleInteractStart(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->Interact(Value);
+		ControlledCharacter->InteractStarted();
+	}
+}
+
+void AACMainPlayerController::HandleInteractHold(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->InteractHolding(GetWorld()->GetDeltaSeconds());
+	}
+}
+
+void AACMainPlayerController::HandleInteractRelease(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter)
+	{
+		ControlledCharacter->InteractReleased();
 	}
 }
 
@@ -234,7 +267,7 @@ void AACMainPlayerController::HandleItemDrop(const FInputActionValue& Value)
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->ItemDrop(Value);
+		ControlledCharacter->ItemDrop();
 	}
 }
 
@@ -252,7 +285,7 @@ void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter)
 	{
-		ControlledCharacter->SettingsClose(Value);
+		ControlledCharacter->SettingsClose();
 	}
 }
 

@@ -39,9 +39,9 @@ void AACMainGameMode::BeginPlay()
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
 	GameRuleManager->Init(this);
-
-	// GenerateOutfitPool();
-	// SpawnAllAI();
+	
+	GenerateOutfitPool();
+	SpawnAllAI();
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -194,7 +194,7 @@ void AACMainGameMode::SpawnAllAI()
 		}
 
 		NewAI->FinishSpawning(Transform);
-
+		UE_LOG(LogTemp, Log, TEXT("Spawn Success"));
 	}
 
 }

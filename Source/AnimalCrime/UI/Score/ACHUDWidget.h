@@ -16,9 +16,13 @@ class ANIMALCRIME_API UACHUDWidget : public UUserWidget
 	
 public:
 	void BindGameState();
+	void BindPlayerState();
 	
 	UFUNCTION()
 	void HandleScoreChanged(float NewScore);
+	
+	UFUNCTION()
+	void HandleMoneyChanged(int32 NewMoney);
 	
 public:
 	UPROPERTY(meta = (BindWidget))
@@ -26,4 +30,7 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACQuickSlotWidget> WBP_QuickSlot;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACMoneyWidget> WBP_Money;
 };

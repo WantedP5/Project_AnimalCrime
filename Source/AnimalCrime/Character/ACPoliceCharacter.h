@@ -20,7 +20,6 @@ public:
 	virtual EACCharacterType GetCharacterType() override;
 
 public:
-	//!< 상호작용 인터페이스
 protected:
 	virtual bool CanInteract(AACCharacter* ACPlayer) override;
 	virtual void OnInteract(AACCharacter* ACPlayer) override;
@@ -29,7 +28,4 @@ protected:
 
 
 protected:
-	//!< 메쉬 컴포넌트
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> WeaponMesh;
 };

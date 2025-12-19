@@ -39,6 +39,7 @@ public:
 protected:
 	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
 	virtual void OnInteract(class AACCharacter* ACPlayer) override;
+	virtual float GetRequiredHoldTime() const override;
 	virtual FString GetInteractableName() const override;
 
 protected:
