@@ -83,6 +83,13 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientToggleCCTVWidget(TSubclassOf<class UACCCTVWidget> WidgetClass);
 
+public:
+	void ShowInteractProgress(const FString& TargetName);
+	void UpdateInteractProgress(float Progress);
+	void HideInteractProgress();
+
+
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> EscapeScreenClass;
