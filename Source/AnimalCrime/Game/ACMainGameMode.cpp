@@ -88,6 +88,8 @@ UClass* AACMainGameMode::GetDefaultPawnClassForController_Implementation(AContro
 	{
 		const EPlayerRole PlayerRole = GI->SavedPlayerRoles[NetId];
 
+		PS->PlayerRole = PlayerRole;
+		
 		return (PlayerRole == EPlayerRole::Police) ? PolicePawnClass : MafiaPawnClass;
 	}
 

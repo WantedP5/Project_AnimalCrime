@@ -14,6 +14,8 @@
 #include "UI/Score/ACHUDWidget.h"
 #include "UI/HUD/ACQuickSlotWidget.h"
 #include "UI/CCTV/ACCCTVWidget.h"
+#include "UI/GameStart/ACRoleScreen.h"
+#include "ACPlayerState.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -33,6 +35,13 @@ AACMainPlayerController::AACMainPlayerController()
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACHUDWidgetRef is empty"));
+	}
+
+	//Role Screen 로드
+	static ConstructorHelpers::FClassFinder<UACRoleScreen> RoleScreenRef(TEXT("/Game/Project/UI/GameStart/WBP_RoleScreen.WBP_RoleScreen_C"));
+	if (RoleScreenRef.Succeeded())
+	{
+		RoleScreenClass = RoleScreenRef.Class;
 	}
 
 	// ===== 입력 관련 로드 =====
@@ -129,6 +138,19 @@ void AACMainPlayerController::BeginPlay()
 	{
 		ACHUDWidget->BindPlayerState();
 	}
+
+	RoleScreen = CreateWidget<UACRoleScreen>(this, RoleScreenClass);
+	if (RoleScreen == nullptr)
+	{
+		return;
+	}
+
+	RoleScreen->AddToViewport();
+	RoleScreen->OnFadeOutFinished.AddDynamic(this, &AACMainPlayerController::OnRoleFadeInFinished);
+	if (HasAuthority())
+	{
+		ScreenSetRole();
+	}
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -196,6 +218,8 @@ void AACMainPlayerController::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	ACHUDWidget->BindPlayerState();
+
+	ScreenSetRole();
 }
 
 // ===== 입력 핸들러 구현 =====
@@ -498,6 +522,29 @@ void AACMainPlayerController::RestoreOriginalCamera()
     CameraBoom->TargetOffset = SavedTargetOffset;
 
     bShopCameraActive = false;
+}
+
+void AACMainPlayerController::OnRoleFadeInFinished()
+{
+	AC_LOG(LogSY, Log, TEXT("FadeOut"));
+	RoleScreen->RemoveFromParent();
+}
+
+void AACMainPlayerController::ScreenSetRole()
+{
+	AACPlayerState* PS = GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+
+	if (RoleScreen == nullptr)
+	{
+		return;
+	}
+	RoleScreen->SetRole(PS->PlayerRole);
+	AC_LOG(LogSY, Log, TEXT("Set Role!"));
 }
 
 void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<class UACCCTVWidget> WidgetClass)
