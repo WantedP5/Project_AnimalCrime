@@ -2,6 +2,7 @@
 
 #include "ACMainGameMode.h"
 
+#include "ACAdvancedFriendsGameInstance.h"
 #include "ACGameRuleManager.h"
 #include "ACMainGameState.h"
 #include "ACPlayerState.h"
@@ -13,22 +14,23 @@
 #include "Character/ACPoliceCharacter.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "ACGameEnums.h"
 #include "AnimalCrime.h"
 
 AACMainGameMode::AACMainGameMode()
 {
 	PlayerControllerClass = AACMainPlayerController::StaticClass();
-	//DefaultPawnClass = AACCharacter::StaticClass();
-	DefaultPawnClass = AACMafiaCharacter::StaticClass();
+	//DefaultPawnClass = AACMafiaCharacter::StaticClass();
+	DefaultPawnClass = nullptr;
 	GameStateClass = AACMainGameState::StaticClass();
 	PlayerStateClass = AACPlayerState::StaticClass();
 
 	MafiaPawnClass = AACMafiaCharacter::StaticClass();
 	PolicePawnClass = AACPoliceCharacter::StaticClass();
-	
+
 	bUseSeamlessTravel = true;
 }
+
 
 void AACMainGameMode::BeginPlay()
 {
@@ -52,79 +54,53 @@ AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return PlayerStarts.Num() > 0 ? PlayerStarts[PlayerIndex % PlayerStarts.Num()] : nullptr;
 }
 
-void AACMainGameMode::HandleSeamlessTravelPlayer(AController*& Controller)
+UClass* AACMainGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	Super::HandleSeamlessTravelPlayer(Controller);
-
-	APlayerController* PC = Cast<APlayerController>(Controller);
-	if (PC == nullptr)
+	if (!InController)
 	{
-		return;
+		return DefaultPawnClass;
 	}
 
-	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
-	if (PS == nullptr)
-	{
-		return;
-	}
+	AACPlayerState* PS = InController->GetPlayerState<AACPlayerState>();
 
-	//직업으로 폰 지정
-	TSubclassOf<APawn> PawnClassToUse = nullptr;
-	switch (PS->CharacterType)
+	if (!PS)
 	{
-	case EACCharacterType::Police:
-		PawnClassToUse = PolicePawnClass;
-		AC_LOG(LogSY, Log, TEXT("Police!"));
-		break;
-	case EACCharacterType::Mafia:
-		PawnClassToUse = MafiaPawnClass;
-		AC_LOG(LogSY, Log, TEXT("Mafia!"));
-		break;
-
-	default:
-		AC_LOG(LogSY, Log, TEXT("Default!"));
-		PawnClassToUse = DefaultPawnClass;
-		break;
+		return DefaultPawnClass;
 	}
-	if (PawnClassToUse == nullptr)
-	{
-		return;
-	}
+	UACAdvancedFriendsGameInstance* GI = GetGameInstance<UACAdvancedFriendsGameInstance>();
 
-	// 기존 폰 제거
-	if (APawn* OldPawn = PC->GetPawn())
+	if (!GI)
 	{
-		OldPawn->Destroy();
+		return DefaultPawnClass;
+	}
+	// 🔑 GameInstance에서 역할 복원
+	const FUniqueNetIdRepl& NetId = PS->GetUniqueId();
+
+	AC_LOG(LogSY, Log, TEXT("%s : %s"), *PS->GetPlayerName(), *PS->GetUniqueId()->ToString());
+
+	if (!NetId.IsValid())
+	{
+		return DefaultPawnClass;
 	}
 
 
-	//플레이어 스타트 찾기
-	AActor* StartSpot = FindPlayerStart(PC);
-	if (StartSpot == nullptr)
+	if (GI->SavedPlayerRoles.Contains(NetId))
 	{
-		return;
+
+		const EPlayerRole PlayerRole = GI->SavedPlayerRoles[NetId];
+		if (PlayerRole == EPlayerRole::Police)
+		{
+			AC_LOG(LogSY, Log, TEXT("Police"));
+		}
+		else
+		{
+			AC_LOG(LogSY, Log, TEXT("Mafia"));
+		}
+
+		return (PlayerRole == EPlayerRole::Police) ? PolicePawnClass : MafiaPawnClass;
 	}
-
-	// Pawn 스폰
-	FActorSpawnParameters Params;
-	Params.Owner = PC;
-	Params.Instigator = nullptr;
-
-	APawn* NewPawn = GetWorld()->SpawnActor<APawn>(
-		PawnClassToUse,
-		StartSpot->GetActorTransform(),
-		Params
-	);
-
-	if (NewPawn == nullptr)
-	{
-		return;
-	}
-	// 컨트롤러에 빙의
-	PC->Possess(NewPawn);
-
-	//클라이언트 초기화
-	PC->ClientRestart(NewPawn);
+	// fallback
+	return DefaultPawnClass;
 }
 
 void AACMainGameMode::AddTeamScore(int32 Score)

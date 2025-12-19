@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ACGameEnums.h"
 #include "AdvancedFriendsGameInstance.h"
 #include "ACAdvancedFriendsGameInstance.generated.h"
 
@@ -76,5 +77,9 @@ private:
     UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = true))
     FString GameMapName;
 #pragma endregion
+
+public:
+    //!< 플레이어 역할 저장
+    TMap<FUniqueNetIdRepl, EPlayerRole> SavedPlayerRoles;
 };
 

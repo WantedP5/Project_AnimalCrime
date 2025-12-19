@@ -44,12 +44,9 @@ public:
 	virtual void BeginPlay() override;
 	//virtual AActor* ChoosePlayerStart(AController* Player) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
- /**
-     @brief SeamlessTravel 중 플레이어 전환 시 호출되는 함수.
-			PlayerState에 저장된 직업에 따라 새로운 Pawn을 생성하고 Possess한다.
-     @param Controller - SeamlessTravel 대상이 되는 기존 맵에서 사용하던 플레이어의 컨트롤러
- **/
-	virtual void HandleSeamlessTravelPlayer(AController*& Controller) override;
+
+protected:
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 #pragma endregion
 	
 public:
