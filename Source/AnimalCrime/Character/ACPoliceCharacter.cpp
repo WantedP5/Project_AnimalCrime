@@ -5,6 +5,7 @@
 #include "AnimalCrime.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Component/ACMoneyComponent.h"
 
 AACPoliceCharacter::AACPoliceCharacter()
 {
@@ -40,6 +41,18 @@ AACPoliceCharacter::AACPoliceCharacter()
 EACCharacterType AACPoliceCharacter::GetCharacterType()
 {
 	return EACCharacterType::Police;
+}
+
+void AACPoliceCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Police는 200원으로 시작
+	if (HasAuthority())
+	{
+		MoneyComp->InitMoneyComponent(EMoneyType::MoneyPoliceType);
+		UE_LOG(LogHG, Log, TEXT("Police BeginPlay: MoneyPoliceType 초기화"));
+	}
 }
 
 bool AACPoliceCharacter::CanInteract(AACCharacter* ACPlayer)

@@ -20,6 +20,7 @@ class ANIMALCRIME_API UACQuickSlotWidget : public UACCustomWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
     /**
@@ -77,6 +78,13 @@ public:
     class UACItemData* GetSubSlotItem() const { return SubSlotItem; }
 
 protected:
+    // ShopComponent 바인딩 함수 추가
+    void BindShopComponent();
+
+    // 하이라이트 업데이트 함수
+    UFUNCTION()
+    void UpdateHighlight(class UACItemData* EquippedWeapon);
+protected:
     // === 위젯 바인딩 (블루프린트 UMG에서 같은 이름으로 생성) ===
 
     UPROPERTY(meta = (BindWidget))
@@ -103,4 +111,7 @@ protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "QuickSlot")
     TObjectPtr<class UACItemData> SubSlotItem;
+
+private:
+    bool bShopComponentBound = false;
 };

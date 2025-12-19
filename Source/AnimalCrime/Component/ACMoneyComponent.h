@@ -27,9 +27,12 @@ protected:
 	
 public:
 	FORCEINLINE int32	GetMoney()	const			{	return  MoneyData.Money;}
-	FORCEINLINE void	UpdateMoney(int32 InMoney)	{	MoneyData.Money = InMoney;}
+
+	// EarnMoney(), SpendMoney(), LoseMoney() 로 사용하면 됨 
+	// 확인하고 확인한 사람이 지워주세요
+	/*FORCEINLINE void	UpdateMoney(int32 InMoney)	{	MoneyData.Money = InMoney;}
 	FORCEINLINE void	AddMoney(int32 InMoney)		{	UpdateMoney(GetMoney() + InMoney);}
-	FORCEINLINE void	SubMoney(int32 InMoney)		{	UpdateMoney(GetMoney() - InMoney);}
+	FORCEINLINE void	SubMoney(int32 InMoney)		{	UpdateMoney(GetMoney() - InMoney);}*/
 	
 public:
 	void InitMoneyComponent(EMoneyType MoneyType);

@@ -167,7 +167,9 @@ void AACCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
-	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+    // Police와 Mafia는 각자의 BeginPlay에서 초기화
+	// ※ 얘도 확인 했으면 지워주세요
+	//MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 }
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)

@@ -40,8 +40,6 @@ bool UACShopComponent::PurchaseItem(UACItemData* ItemData)
         return false;
     }
 
-    // TODO: 돈 체크 및 차감 로직 추가
-
     ACharacter* Character = Cast<ACharacter>(GetOwner());
     if (Character == nullptr)
     {
@@ -93,33 +91,8 @@ void UACShopComponent::PurchaseAndAddToQuickSlot(UACItemData* ItemData)
         return;
     }
 
-    AACCharacter* Character = Cast<AACCharacter>(GetOwner());
-    if (Character == nullptr)
-    {
-        UE_LOG(LogHG, Error, TEXT("PurchaseAndAddToQuickSlot: Owner is not AACCharacter"));
-        return;
-    }
-
-    AACMainPlayerController* PC = Character->GetController<AACMainPlayerController>();
-    if (PC == nullptr || PC->ACHUDWidget == nullptr || PC->ACHUDWidget->WBP_QuickSlot == nullptr)
-    {
-        UE_LOG(LogHG, Error, TEXT("PurchaseAndAddToQuickSlot: QuickSlot widget is null"));
-        return;
-    }
-
-    if (PC->ACHUDWidget->WBP_QuickSlot->IsFull())
-    {
-        UE_LOG(LogHG, Warning, TEXT("QuickSlot is full! Cannot purchase item: %s"), *ItemData->ItemName.ToString());
-        return;
-    }
-
-    if (PurchaseItem(ItemData))
-    {
-        if (PC->ACHUDWidget->WBP_QuickSlot->TryAddItem(ItemData))
-        {
-            UE_LOG(LogHG, Log, TEXT("Item purchased and added to quickslot: %s"), *ItemData->ItemName.ToString());
-        }
-    }
+    // 서버 RPC 호출
+    ServerPurchaseAndAddToQuickSlot(ItemData);
 }
 
 void UACShopComponent::ToggleWeaponEquip(UACItemData* ItemData)
@@ -131,6 +104,15 @@ void UACShopComponent::ToggleWeaponEquip(UACItemData* ItemData)
     }
 
     ServerToggleWeaponEquip(ItemData);
+}
+
+void UACShopComponent::OnRep_EquippedWeapon()
+{
+    UE_LOG(LogHG, Log, TEXT("[OnRep_EquippedWeapon] Weapon changed to: %s"),
+        EquippedWeapon ? *EquippedWeapon->ItemName.ToString() : TEXT("None"));
+
+    // 델리게이트 브로드캐스트
+    OnWeaponEquippedChanged.Broadcast(EquippedWeapon);
 }
 
 void UACShopComponent::EquipClothing(UACItemData* ItemData)
@@ -234,6 +216,9 @@ void UACShopComponent::EquipWeapon(UACItemData* ItemData)
     if (GetOwner()->HasAuthority())
     {
         EquippedWeapon = ItemData;
+
+        // 서버에서 델리게이트 브로드캐스트
+        OnWeaponEquippedChanged.Broadcast(EquippedWeapon);
     }
 
     UE_LOG(LogHG, Log, TEXT("Equipped weapon: %s to socket %s"), *ItemData->ItemName.ToString(), *ItemData->AttachSocketName.ToString());
@@ -270,7 +255,55 @@ void UACShopComponent::UnequipWeapon()
     if (GetOwner()->HasAuthority())
     {
         EquippedWeapon = nullptr;
+
+        // 서버에서 델리게이트 브로드캐스트
+        OnWeaponEquippedChanged.Broadcast(nullptr);
     }
+}
+
+void UACShopComponent::ClientAddToQuickSlot_Implementation(UACItemData* ItemData)
+{
+    if (ItemData == nullptr) return;
+
+    AACCharacter* Character = Cast<AACCharacter>(GetOwner());
+    if (Character == nullptr) return;
+
+    AACMainPlayerController* PC = Character->GetController<AACMainPlayerController>();
+    if (PC == nullptr || PC->ACHUDWidget == nullptr || PC->ACHUDWidget->WBP_QuickSlot == nullptr)
+    {
+        UE_LOG(LogHG, Error, TEXT("ClientAddToQuickSlot: QuickSlot widget is null"));
+        return;
+    }
+
+    if (PC->ACHUDWidget->WBP_QuickSlot->IsFull())
+    {
+        UE_LOG(LogHG, Warning, TEXT("QuickSlot is full! Cannot add item: %s"), *ItemData->ItemName.ToString());
+        return;
+    }
+
+    if (PC->ACHUDWidget->WBP_QuickSlot->TryAddItem(ItemData))
+    {
+        UE_LOG(LogHG, Log, TEXT("Item added to quickslot: %s"), *ItemData->ItemName.ToString());
+    }
+}
+
+void UACShopComponent::ServerPurchaseAndAddToQuickSlot_Implementation(UACItemData* ItemData)
+{
+    if (ItemData == nullptr)
+    {
+        UE_LOG(LogHG, Warning, TEXT("ServerPurchaseAndAddToQuickSlot: ItemData is null"));
+        return;
+    }
+
+    // 서버에서 구매 시도
+    if (PurchaseItem(ItemData) == false)
+    {
+        UE_LOG(LogHG, Warning, TEXT("Server: Failed to purchase item %s"), *ItemData->ItemName.ToString());
+        return;
+    }
+
+    // 구매 성공 - 클라이언트에게 퀵슬롯 추가 명령
+    ClientAddToQuickSlot(ItemData);
 }
 
 void UACShopComponent::MulticastUnequipWeapon_Implementation()

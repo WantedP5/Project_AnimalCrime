@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "Item/ACItemData.h"
 #include "ACShopComponent.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedChanged, class UACItemData*, NewWeapon);
 
 /**
     @class   UACShopComponent
@@ -45,6 +47,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Shop")
     void ToggleWeaponEquip(class UACItemData* ItemData);
 
+    UFUNCTION()
+    void OnRep_EquippedWeapon();
+
+    UPROPERTY(BlueprintAssignable, Category = "Shop")
+    FOnWeaponEquippedChanged OnWeaponEquippedChanged;
 private:
     void EquipClothing(class UACItemData* ItemData);
     void EquipWeapon(class UACItemData* ItemData);
@@ -52,6 +59,9 @@ private:
 
     UFUNCTION(Server, Reliable)
     void ServerPurchaseAndEquipItem(class UACItemData* ItemData);
+
+    UFUNCTION(Server, Reliable)
+    void ServerPurchaseAndAddToQuickSlot(class UACItemData* ItemData);
 
     UFUNCTION(Server, Reliable)
     void ServerToggleWeaponEquip(class UACItemData* ItemData);
@@ -62,6 +72,8 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void MulticastUnequipWeapon();
 
+    UFUNCTION(Client, Reliable)
+    void ClientAddToQuickSlot(class UACItemData* ItemData);
 public:
     // 착용 중인 아이템들
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shop")
@@ -79,6 +91,6 @@ public:
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shop")
     TObjectPtr<class UACItemData> EquippedShoes;
 
-    UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shop")
+    UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, BlueprintReadOnly, Category = "Shop", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UACItemData> EquippedWeapon;
 };

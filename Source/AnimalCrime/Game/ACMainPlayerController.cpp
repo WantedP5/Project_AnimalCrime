@@ -126,10 +126,11 @@ void AACMainPlayerController::BeginPlay()
 	
 	ACHUDWidget->BindGameState();
 	
-	if (HasAuthority())
-	{
+	//if (HasAuthority())
+	//{
+	    // 서버와 클라이언트 모두 바인딩 필요
 		ACHUDWidget->BindPlayerState();
-	}
+	//}
 }
 
 void AACMainPlayerController::SetupInputComponent()

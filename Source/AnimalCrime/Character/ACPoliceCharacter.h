@@ -18,6 +18,7 @@ public:
 	AACPoliceCharacter();
 
 	virtual EACCharacterType GetCharacterType() override;
+	virtual void BeginPlay() override;
 
 public:
 protected:

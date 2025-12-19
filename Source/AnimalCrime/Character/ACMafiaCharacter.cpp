@@ -11,6 +11,7 @@
 #include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
 #include "Components/CapsuleComponent.h"
+#include "Component/ACMoneyComponent.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
 {
@@ -28,9 +29,19 @@ void AACMafiaCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// 서버만 GameState에 등록
-	if (HasAuthority() == false) 
+	if (HasAuthority() == true) 
 	{
-		return;
+		// Mafia는 100원으로 시작
+		MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+		UE_LOG(LogHG, Log, TEXT("Mafia BeginPlay: MoneyMafiaType 초기화"));
+
+		// GameState에 등록
+		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+		if (GS != nullptr)
+		{
+			GS->MafiaPlayers.Add(this);
+			AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
+		}
 	}
 	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
 	if (GS == nullptr)

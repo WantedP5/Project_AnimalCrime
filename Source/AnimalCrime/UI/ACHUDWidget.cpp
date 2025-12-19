@@ -48,6 +48,7 @@ void UACHUDWidget::BindPlayerState()
 
 	// PlayerState는 더 이상 돈을 관리하지 않음
 	// MoneyComponent를 바인딩
+	// ※ 확인 했으면 위에 주석들 다 지워주세요
 	BindMoneyComponent();
 }
 
@@ -87,23 +88,44 @@ void UACHUDWidget::BindMoneyComponent()
 {
 	if (APlayerController* PC = GetOwningPlayer())
 	{
-		if (APawn* Pawn = PC->GetPawn())
+		APawn* Pawn = PC->GetPawn();
+		if (Pawn == nullptr)
 		{
-			UACMoneyComponent* MoneyComp = Pawn->FindComponentByClass<UACMoneyComponent>();
-			if (MoneyComp)
-			{
-				// 델리게이트 바인딩
-				MoneyComp->OnMoneyChanged.AddDynamic(this, &UACHUDWidget::HandleMoneyChanged);
+			// Pawn이 아직 없으면 타이머로 재시도
+			UE_LOG(LogHG, Warning, TEXT("Pawn이 없음, 0.1초 후 재시도"));
 
-				// 초기값 설정
-				HandleMoneyChanged(MoneyComp->GetMoney());
+			FTimerHandle RetryTimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				RetryTimerHandle,
+				this,
+				&UACHUDWidget::BindMoneyComponent,
+				0.1f,  // 0.1초 후
+				false  // 한 번만
+			);
+			return;
+		}
 
-				UE_LOG(LogHG, Log, TEXT("MoneyComponent 바인딩 성공, 초기 돈: %d"), MoneyComp->GetMoney());
-			}
-			else
+		UACMoneyComponent* MoneyComp = Pawn->FindComponentByClass<UACMoneyComponent>();
+		if (MoneyComp)
+		{
+			// 이미 바인딩되어 있는지 확인 (중복 방지)
+			if (MoneyComp->OnMoneyChanged.Contains(this, FName("HandleMoneyChanged")))
 			{
-				UE_LOG(LogHG, Warning, TEXT("MoneyComponent를 찾을 수 없음"));
+				UE_LOG(LogHG, Warning, TEXT("이미 바인딩됨, 스킵"));
+				return;
 			}
+
+			// 델리게이트 바인딩
+			MoneyComp->OnMoneyChanged.AddDynamic(this, &UACHUDWidget::HandleMoneyChanged);
+
+			// 초기값 설정
+			HandleMoneyChanged(MoneyComp->GetMoney());
+
+			UE_LOG(LogHG, Log, TEXT("MoneyComponent 바인딩 성공, 초기 돈: %d"), MoneyComp->GetMoney());
+		}
+		else
+		{
+			UE_LOG(LogHG, Error, TEXT("MoneyComponent를 찾을 수 없음"));
 		}
 	}
 }

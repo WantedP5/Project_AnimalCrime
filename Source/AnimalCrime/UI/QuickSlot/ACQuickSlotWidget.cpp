@@ -26,6 +26,20 @@ void UACQuickSlotWidget::NativeConstruct()
         SubItemImg->SetVisibility(ESlateVisibility::Hidden);
         SubSlotHighlight->SetBrushColor(FLinearColor(1, 1, 1, 0));
     }
+
+    // ShopComponent 바인딩
+    BindShopComponent();
+}
+
+void UACQuickSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+    Super::NativeTick(MyGeometry, InDeltaTime);
+
+    // ShopComponent 바인딩이 안 되어 있으면 시도
+    if (bShopComponentBound == false)
+    {
+        BindShopComponent();
+    }
 }
 
 void UACQuickSlotWidget::AddItem(UACItemData* ItemData, bool bIsMainSlot)
@@ -136,9 +150,54 @@ void UACQuickSlotWidget::ToggleSlotEquip(int32 SlotIndex)
         return;
     }
 
-    // 무기 장착/해제 토글
+    // 무기 장착/해제 토글 (RPC)
     ShopComponent->ToggleWeaponEquip(TargetItem);
     UE_LOG(LogHG, Log, TEXT("Toggling Slot %d weapon: %s"), SlotIndex, *TargetItem->ItemName.ToString());
+}
+
+void UACQuickSlotWidget::BindShopComponent()
+{
+    APlayerController* PC = GetOwningPlayer();
+    if (PC == nullptr) return;
+
+    AACCharacter* Character = Cast<AACCharacter>(PC->GetPawn());
+    if (Character == nullptr)
+    {
+        // Pawn이 없으면 타이머로 재시도
+        UE_LOG(LogHG, Warning, TEXT("QuickSlot: Pawn 없음, 0.1초 후 재시도"));
+
+        FTimerHandle RetryTimerHandle;
+        GetWorld()->GetTimerManager().SetTimer(
+            RetryTimerHandle,
+            this,
+            &UACQuickSlotWidget::BindShopComponent,
+            0.1f,  // 0.1초 후
+            false  // 한 번만
+        );
+        return;
+    }
+
+    UACShopComponent* ShopComponent = Character->FindComponentByClass<UACShopComponent>();
+    if (ShopComponent == nullptr)
+    {
+        UE_LOG(LogHG, Error, TEXT("QuickSlot: ShopComponent 없음"));
+        return;
+    }
+
+    // 델리게이트 바인딩
+    ShopComponent->OnWeaponEquippedChanged.AddDynamic(this, &UACQuickSlotWidget::UpdateHighlight);
+
+    // 초기 하이라이트 설정
+    UpdateHighlight(ShopComponent->EquippedWeapon);
+
+    bShopComponentBound = true;
+    UE_LOG(LogHG, Log, TEXT("QuickSlot: ShopComponent 바인딩 성공"));
+}
+
+void UACQuickSlotWidget::UpdateHighlight(UACItemData* EquippedWeapon)
+{
+    UE_LOG(LogHG, Log, TEXT("[UpdateHighlight] Weapon: %s"),
+        EquippedWeapon ? *EquippedWeapon->ItemName.ToString() : TEXT("None"));
 
     // 모든 하이라이트를 먼저 숨김
     if (MainSlotHighlight)
@@ -150,20 +209,25 @@ void UACQuickSlotWidget::ToggleSlotEquip(int32 SlotIndex)
         SubSlotHighlight->SetBrushColor(FLinearColor(1, 1, 1, 0));
     }
 
-    // 현재 장착된 무기와 매칭되는 슬롯의 하이라이트만 보이기
-    if (ShopComponent->EquippedWeapon != nullptr)
+    // 장착된 무기가 없으면 끝
+    if (EquippedWeapon == nullptr)
     {
-        // 메인 슬롯 체크
-        if (MainSlotItem != nullptr &&
-            MainSlotItem->ItemName.EqualTo(ShopComponent->EquippedWeapon->ItemName))
-        {
-            MainSlotHighlight->SetBrushColor(FLinearColor(0, 1, 0, 1)); // 불투명
-        }
-        // 서브 슬롯 체크
-        else if (SubSlotItem != nullptr &&
-            SubSlotItem->ItemName.EqualTo(ShopComponent->EquippedWeapon->ItemName))
-        {
-            SubSlotHighlight->SetBrushColor(FLinearColor(0, 1, 0, 1)); // 불투명
-        }
+        return;
+    }
+
+    // 현재 장착된 무기와 매칭되는 슬롯의 하이라이트만 보이기
+    // 메인 슬롯 체크
+    if (MainSlotItem != nullptr &&
+        MainSlotItem->ItemName.EqualTo(EquippedWeapon->ItemName))
+    {
+        MainSlotHighlight->SetBrushColor(FLinearColor(0, 1, 0, 1)); // 초록색 불투명
+        UE_LOG(LogHG, Log, TEXT("MainSlot 하이라이트 켜짐"));
+    }
+    // 서브 슬롯 체크
+    else if (SubSlotItem != nullptr &&
+        SubSlotItem->ItemName.EqualTo(EquippedWeapon->ItemName))
+    {
+        SubSlotHighlight->SetBrushColor(FLinearColor(0, 1, 0, 1)); // 초록색 불투명
+        UE_LOG(LogHG, Log, TEXT("SubSlot 하이라이트 켜짐"));
     }
 }
