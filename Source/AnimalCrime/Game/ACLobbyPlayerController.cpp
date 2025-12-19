@@ -239,7 +239,9 @@ void AACLobbyPlayerController::SetupInputComponent()
 	}
 	if (InteractAction)
 	{
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACLobbyPlayerController::HandleInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACLobbyPlayerController::HandleInteractStart);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACLobbyPlayerController::HandleInteractHold);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AACLobbyPlayerController::HandleInteractRelease);
 	}
 	if (ItemDropAction)
 	{
@@ -308,8 +310,7 @@ void AACLobbyPlayerController::HandleStopJumping(const FInputActionValue& Value)
 	ControlledCharacter->StopJumping();
 }
 
-// todo: Interact 여기서도 사용해야함??
-void AACLobbyPlayerController::HandleInteract(const FInputActionValue& Value)
+void AACLobbyPlayerController::HandleInteractStart(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
 	if (ControlledCharacter == nullptr)
@@ -317,7 +318,29 @@ void AACLobbyPlayerController::HandleInteract(const FInputActionValue& Value)
 		return;
 	}
 
-	//ControlledCharacter->Interact();
+	ControlledCharacter->InteractStarted();
+}
+
+void AACLobbyPlayerController::HandleInteractHold(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		return;
+	}
+
+	ControlledCharacter->InteractHolding(GetWorld()->GetDeltaSeconds());
+}
+
+void AACLobbyPlayerController::HandleInteractRelease(const FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		return;
+	}
+
+	ControlledCharacter->InteractReleased();
 }
 
 void AACLobbyPlayerController::HandleItemDrop(const FInputActionValue& Value)
