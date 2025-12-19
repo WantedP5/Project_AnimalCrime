@@ -23,6 +23,8 @@ protected:
 	virtual void OnInteract(AACCharacter* ACPlayer) override;
 	virtual FString GetInteractableName() const override;
 
+	UFUNCTION(Server, Reliable)
+	void ServerFireHitscan();
 
 public:
 /**
@@ -46,6 +48,12 @@ protected:
 	void OnRep_HandBomb();
 
 	virtual void AttackHitCheck() override;
+	
+	// RayCast를 통해 공격
+	void FireHitscan();
+	
+	// Preojectile 소환
+	void FireBullet();
 public:
 	//!<아이템
 	UPROPERTY(ReplicatedUsing = OnRep_HandBomb)

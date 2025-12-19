@@ -10,6 +10,7 @@
 
 #include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
+#include "Component/ACMoneyComponent.h"
 #include "Components/CapsuleComponent.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
@@ -39,6 +40,9 @@ void AACMafiaCharacter::BeginPlay()
 	}
 	GS->MafiaPlayers.Add(this);
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
+	
+	// 마피아가 처음에 가지고 있는 돈 설정
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 }
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
@@ -54,6 +58,10 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 FString AACMafiaCharacter::GetInteractableName() const
 {
 	return TEXT("Mafia");
+}
+
+void AACMafiaCharacter::ServerFireHitscan_Implementation()
+{
 }
 
 EACCharacterType AACMafiaCharacter::GetCharacterType()
@@ -157,6 +165,7 @@ void AACMafiaCharacter::AttackHitCheck()
 	// AACCharacter 클래스(Empty)
 	Super::AttackHitCheck();
 	
+	// FireHitscan();
 	// 캡슐 크기
 	float CapsuleRadius = 30.0f;
 	float CapsuleHalfHeight = 60.0f;
@@ -205,4 +214,99 @@ void AACMafiaCharacter::AttackHitCheck()
 		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
 	}
+}
+
+// void AACMafiaCharacter::FireHitscan()
+// {
+// 	FVector Start = GetActorLocation();
+// 	FVector End = Start + (GetActorForwardVector() * 2000.f);
+//
+// 	FHitResult Hit;
+//
+// 	FCollisionObjectQueryParams ObjectParams;
+// 	
+// 	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+//
+// 	FCollisionQueryParams QueryParams;
+// 	QueryParams.AddIgnoredActor(this);
+// 	QueryParams.AddIgnoredActor(GetOwner());
+// 	QueryParams.bReturnPhysicalMaterial = true;
+//
+// 	bool bHit = GetWorld()->LineTraceSingleByObjectType(
+// 		Hit,
+// 		Start,
+// 		End,
+// 		ObjectParams,
+// 		QueryParams
+// 	);
+//
+// 	//
+// 	FColor LineColor = bHit ? FColor::Red : FColor::Green;
+// 	DrawDebugLine(
+// 		GetWorld(),
+// 		Start,
+// 		bHit ? Hit.ImpactPoint : End,
+// 		LineColor,
+// 		false,     // 지속 시간 (false = 1 프레임만)
+// 		2.0f,      // 디버그 표시 시간
+// 		0,
+// 		2.0f       // 선 굵기
+// 	);
+//
+// 	//
+// 	if (bHit)
+// 	{
+// 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+// 		//ApplyDamage(Hit);
+// 	}
+// }
+
+void AACMafiaCharacter::FireHitscan()
+{
+	FVector CameraLoc;
+	FRotator CameraRot;
+	float MaxDistance = 1000;
+	GetOwner()->GetActorEyesViewPoint(CameraLoc, CameraRot);
+	FVector TraceEnd = CameraLoc + (CameraRot.Vector() * MaxDistance);
+
+	// 총구 위치
+	FVector MuzzleLoc = GetMesh()->GetSocketLocation("RightHandSocket");
+
+	FVector ShootDir = (TraceEnd - MuzzleLoc).GetSafeNormal();
+	FVector End = MuzzleLoc + (ShootDir * MaxDistance);
+
+	FHitResult Hit;
+
+	FCollisionObjectQueryParams ObjectParams;
+	
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredActor(GetOwner());
+	QueryParams.bReturnPhysicalMaterial = true;
+	
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, MuzzleLoc, End, ObjectParams, QueryParams);
+	
+	FColor LineColor = bHit ? FColor::Red : FColor::Green;
+	DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+		// ApplyDamage(Hit);
+	}
+}
+
+void AACMafiaCharacter::FireBullet()
+{
 }
