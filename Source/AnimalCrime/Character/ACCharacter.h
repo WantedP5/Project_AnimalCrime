@@ -130,7 +130,6 @@ public:
 protected:
 	virtual bool CanInteract(AACCharacter* ACPlayer) override;
 	virtual void OnInteract(AACCharacter* ACPlayer) override;
-	virtual FString GetInteractableName() const override;
 
 private:
 	/**

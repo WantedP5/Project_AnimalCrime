@@ -457,10 +457,6 @@ bool AACCitizen::CanInteract(AACCharacter* ACPlayer)
 
 void AACCitizen::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer);
+	ShowInteractDebug(ACPlayer, GetName());
 }
 
-FString AACCitizen::GetInteractableName() const
-{
-	return TEXT("Citizen");
-}

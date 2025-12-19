@@ -203,91 +203,111 @@ void AACMainPlayerController::OnRep_PlayerState()
 void AACMainPlayerController::HandleMove(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->Move(Value);
+		return;
 	}
+
+	ControlledCharacter->Move(Value);
 }
 
 void AACMainPlayerController::HandleLook(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->Look(Value);
+		return;
 	}
+
+	ControlledCharacter->Look(Value);
 }
 
 void AACMainPlayerController::HandleJump(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->Jump();
+		return;
 	}
+
+	ControlledCharacter->Jump();
 }
 
 void AACMainPlayerController::HandleStopJumping(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->StopJumping();
+		return;
 	}
+
+	ControlledCharacter->StopJumping();
 }
 
 void AACMainPlayerController::HandleInteractStart(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->InteractStarted();
+		return;
 	}
+
+	ControlledCharacter->InteractStarted();
 }
 
 void AACMainPlayerController::HandleInteractHold(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->InteractHolding(GetWorld()->GetDeltaSeconds());
+		return;
 	}
+
+	ControlledCharacter->InteractHolding(GetWorld()->GetDeltaSeconds());
 }
 
 void AACMainPlayerController::HandleInteractRelease(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->InteractReleased();
+		return;
 	}
+
+	ControlledCharacter->InteractReleased();
 }
 
 void AACMainPlayerController::HandleItemDrop(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->ItemDrop();
+		return;
 	}
+
+	ControlledCharacter->ItemDrop();
 }
 
 void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->Attack();
+		return;
 	}
+
+	ControlledCharacter->Attack();
 }
 
 void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value)
 {
 	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter)
+	if (ControlledCharacter == nullptr)
 	{
-		ControlledCharacter->SettingsClose();
+		return;
 	}
+
+	ControlledCharacter->SettingsClose();
 }
 
 void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)

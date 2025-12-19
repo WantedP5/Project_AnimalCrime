@@ -53,12 +53,6 @@ public:
  **/
 	virtual void OnInteract(class AACCharacter* ACPlayer) = 0;
 
- /**
-     @brief  이 액터의 이름을 반환(디버그 메시지용) ShowInteractDebug에서 상호작용당한 액터의 이름을 받아오기 위해 어쩔 수 없이 만든 함수.
-     @retval  - 이름을 FString으로 반환
- **/
-	virtual FString GetInteractableName() const = 0;
-
 	// todo: 상호작용 UI 추가시 활용
 	//virtual void OnInteractRangeEnter() = 0;				// Exit | 범위 진입 / 이탈 시(UI 힌트 표시용) |
 
@@ -76,8 +70,9 @@ protected:
 	@brief 화면에 붉은 글씨로 플레이어와 충돌 액터를 표시.
 	상호작용 확인이 필요시, OnInteraction에 호출함.
 	@param ACPlayer - OnInteraction에서 받은 오버랩된 플레이어
+	@param InteractedActorName - 상호작용된 액터의 이름
 **/
-	void ShowInteractDebug(class AACCharacter* ACPlayer);
+	void ShowInteractDebug(class AACCharacter* ACPlayer, const FString& InteractedActorName);
 
 private:
 

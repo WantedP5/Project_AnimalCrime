@@ -38,7 +38,7 @@ bool AACBlackMarketDealer::CanInteract(AACCharacter* ACPlayer)
 
 void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer);
+	ShowInteractDebug(ACPlayer, GetName());
 
 	if (BlackMarketComponent)
 	{
@@ -46,7 +46,3 @@ void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer)
 	}
 }
 
-FString AACBlackMarketDealer::GetInteractableName() const
-{
-	return TEXT("BlackMarketDealer");
-}

@@ -41,7 +41,7 @@ bool AACCCTVArea::CanInteract(AACCharacter* ACPlayer)
 
 void AACCCTVArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(ACPlayer);
+    ShowInteractDebug(ACPlayer, GetName());
 
     if (ACPlayer == nullptr)
     {
@@ -68,7 +68,3 @@ void AACCCTVArea::OnInteract(AACCharacter* ACPlayer)
     PC->ClientToggleCCTVWidget(CCTVWidgetClass);
 }
 
-FString AACCCTVArea::GetInteractableName() const
-{
-    return TEXT("CCTV");
-}

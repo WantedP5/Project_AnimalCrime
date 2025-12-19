@@ -48,13 +48,9 @@ bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
 
 void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer);
+	ShowInteractDebug(ACPlayer, GetName());
 }
 
-FString AACMafiaCharacter::GetInteractableName() const
-{
-	return TEXT("Mafia");
-}
 
 EACCharacterType AACMafiaCharacter::GetCharacterType()
 {

@@ -145,7 +145,7 @@ bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
 
 void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer);
+	ShowInteractDebug(ACPlayer, GetName());
 
 	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 
@@ -185,7 +185,3 @@ float AACEscapeMissionBomb::GetRequiredHoldTime() const
 	return 3.0f;
 }
 
-FString AACEscapeMissionBomb::GetInteractableName() const
-{
-	return TEXT("Bomb");
-}

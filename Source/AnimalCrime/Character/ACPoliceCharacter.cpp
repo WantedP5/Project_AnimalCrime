@@ -50,10 +50,6 @@ bool AACPoliceCharacter::CanInteract(AACCharacter* ACPlayer)
 
 void AACPoliceCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer);
+	ShowInteractDebug(ACPlayer, GetName());
 }
 
-FString AACPoliceCharacter::GetInteractableName() const
-{
-	return TEXT("Police");
-}

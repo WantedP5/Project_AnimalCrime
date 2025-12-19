@@ -40,12 +40,6 @@ protected:
 	**/
 	virtual void OnInteract(class AACCharacter* ACPlayer) override;
 
-	/**
-		@brief  어떤 이름을 가진 액터를 상호작용 할지 이름값 가져오는 함수
-		@retval  - 상점이므로 "Shop"
-	**/
-	virtual FString GetInteractableName() const override;
-
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;

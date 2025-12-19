@@ -9,7 +9,7 @@ float IACInteractInterface::GetRequiredHoldTime() const
 	return 0.f;
 }
 
-void IACInteractInterface::ShowInteractDebug(AACCharacter* ACPlayer)
+void IACInteractInterface::ShowInteractDebug(AACCharacter* ACPlayer, const FString& InteractedActorName)
 {
 	if (GEngine == nullptr)
 	{
@@ -21,6 +21,6 @@ void IACInteractInterface::ShowInteractDebug(AACCharacter* ACPlayer)
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
-		FString::Printf(TEXT("Player %s: Interacted with %s"), *ACPlayer->GetName(), *GetInteractableName())
+		FString::Printf(TEXT("Player %s: Interacted with %s"), *ACPlayer->GetName(), *InteractedActorName)
 	);
 }

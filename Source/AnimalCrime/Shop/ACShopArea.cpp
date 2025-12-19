@@ -40,7 +40,7 @@ bool AACShopArea::CanInteract(AACCharacter* ACPlayer)
 
 void AACShopArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(ACPlayer);
+    ShowInteractDebug(ACPlayer, GetName());
 
     if (ACPlayer == nullptr)
     {
@@ -67,7 +67,3 @@ void AACShopArea::OnInteract(AACCharacter* ACPlayer)
     PC->ClientToggleShopWidget(ShopWidgetClass);
 }
 
-FString AACShopArea::GetInteractableName() const
-{
-	return TEXT("Shop");
-}
