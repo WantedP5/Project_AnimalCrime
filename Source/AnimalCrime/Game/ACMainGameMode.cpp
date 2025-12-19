@@ -195,26 +195,56 @@ void AACMainGameMode::SpawnAllAI()
 
 			FOutfitCombo OutfitCombo = GiveOutfitFromPool();
 
-			USkeletalMesh* LoadedMesh = OutfitCombo.HairAsset.LoadSynchronous();
-			if (LoadedMesh)
+			USkeletalMesh* LoadedHair = OutfitCombo.HairAsset.LoadSynchronous();
+			if (LoadedHair)
 			{
-				NewAI->HeadMesh->SetSkeletalMesh(LoadedMesh);
-				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedMesh->GetName());
+				NewAI->SetHeadMesh(LoadedHair);
+				NewAI->OnRep_HeadMesh();
+				//NewAI->UpdateHeadMesh(LoadedHair);
+				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedHair->GetName());
+			}
+			
+			USkeletalMesh* LoadedFace = OutfitCombo.FaceAsset.LoadSynchronous();
+			if (LoadedFace)
+			{
+				NewAI->SetFaceMesh(LoadedFace);
+				NewAI->OnRep_FaceMesh();
+				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedFace->GetName());
 			}
 
 			USkeletalMesh* LoadedTop = OutfitCombo.TopAsset.LoadSynchronous();
 			if (LoadedTop)
 			{
-				NewAI->TopMesh->SetSkeletalMesh(LoadedTop);
+				//NewAI->TopMesh = LoadedTop;
+				//NewAI->GetTopMesh()->SetTopMesh(LoadedMesh);
+				NewAI->SetTopMesh(LoadedTop);
+				NewAI->OnRep_TopMesh();
 				UE_LOG(LogTemp, Log, TEXT("Loaded Top: %s"), *LoadedTop->GetName());
 			}
 
 			USkeletalMesh* LoadedBottom = OutfitCombo.BottomAsset.LoadSynchronous();
 			if (LoadedBottom)
 			{
-				NewAI->BottomMesh->SetSkeletalMesh(LoadedBottom);
+				NewAI->SetBottomMesh(LoadedBottom);
+				NewAI->OnRep_BottomMesh();
 				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedBottom->GetName());
 			}
+			
+			USkeletalMesh* LoadedShoes = OutfitCombo.ShoesAsset.LoadSynchronous();
+			if (LoadedShoes)
+			{
+				NewAI->SetShoesMesh(LoadedShoes);
+				NewAI->OnRep_ShoesMesh();
+				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedShoes->GetName());
+			}
+			
+			USkeletalMesh* LoadedFaceAcc = OutfitCombo.FaceAccAsset.LoadSynchronous();
+            if (LoadedFaceAcc)
+            {
+            	NewAI->SetFaceAccMesh(LoadedFaceAcc);
+            	NewAI->OnRep_FaceAccMesh();
+            	UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedFaceAcc->GetName());
+            }
 		}
 
 		NewAI->FinishSpawning(Transform);
@@ -243,16 +273,28 @@ void AACMainGameMode::GenerateOutfitPool()
 
 	for (TSoftObjectPtr<USkeletalMesh>& Hair : HairList)
 	{
-		for (TSoftObjectPtr<USkeletalMesh>& Top : TopList)
+		for (TSoftObjectPtr<USkeletalMesh>& Face : FaceList)
 		{
-			for (TSoftObjectPtr<USkeletalMesh>& Bottom : BottomList)
+			for (TSoftObjectPtr<USkeletalMesh>& Top : TopList)
 			{
-				FOutfitCombo Combo;
-				Combo.HairAsset = Hair;
-				Combo.TopAsset = Top;
-				Combo.BottomAsset = Bottom;
+				for (TSoftObjectPtr<USkeletalMesh>& Bottom : BottomList)
+				{
+					for (TSoftObjectPtr<USkeletalMesh>& Shoe : ShoesList)
+					{
+						for (TSoftObjectPtr<USkeletalMesh>& FaceAcc : FaceAccList)
+						{
+							FOutfitCombo Combo;
+							Combo.HairAsset = Hair;
+							Combo.FaceAsset = Face;
+							Combo.TopAsset = Top;
+							Combo.BottomAsset = Bottom;
+							Combo.ShoesAsset = Shoe;
+							Combo.FaceAccAsset = FaceAcc;
 
-				OutfitPool.Add(Combo);
+							OutfitPool.Add(Combo);
+						}
+					}
+				}
 			}
 		}
 	}

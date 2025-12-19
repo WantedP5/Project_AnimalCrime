@@ -16,10 +16,19 @@ struct FOutfitCombo
 	TSoftObjectPtr<USkeletalMesh> HairAsset;
 
 	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<USkeletalMesh> FaceAsset;
+	
+	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<USkeletalMesh> TopAsset;
 
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<USkeletalMesh> BottomAsset;
+	
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<USkeletalMesh> ShoesAsset;
+	
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<USkeletalMesh> FaceAccAsset;
 
 	// 생성자
 	FOutfitCombo() {}
@@ -99,10 +108,19 @@ private:
 	TArray<TSoftObjectPtr<class USkeletalMesh>> HairList;
 	
 	UPROPERTY(EditAnywhere)
+	TArray<TSoftObjectPtr<class USkeletalMesh>> FaceList;
+	
+	UPROPERTY(EditAnywhere)
 	TArray<TSoftObjectPtr<class USkeletalMesh>> TopList;
 	
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftObjectPtr<class USkeletalMesh>> BottomList;
+	
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftObjectPtr<class USkeletalMesh>> ShoesList;
+	
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftObjectPtr<class USkeletalMesh>> FaceAccList;
 	
 	int32 NextOutfitIndex = 0;
 	
