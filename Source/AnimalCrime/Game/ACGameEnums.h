@@ -29,3 +29,11 @@ enum class ESettingMode : uint8
 	SteamFriendList	UMETA(DisplayName = "Settings"),	// 스팀 친구창
 	Interact		UMETA(DisplayName = "Interact"),    // 인터랙트
 };
+
+//플레이어 역학
+UENUM(BlueprintType)
+enum class EPlayerRole : uint8
+{
+	Police			UMETA(DisplayName = "Police"),		// 경찰
+	Mafia			UMETA(DisplayName = "Mafia"),		// 마피아
+};

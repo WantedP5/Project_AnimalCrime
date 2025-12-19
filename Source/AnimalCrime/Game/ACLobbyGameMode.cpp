@@ -27,6 +27,12 @@ AACLobbyGameMode::AACLobbyGameMode()
 }
 void AACLobbyGameMode::StartGamePlay()
 {
+	//서버에서만 한 번 실행
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	UWorld* World = GetWorld();
 	if (World == nullptr)
 	{
@@ -38,24 +44,41 @@ void AACLobbyGameMode::StartGamePlay()
 		return;
 	}
 
-	// 랜덤 1명만 경찰 인덱스
-	const int32 PoliceIndex = FMath::RandRange(0, GameState->PlayerArray.Num() - 1);
-
-	for (int32 i = 0; i < GameState->PlayerArray.Num(); ++i)
-	{
-		AACPlayerState* ACPS = Cast<AACPlayerState>(GameState->PlayerArray[i]);
-		if (ACPS == nullptr)
-		{
-			continue;
-		}
-		ACPS->CharacterType = (i == PoliceIndex) ? EACCharacterType::Police : EACCharacterType::Mafia;
-	}
-
 	UACAdvancedFriendsGameInstance* GI = GetGameInstance<UACAdvancedFriendsGameInstance>();
 	if (GI == nullptr)
 	{
 		return;
 	}
+
+	//역할 분배
+
+	//기존 플레이어 역할 데이터 삭제
+	GI->SavedPlayerRoles.Empty();
+	
+	const int32 PlayerCount = GameState->PlayerArray.Num();
+	const int32 PoliceIndex = FMath::RandRange(0, PlayerCount - 1);
+
+	for (int32 i = 0; i < PlayerCount; ++i)
+	{
+		AACPlayerState* PS = Cast<AACPlayerState>(GameState->PlayerArray[i]);
+
+		if (PS == nullptr || PS->GetUniqueId().IsValid() == false)
+		{
+			continue;
+		}
+
+		const EPlayerRole AssignedRole = (i == PoliceIndex) ? EPlayerRole::Police : EPlayerRole::Mafia;
+
+		// 플레이어 역할 지정
+		PS->PlayerRole = AssignedRole;
+
+		// 플레이어 스테이트 백업
+		GI->SavedPlayerRoles.Add(PS->GetUniqueId(), AssignedRole);
+
+		AC_LOG(LogSY, Log, TEXT("%s : %s"), *PS->GetPlayerName(), *PS->GetUniqueId()->ToString());
+	}
+
+
 	GI->LoadGameMap();
 
 
