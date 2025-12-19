@@ -165,8 +165,6 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 	AttachedCharacter = ACPlayerMafia;
 	ACPlayerMafia->HandBomb = this;
 
-	AttachToCharacter();
-
 	// 3. 설치 가능 구역 보이기
 	AACMainGameState* GS = ACPlayerMafia->GetWorld()->GetGameState<AACMainGameState>();
 	if (GS && GS->EscapeState == EEscapeState::DeliverBomb)
