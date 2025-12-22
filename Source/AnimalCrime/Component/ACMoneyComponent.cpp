@@ -175,7 +175,6 @@ void UACMoneyComponent::InitMoney(int32 InMoney)
 void UACMoneyComponent::GenerateRandomMoney(int32 InMaxMoney)
 {
 	MoneyData.Money = FMath::RandRange(0, InMaxMoney);
-	UE_LOG(LogTemp, Error, TEXT("내 돈은 얼마일까? %d"), MoneyData.Money);
 }
 
 
