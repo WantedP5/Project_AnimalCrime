@@ -62,7 +62,7 @@ public:
 
 
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated,EditAnywhere)
 	TObjectPtr<class UACDestroyableStatComponent> Stat;
 
 };

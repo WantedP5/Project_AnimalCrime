@@ -79,11 +79,20 @@ void AACMafiaCharacter::BeginPlay()
 	
 	// 마피아가 처음에 가지고 있는 돈 설정
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
-
+	AC_LOG(LogHY, Warning, TEXT("Before BeginPlay HP=%f | Authority=%d"),
+		Stat->GetCurrentHp(),
+		HasAuthority());
+	
 	// 체력 설정.
+
 	Stat->SetMaxHp(5);
 	Stat->SetCurrentHp(5);
 	Stat->SetArmor(0);
+	AC_LOG(LogHY, Warning, TEXT("After BeginPlay HP=%f | Authority=%d"),
+	Stat->GetCurrentHp(),
+	HasAuthority());
+	
+	ForceNetUpdate();
 }
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
