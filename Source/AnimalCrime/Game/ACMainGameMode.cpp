@@ -21,7 +21,17 @@ AACMainGameMode::AACMainGameMode()
 {
 	PlayerControllerClass = AACMainPlayerController::StaticClass();
 	//DefaultPawnClass = AACMafiaCharacter::StaticClass();
-	DefaultPawnClass = nullptr;
+	//DefaultPawnClass = nullptr;
+
+	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnBP(
+		TEXT("/Game/Project/Character/BP_ACMafia")
+	);
+
+	if (DefaultPawnBP.Succeeded())
+	{
+		DefaultPawnClass = DefaultPawnBP.Class;
+	}
+
 	GameStateClass = AACMainGameState::StaticClass();
 	PlayerStateClass = AACPlayerState::StaticClass();
 
