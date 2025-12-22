@@ -29,6 +29,7 @@
 #include "Component/ACMoneyComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Net/UnrealNetwork.h"
 #include "Objects/MoneyData.h"
 
 AACCharacter::AACCharacter()
@@ -166,8 +167,18 @@ void AACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	
+	CharacterState = ECharacterState::Free;
+	
 	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+}
+
+void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AACCharacter, CharacterState);
 }
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
@@ -218,6 +229,10 @@ void AACCharacter::ItemDrop(const FInputActionValue& Value)
 
 void AACCharacter::Attack()
 {
+	if (CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::Prison)
+	{
+		return ;
+	}
 	// 현재 공격 중인지 확인. 
 	if (CheckProcessAttack() == true)
 	{

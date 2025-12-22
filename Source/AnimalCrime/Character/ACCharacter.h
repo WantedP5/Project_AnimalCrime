@@ -7,6 +7,16 @@
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
+UENUM()
+enum class ECharacterState : uint8
+{
+	None,
+	Free,
+	Stun,
+	Prison,
+	Clear
+};
+
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
@@ -22,6 +32,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	/**
@@ -155,4 +166,8 @@ private:
 
   protected:
 	  ESettingMode SettingMode = ESettingMode::None;
+	
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
+	ECharacterState CharacterState;
 };
