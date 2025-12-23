@@ -18,6 +18,7 @@ enum class EInputMode : uint8
 {
 	Sholder		UMETA(DisplayName = "Sholder"),		// 기본
 	Settings	UMETA(DisplayName = "Settings"),	// 설정창
+	Spectator	UMETA(DisplayName = "Spectator"),	// 관전자
 };
 
 //설정창 열거형
@@ -30,10 +31,19 @@ enum class ESettingMode : uint8
 	Interact		UMETA(DisplayName = "Interact"),    // 인터랙트
 };
 
-//플레이어 역학
+//플레이어 역할
 UENUM(BlueprintType)
 enum class EPlayerRole : uint8
 {
 	Police			UMETA(DisplayName = "Police"),		// 경찰
 	Mafia			UMETA(DisplayName = "Mafia"),		// 마피아
+};
+
+//보이스 모드
+UENUM(BlueprintType)
+enum class EVoiceMode : uint8
+{
+	None			UMETA(DisplayName = "None"),		// None
+	Positional		UMETA(DisplayName = "Positional"),	// Positional
+	Radio			UMETA(DisplayName = "Radio"),		// Radio
 };

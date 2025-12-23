@@ -3,10 +3,11 @@
 
 #include "ACMainGameState.h"
 
-#include "AnimalCrime.h"
 #include "Net/UnrealNetwork.h"
 
 #include "Character/ACMafiaCharacter.h"
+#include "ACPlayerState.h"
+#include "AnimalCrime.h"
 
 #pragma region 생성자
 AACMainGameState::AACMainGameState()
@@ -35,6 +36,41 @@ void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	
 	DOREPLIFETIME(AACMainGameState, TeamScore);
 	DOREPLIFETIME(AACMainGameState, EscapeState);
+	DOREPLIFETIME(AACMainGameState, SpectatablePawns);
+}
+
+
+void AACMainGameState::AddSpectatablePawn(APawn* Pawn)
+{
+	if (Pawn == nullptr)
+	{
+		return;
+	}
+
+	if (SpectatablePawns.Contains(Pawn) == true)
+	{
+		return;
+	}
+
+	SpectatablePawns.Add(Pawn);
+
+	AC_LOG(LogSY, Log, TEXT("AddSpectatablePawn: %s"), *Pawn->GetName());
+}
+
+void AACMainGameState::RemoveSpectatablePawn(APawn* Pawn)
+{
+	if (Pawn == nullptr)
+	{
+		return;
+	}
+
+	if (SpectatablePawns.Remove(Pawn) > 0)
+	{
+		AC_LOG(LogSY, Log, TEXT("RemoveSpectatablePawn: %s"), *Pawn->GetName());
+
+		// 델리게이트 브로드캐스트
+		OnSpectatablePawnRemoved.Broadcast(Pawn);
+	}
 }
 
 #pragma region GameRuleManager와 동기화 및 테스트 함수

@@ -95,6 +95,28 @@ AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return PlayerStarts.Num() > 0 ? PlayerStarts[PlayerIndex % PlayerStarts.Num()] : nullptr;
 }
 
+void AACMainGameMode::RestartPlayer(AController* NewPlayer)
+{
+	Super::RestartPlayer(NewPlayer);
+
+	//게임 시작 시 폰을 관전 가능 대상 폰으로 등록함.
+	APawn* Pawn = NewPlayer->GetPawn();
+	if (Pawn == nullptr)
+	{
+		AC_LOG(LogSY, Error, TEXT("Pawn이 nullptr 이라 폰을 관전 대상으로 등록시키지 못함."));
+		return;
+	}
+
+	AACMainGameState* GS = GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		AC_LOG(LogSY, Error, TEXT("GameState가 nullptr 이라 폰을 관전 대상으로 등록시키지 못함."));
+		return;
+	}
+
+	GS->AddSpectatablePawn(Pawn);
+}
+
 UClass* AACMainGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
 	if (InController == nullptr)
