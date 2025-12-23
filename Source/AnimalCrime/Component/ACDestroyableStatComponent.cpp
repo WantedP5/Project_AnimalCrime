@@ -11,7 +11,7 @@ UACDestroyableStatComponent::UACDestroyableStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+	SetIsReplicatedByDefault(true);
 }
 
 
