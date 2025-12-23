@@ -98,8 +98,23 @@ AACMainPlayerController::AACMainPlayerController()
 	}
 }
 
+void AACMainPlayerController::PostInitializeComponents()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostInitializeComponents();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+void AACMainPlayerController::PostNetInit()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostNetInit();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
 void AACMainPlayerController::BeginPlay()
 {
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
 
 	//ConsoleCommand(TEXT("show Collision"));
@@ -129,6 +144,7 @@ void AACMainPlayerController::BeginPlay()
 	{
 		ACHUDWidget->BindPlayerState();
 	}
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 void AACMainPlayerController::SetupInputComponent()

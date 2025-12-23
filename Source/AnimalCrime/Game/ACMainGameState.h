@@ -24,6 +24,8 @@ public:
 
 #pragma region 엔진 제공 함수
 public:
+	virtual void HandleBeginPlay() override;
+	virtual void OnRep_ReplicatedHasBegunPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 #pragma endregion
 	

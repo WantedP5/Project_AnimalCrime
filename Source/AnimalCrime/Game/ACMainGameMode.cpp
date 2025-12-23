@@ -30,9 +30,41 @@ AACMainGameMode::AACMainGameMode()
 	bUseSeamlessTravel = true;
 }
 
+void AACMainGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+	FString& ErrorMessage)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+APlayerController* AACMainGameMode::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	APlayerController* PlayerController = Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+	return PlayerController;
+}
+
+void AACMainGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostLogin(NewPlayer);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+void AACMainGameMode::StartPlay()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::StartPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
 void AACMainGameMode::BeginPlay()
 {
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
 
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
@@ -40,6 +72,7 @@ void AACMainGameMode::BeginPlay()
 	
 	GenerateOutfitPool();
 	SpawnAllAI();
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -250,7 +283,6 @@ void AACMainGameMode::SpawnAllAI()
 		NewAI->FinishSpawning(Transform);
 		UE_LOG(LogTemp, Log, TEXT("Spawn Success"));
 	}
-
 }
 
 FVector AACMainGameMode::GetRandomSpawnLocation() const

@@ -12,6 +12,20 @@
 AACMainGameState::AACMainGameState()
 {
 }
+
+void AACMainGameState::HandleBeginPlay()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::HandleBeginPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+void AACMainGameState::OnRep_ReplicatedHasBegunPlay()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::OnRep_ReplicatedHasBegunPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
 #pragma endregion
 
 #pragma region 엔진 제공 함수
