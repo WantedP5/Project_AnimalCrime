@@ -10,18 +10,77 @@
 
 #include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
-#include "Components/CapsuleComponent.h"
 #include "Component/ACMoneyComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Component/ACDestroyableStatComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Component/ACMoneyComponent.h"
+
+#include "AnimalCrime/AnimalCrime.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
 {
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("MafiaCollision"));
+
+	Stat = CreateDefaultSubobject<UACDestroyableStatComponent>(TEXT("StatComponent"));
 }
 
 void AACMafiaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AACMafiaCharacter, HandBomb);
+}
+
+float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	// 클라이언트에서 계산 시 데미지가 중첩되는 버그가 발생.
+	if (HasAuthority() == false)
+	{
+		return 0.0f;
+	}
+
+	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
+	if (EventInstigator != nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MyName:%s EventInstigator:%s"), *GetName(), *EventInstigator->GetName());
+	}
+	if (DamageCauser != nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MyName:%s DamageCauser:%s"), *GetName(), *DamageCauser->GetName());
+	}
+
+	float CurrentHp = Stat->GetCurrentHp();
+	CurrentHp -= 1.0f;
+	Stat->SetCurrentHp(CurrentHp);
+	AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
+	if (CurrentHp <= 0)
+	{
+		// 상태 변경
+		CharacterState = ECharacterState::Stun;
+		
+		OnRep_CharacterState();
+	}
+
+	return 1.0f;
+}
+
+void AACMafiaCharacter::PostNetInit()
+{
+	Super::PostNetInit();
+}
+
+void AACMafiaCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	TickDeltaTime -=DeltaSeconds;
+	if (TickDeltaTime <= 0.0f)
+	{
+		AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
+		TickDeltaTime += 1.0f;
+	}
 }
 
 void AACMafiaCharacter::BeginPlay()
@@ -50,6 +109,20 @@ void AACMafiaCharacter::BeginPlay()
 	}
 	GS->MafiaPlayers.Add(this);
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
+	
+	// 마피아가 처음에 가지고 있는 돈 설정
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+	AC_LOG(LogHY, Warning, TEXT("Before HP=%f | Authority=%d"),
+		Stat->GetCurrentHp(),
+		HasAuthority());
+	
+	// 체력 설정.
+	Stat->SetMaxHp(6);
+	Stat->SetCurrentHp(6);
+	Stat->SetArmor(0);
+	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"),
+		Stat->GetCurrentHp(),
+		HasAuthority());
 }
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
@@ -74,6 +147,9 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 	
 }
 
+void AACMafiaCharacter::ServerFireHitscan_Implementation()
+{
+}
 
 EACCharacterType AACMafiaCharacter::GetCharacterType()
 {
@@ -176,6 +252,7 @@ void AACMafiaCharacter::AttackHitCheck()
 	// AACCharacter 클래스(Empty)
 	Super::AttackHitCheck();
 	
+	// FireHitscan();
 	// 캡슐 크기
 	float CapsuleRadius = 30.0f;
 	float CapsuleHalfHeight = 60.0f;
@@ -221,9 +298,104 @@ void AACMafiaCharacter::AttackHitCheck()
 	
 	if (bHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
 	}
+}
+
+// void AACMafiaCharacter::FireHitscan()
+// {
+// 	FVector Start = GetActorLocation();
+// 	FVector End = Start + (GetActorForwardVector() * 2000.f);
+//
+// 	FHitResult Hit;
+//
+// 	FCollisionObjectQueryParams ObjectParams;
+// 	
+// 	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+// 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+//
+// 	FCollisionQueryParams QueryParams;
+// 	QueryParams.AddIgnoredActor(this);
+// 	QueryParams.AddIgnoredActor(GetOwner());
+// 	QueryParams.bReturnPhysicalMaterial = true;
+//
+// 	bool bHit = GetWorld()->LineTraceSingleByObjectType(
+// 		Hit,
+// 		Start,
+// 		End,
+// 		ObjectParams,
+// 		QueryParams
+// 	);
+//
+// 	//
+// 	FColor LineColor = bHit ? FColor::Red : FColor::Green;
+// 	DrawDebugLine(
+// 		GetWorld(),
+// 		Start,
+// 		bHit ? Hit.ImpactPoint : End,
+// 		LineColor,
+// 		false,     // 지속 시간 (false = 1 프레임만)
+// 		2.0f,      // 디버그 표시 시간
+// 		0,
+// 		2.0f       // 선 굵기
+// 	);
+//
+// 	//
+// 	if (bHit)
+// 	{
+// 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+// 		//ApplyDamage(Hit);
+// 	}
+// }
+
+void AACMafiaCharacter::FireHitscan()
+{
+	FVector CameraLoc;
+	FRotator CameraRot;
+	float MaxDistance = 1000;
+	GetOwner()->GetActorEyesViewPoint(CameraLoc, CameraRot);
+	FVector TraceEnd = CameraLoc + (CameraRot.Vector() * MaxDistance);
+
+	// 총구 위치
+	FVector MuzzleLoc = GetMesh()->GetSocketLocation("RightHandSocket");
+
+	FVector ShootDir = (TraceEnd - MuzzleLoc).GetSafeNormal();
+	FVector End = MuzzleLoc + (ShootDir * MaxDistance);
+
+	FHitResult Hit;
+
+	FCollisionObjectQueryParams ObjectParams;
+	
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredActor(GetOwner());
+	QueryParams.bReturnPhysicalMaterial = true;
+	
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, MuzzleLoc, End, ObjectParams, QueryParams);
+	
+	FColor LineColor = bHit ? FColor::Red : FColor::Green;
+	DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+		// ApplyDamage(Hit);
+	}
+}
+
+void AACMafiaCharacter::FireBullet()
+{
 }
 
 float AACMafiaCharacter::GetRequiredHoldTime() const

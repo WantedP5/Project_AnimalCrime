@@ -24,6 +24,7 @@ public:
 public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 #pragma endregion
 
 #pragma region 스탯 관련 함수
@@ -53,7 +54,7 @@ public:
 	
 #pragma region 스탯
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	FDestroyableStats DestroyableStats;
 #pragma endregion
 };

@@ -3,6 +3,7 @@
 
 #include "ACMoneyComponent.h"
 
+#include "Game/ACPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "AnimalCrime.h"
 
@@ -49,6 +50,13 @@ void UACMoneyComponent::InitMoneyComponent(EMoneyType MoneyType)
 	
 	UE_LOG(LogTemp, Error, TEXT("여긴 오니? %d"), MoneyType);
 	switch (MoneyType)
+	{
+		return ;
+	}
+	
+	EMoneyType CurrentMoneyData = MoneyType;
+	UE_LOG(LogTemp, Error, TEXT("여긴 오니? %d"), CurrentMoneyData);
+	switch (CurrentMoneyData)
 	{
 	case EMoneyType::MoneyMafiaType:
 		InitMafiaSetting();
@@ -159,6 +167,19 @@ void UACMoneyComponent::InitMafiaSetting()
 	MoneyData.MoneyType = EMoneyType::MoneyMafiaType;
 	
 	InitMoney(100);
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn == nullptr) {
+		UE_LOG(LogTemp, Error, TEXT("OwnerPawn nullptr"));
+		return;
+	}
+
+	AACPlayerState* ACPlayerState = Cast<AACPlayerState>(OwnerPawn->GetPlayerState());
+	if (ACPlayerState == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACPlayerState nullptr"));
+		return;
+	}
+	ACPlayerState->SetMoney(GetMoney());
 }
 
 void UACMoneyComponent::InitPoliceSetting()
@@ -166,6 +187,19 @@ void UACMoneyComponent::InitPoliceSetting()
 	MoneyData.MoneyType = EMoneyType::MoneyPoliceType;
 	
 	InitMoney(200);
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn == nullptr) {
+		UE_LOG(LogTemp, Error, TEXT("OwnerPawn nullptr"));
+		return;
+	}
+
+	AACPlayerState* ACPlayerState = Cast<AACPlayerState>(OwnerPawn->GetPlayerState());
+	if (ACPlayerState == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACPlayerState nullptr"));
+		return;
+	}
+	ACPlayerState->SetMoney(GetMoney());
 }
 
 void UACMoneyComponent::InitCitizenSetting()
@@ -198,9 +232,6 @@ void UACMoneyComponent::InitMoney(int32 InMoney)
 		GetOwner() && GetOwner()->HasAuthority() ? TEXT("Server") : TEXT("Client"));
 }
 
-void UACMoneyComponent::GenerateRandomMoney(int32 InMaxMoney)
-{
-	MoneyData.Money = FMath::RandRange(0, InMaxMoney);
 	UE_LOG(LogTemp, Error, TEXT("내 돈은 얼마일까? %d"), MoneyData.Money);
 
 	//// 서버에서 초기화 시 델리게이트 브로드캐스트
@@ -215,6 +246,9 @@ void UACMoneyComponent::GenerateRandomMoney(int32 InMaxMoney)
 	UE_LOG(LogHG, Log, TEXT("시민 돈 랜덤 생성: %d (Authority: %s)"),
 		MoneyData.Money,
 		GetOwner() && GetOwner()->HasAuthority() ? TEXT("Server") : TEXT("Client"));
+{
+	MoneyData.Money = FMath::RandRange(0, InMaxMoney);
+	UE_LOG(LogTemp, Error, TEXT("내 돈은 얼마일까? %d"), MoneyData.Money);
 }
 
 

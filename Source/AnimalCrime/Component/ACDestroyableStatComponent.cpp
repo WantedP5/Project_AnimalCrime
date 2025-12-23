@@ -3,13 +3,15 @@
 
 #include "ACDestroyableStatComponent.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values for this component's properties
 UACDestroyableStatComponent::UACDestroyableStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -29,6 +31,12 @@ void UACDestroyableStatComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UACDestroyableStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UACDestroyableStatComponent, DestroyableStats);
 }
 
 void UACDestroyableStatComponent::OnDamaged(float DamageAmount)

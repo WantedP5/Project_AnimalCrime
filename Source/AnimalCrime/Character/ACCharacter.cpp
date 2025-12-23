@@ -29,6 +29,7 @@
 #include "Component/ACMoneyComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Net/UnrealNetwork.h"
 #include "Objects/MoneyData.h"
 
 AACCharacter::AACCharacter()
@@ -157,8 +158,10 @@ AACCharacter::AACCharacter()
 	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
-
 	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
+	
+	
+	bReplicates = true;
 }
 
 
@@ -166,10 +169,20 @@ void AACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	
+	CharacterState = ECharacterState::Free;
+	
 	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
     // Police와 Mafia는 각자의 BeginPlay에서 초기화
 	// ※ 얘도 확인 했으면 지워주세요
 	//MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+}
+
+void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AACCharacter, CharacterState);
 }
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
@@ -321,6 +334,10 @@ void AACCharacter::ItemDrop()
 
 void AACCharacter::Attack()
 {
+	if (CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::Prison)
+	{
+		return ;
+	}
 	// 현재 공격 중인지 확인. 
 	if (CheckProcessAttack() == true)
 	{
@@ -353,7 +370,24 @@ void AACCharacter::SettingsClose()
 	}
 }
 
-void AACCharacter::ServerInteract_Implementation(AActor* Target)
+void AACCharacter::Jump()
+{
+	// Case 스턴 상태일 경우 
+	if (CharacterState == ECharacterState::Stun)
+	{
+		return;
+	}
+	
+	// Case 감옥 상태일 경우 
+	if (CharacterState == ECharacterState::Prison)
+	{
+		return;
+	}
+	
+	Super::Jump();
+}
+
+void AACCharacter::ServerInteract_Implementation()
 {
 	if (Target == nullptr)
 	{
@@ -517,6 +551,26 @@ bool AACCharacter::SortNearInteractables()
 		});
 
 	return true;
+}
+
+void AACCharacter::OnRep_CharacterState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		return;
+	}
+
+
+	switch (CharacterState)
+	{
+	case ECharacterState::Stun:
+		{
+			MoveComp->MaxWalkSpeed = 10.f;
+			MoveComp->JumpZVelocity = 0.f;
+		}
+		break;
+	}
 }
 
 void AACCharacter::ResetHoldInteract()

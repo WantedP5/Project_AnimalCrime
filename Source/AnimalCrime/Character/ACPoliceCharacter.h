@@ -20,6 +20,9 @@ public:
 	virtual EACCharacterType GetCharacterType() override;
 	virtual void BeginPlay() override;
 
+
+	virtual void AttackHitCheck() override;
+
 public:
 protected:
 	virtual bool CanInteract(AACCharacter* ACPlayer) override;

@@ -4,6 +4,7 @@
 #include "ACCitizen.h"
 
 #include "ACCharacter.h"
+#include "AnimalCrime.h"
 #include "BrainComponent.h"
 #include "NavigationSystem.h"
 #include "AI/ACCitizenAIController.h"
@@ -15,6 +16,7 @@
 #include "Component/ACMoneyComponent.h"
 #include "Game/ACPlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 #include "AnimalCrime.h"
 
@@ -29,22 +31,21 @@ AACCitizen::AACCitizen()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AACCitizenAIController::StaticClass();
 
+	bReplicates = true;
+	SetReplicateMovement(true);
+	
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("CitizenCollision"));
 
-	// //캐릭터 무브먼트
-	// auto Move = GetCharacterMovement();
-	GetCharacterMovement()->MaxWalkSpeed = 400.f;
-	// Move->JumpZVelocity = 600.f;
-	// Move->AirControl = 0.3f;
-	// Move->bOrientRotationToMovement = true;
-	// Move->RotationRate = FRotator(0.f, 500.f, 0.f);
+	// 캐릭터 무브먼트(제거)
+	
 
 	//스켈레탈 메시
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	MeshComp->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Body_010.SK_Body_010")));
 	MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	MeshComp->SetIsReplicated(true); // 반드시 추가
 
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayerHena.ABP_ACPlayerHena_C'"));
 	if (AnimRef.Succeeded())
@@ -61,68 +62,98 @@ AACCitizen::AACCitizen()
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
 	
-	HeadMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
-	HeadMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	HeadMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	HeadMesh->SetupAttachment(RootComponent);
-	HeadMesh->SetLeaderPoseComponent(MeshComp);
-	HeadMesh->SetReceivesDecals(false);
+	HeadMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
+	HeadMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	HeadMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	HeadMeshComp->SetupAttachment(RootComponent);
+	HeadMeshComp->SetLeaderPoseComponent(MeshComp);
+	HeadMeshComp->SetReceivesDecals(false);
+	HeadMeshComp->SetIsReplicated(true);
+	
+	FaceMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceMesh"));
+	FaceMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	FaceMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	FaceMeshComp->SetupAttachment(RootComponent);
+	FaceMeshComp->SetLeaderPoseComponent(MeshComp);
+	FaceMeshComp->SetReceivesDecals(false);
+	FaceMeshComp->SetIsReplicated(true);
 	
 	
-	TopMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TopMesh"));
-	TopMesh->SetupAttachment(GetMesh());
-	TopMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	TopMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	TopMesh->SetupAttachment(RootComponent);
-	TopMesh->SetLeaderPoseComponent(MeshComp);
-	TopMesh->SetReceivesDecals(false);
+	TopMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TopMesh"));
+	TopMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	TopMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	TopMeshComp->SetupAttachment(RootComponent);
+	TopMeshComp->SetLeaderPoseComponent(MeshComp);
+	TopMeshComp->SetReceivesDecals(false);
+	TopMeshComp->SetIsReplicated(true);
+	
 
-	BottomMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BottomMesh"));
-	BottomMesh->SetupAttachment(GetMesh());
-	BottomMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	BottomMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	BottomMesh->SetupAttachment(RootComponent);
-	BottomMesh->SetLeaderPoseComponent(MeshComp);
-	BottomMesh->SetReceivesDecals(false);
+	BottomMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BottomMesh"));
+	BottomMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	BottomMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	BottomMeshComp->SetupAttachment(RootComponent);
+	BottomMeshComp->SetLeaderPoseComponent(MeshComp);
+	BottomMeshComp->SetReceivesDecals(false);
+	BottomMeshComp->SetIsReplicated(true);
 	
-	ShoesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
+	ShoesMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
 	if (ShoesMeshRef.Succeeded() == true)
 	{
-		ShoesMesh->SetSkeletalMesh(ShoesMeshRef.Object);
+		ShoesMeshComp->SetSkeletalMesh(ShoesMeshRef.Object);
 	}
-	ShoesMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	ShoesMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	ShoesMesh->SetupAttachment(RootComponent);
-	ShoesMesh->SetLeaderPoseComponent(MeshComp);
-	ShoesMesh->SetReceivesDecals(false);
+	ShoesMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	ShoesMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	ShoesMeshComp->SetupAttachment(RootComponent);
+	ShoesMeshComp->SetLeaderPoseComponent(MeshComp);
+	ShoesMeshComp->SetReceivesDecals(false);
+	ShoesMeshComp->SetIsReplicated(true);
 
-	FaceAccMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
+	FaceAccMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
 	if (FaceAccMeshRef.Succeeded() == true)
 	{
-		FaceAccMesh->SetSkeletalMesh(FaceAccMeshRef.Object);
+		FaceAccMeshComp->SetSkeletalMesh(FaceAccMeshRef.Object);
 	}
-	FaceAccMesh->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-	FaceAccMesh->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	FaceAccMesh->SetupAttachment(RootComponent);
-	FaceAccMesh->SetLeaderPoseComponent(MeshComp);
-	FaceAccMesh->SetReceivesDecals(false);
-
+	FaceAccMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+	FaceAccMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	FaceAccMeshComp->SetupAttachment(RootComponent);
+	FaceAccMeshComp->SetLeaderPoseComponent(MeshComp);
+	FaceAccMeshComp->SetReceivesDecals(false);
+	FaceAccMeshComp->SetIsReplicated(true);
+	
+	
 	// 인터랙션 컴포넌트
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 	
 	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
+	
+	
+}
+
+void AACCitizen::PostInitializeComponents()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostInitializeComponents();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+void AACCitizen::PostNetInit()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostNetInit();
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 // Called when the game starts or when spawned
 void AACCitizen::BeginPlay()
 {
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
 	
-	
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyCitizenType);
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 // Called every frame
@@ -317,16 +348,7 @@ void AACCitizen::AttackHitCheck()
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
 	
-	bool bHit = GetWorld()->SweepSingleByObjectType(
-		Hit,
-		Start,
-		End,
-		FQuat::Identity,
-		ObjectParams,
-		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
-		Params
-	);
-	
+	bool bHit = GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, ObjectParams, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 	// 디버그: 캡슐 그리기
 	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
 	
@@ -336,6 +358,66 @@ void AACCitizen::AttackHitCheck()
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
 	}
 }
+
+void AACCitizen::OnRep_HeadMesh() const
+{
+	if (HeadMeshComp)
+	{
+		UpdateHeadMesh();
+	}
+}
+
+void AACCitizen::OnRep_FaceMesh() const
+{
+	if (FaceMeshComp)
+	{
+		UpdateFaceMesh();
+	}
+}
+
+void AACCitizen::OnRep_TopMesh() const
+{
+	if (TopMeshComp)
+	{
+		UpdateTopMesh();
+	}
+}
+
+void AACCitizen::OnRep_BottomMesh() const
+{
+	if (BottomMeshComp)
+	{
+		UpdateBottomMesh();
+	}
+}
+
+void AACCitizen::OnRep_ShoesMesh() const
+{
+	if (ShoesMeshComp)
+	{
+		UpdateShoesMesh();
+	}
+}
+
+void AACCitizen::OnRep_FaceAccMesh() const
+{
+	if (FaceAccMeshComp)
+	{
+		UpdateFaceAccMesh();
+	}
+}
+
+void AACCitizen::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AACCitizen, HeadMesh);
+	DOREPLIFETIME(AACCitizen, TopMesh);
+	DOREPLIFETIME(AACCitizen, BottomMesh);
+	DOREPLIFETIME(AACCitizen, ShoesMesh);
+	DOREPLIFETIME(AACCitizen, FaceAccMesh);
+}
+
 
 void AACCitizen::MulticastOnPlayMontage_Implementation(const FVector& Attack)
 {

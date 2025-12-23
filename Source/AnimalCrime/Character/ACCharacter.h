@@ -7,6 +7,17 @@
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
+UENUM()
+enum class ECharacterState : uint8
+{
+	None,
+	Free,		
+	OnDamage,
+	Stun,
+	Prison,
+	MAX_COUNT
+};
+
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
@@ -22,6 +33,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	/**
@@ -40,6 +52,8 @@ public:
 
 	virtual void ItemDrop();
 	virtual void Attack();
+	virtual void SettingsClose(const FInputActionValue& Value);
+	virtual void Jump() override;
 	virtual void SettingsClose();
 
 protected:
@@ -171,6 +185,12 @@ private:
 	  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	  TObjectPtr<class UACShopComponent> ShopComponent;
 
+	UFUNCTION()
+	void OnRep_CharacterState();
   protected:
 	  ESettingMode SettingMode = ESettingMode::None;
+	
+	
+	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
+	ECharacterState CharacterState;
 };

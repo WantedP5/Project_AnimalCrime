@@ -40,10 +40,41 @@ AACMainGameMode::AACMainGameMode()
 	bUseSeamlessTravel = true;
 }
 
+void AACMainGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+	FString& ErrorMessage)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+APlayerController* AACMainGameMode::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	APlayerController* PlayerController = Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+	return PlayerController;
+}
+
+void AACMainGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::PostLogin(NewPlayer);
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
+
+void AACMainGameMode::StartPlay()
+{
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	Super::StartPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
+}
 
 void AACMainGameMode::BeginPlay()
 {
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
+	AC_LOG(LogHY, Warning, TEXT("End"));
 
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
@@ -51,6 +82,7 @@ void AACMainGameMode::BeginPlay()
 	
 	GenerateOutfitPool();
 	SpawnAllAI();
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -173,32 +205,61 @@ void AACMainGameMode::SpawnAllAI()
 
 			FOutfitCombo OutfitCombo = GiveOutfitFromPool();
 
-			USkeletalMesh* LoadedMesh = OutfitCombo.HairAsset.LoadSynchronous();
-			if (LoadedMesh)
+			USkeletalMesh* LoadedHair = OutfitCombo.HairAsset.LoadSynchronous();
+			if (LoadedHair)
 			{
-				NewAI->HeadMesh->SetSkeletalMesh(LoadedMesh);
-				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedMesh->GetName());
+				NewAI->SetHeadMesh(LoadedHair);
+				NewAI->OnRep_HeadMesh();
+				//NewAI->UpdateHeadMesh(LoadedHair);
+				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedHair->GetName());
+			}
+			
+			USkeletalMesh* LoadedFace = OutfitCombo.FaceAsset.LoadSynchronous();
+			if (LoadedFace)
+			{
+				NewAI->SetFaceMesh(LoadedFace);
+				NewAI->OnRep_FaceMesh();
+				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedFace->GetName());
 			}
 
 			USkeletalMesh* LoadedTop = OutfitCombo.TopAsset.LoadSynchronous();
 			if (LoadedTop)
 			{
-				NewAI->TopMesh->SetSkeletalMesh(LoadedTop);
+				//NewAI->TopMesh = LoadedTop;
+				//NewAI->GetTopMesh()->SetTopMesh(LoadedMesh);
+				NewAI->SetTopMesh(LoadedTop);
+				NewAI->OnRep_TopMesh();
 				UE_LOG(LogTemp, Log, TEXT("Loaded Top: %s"), *LoadedTop->GetName());
 			}
 
 			USkeletalMesh* LoadedBottom = OutfitCombo.BottomAsset.LoadSynchronous();
 			if (LoadedBottom)
 			{
-				NewAI->BottomMesh->SetSkeletalMesh(LoadedBottom);
+				NewAI->SetBottomMesh(LoadedBottom);
+				NewAI->OnRep_BottomMesh();
 				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedBottom->GetName());
 			}
+			
+			USkeletalMesh* LoadedShoes = OutfitCombo.ShoesAsset.LoadSynchronous();
+			if (LoadedShoes)
+			{
+				NewAI->SetShoesMesh(LoadedShoes);
+				NewAI->OnRep_ShoesMesh();
+				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedShoes->GetName());
+			}
+			
+			USkeletalMesh* LoadedFaceAcc = OutfitCombo.FaceAccAsset.LoadSynchronous();
+            if (LoadedFaceAcc)
+            {
+            	NewAI->SetFaceAccMesh(LoadedFaceAcc);
+            	NewAI->OnRep_FaceAccMesh();
+            	UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedFaceAcc->GetName());
+            }
 		}
 
 		NewAI->FinishSpawning(Transform);
 		UE_LOG(LogTemp, Log, TEXT("Spawn Success"));
 	}
-
 }
 
 FVector AACMainGameMode::GetRandomSpawnLocation() const
@@ -221,16 +282,28 @@ void AACMainGameMode::GenerateOutfitPool()
 
 	for (TSoftObjectPtr<USkeletalMesh>& Hair : HairList)
 	{
-		for (TSoftObjectPtr<USkeletalMesh>& Top : TopList)
+		for (TSoftObjectPtr<USkeletalMesh>& Face : FaceList)
 		{
-			for (TSoftObjectPtr<USkeletalMesh>& Bottom : BottomList)
+			for (TSoftObjectPtr<USkeletalMesh>& Top : TopList)
 			{
-				FOutfitCombo Combo;
-				Combo.HairAsset = Hair;
-				Combo.TopAsset = Top;
-				Combo.BottomAsset = Bottom;
+				for (TSoftObjectPtr<USkeletalMesh>& Bottom : BottomList)
+				{
+					for (TSoftObjectPtr<USkeletalMesh>& Shoe : ShoesList)
+					{
+						for (TSoftObjectPtr<USkeletalMesh>& FaceAcc : FaceAccList)
+						{
+							FOutfitCombo Combo;
+							Combo.HairAsset = Hair;
+							Combo.FaceAsset = Face;
+							Combo.TopAsset = Top;
+							Combo.BottomAsset = Bottom;
+							Combo.ShoesAsset = Shoe;
+							Combo.FaceAccAsset = FaceAcc;
 
-				OutfitPool.Add(Combo);
+							OutfitPool.Add(Combo);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -273,19 +346,19 @@ void AACMainGameMode::PostSeamlessTravel()
 
 	UE_LOG(LogTemp, Warning, TEXT("Seamless Travel 완료, 서버 PostSeamlessTravel 호출"));
 
-	// 모든 PlayerController 초기화
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		APlayerController* PC = It->Get();
-		if (PC && PC->GetPawn() == nullptr)
-		{
-			UE_LOG(LogTemp, Error, TEXT("들어오니"));
-			// 새로운 Pawn Spawn 후 Possess
-			APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, PC->GetSpawnLocation(), FRotator::ZeroRotator);
-			PC->Possess(NewPawn);
-
-			// 클라이언트에서도 새 Pawn Possess 필요하면 RPC 호출 가능
-			PC->ClientRestart(NewPawn);
-		}
-	}
+	// // 모든 PlayerController 초기화
+	// for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	// {
+	// 	APlayerController* PC = It->Get();
+	// 	if (PC && PC->GetPawn() == nullptr)
+	// 	{
+	// 		UE_LOG(LogTemp, Error, TEXT("들어오니"));
+	// 		// 새로운 Pawn Spawn 후 Possess
+	// 		APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, PC->GetSpawnLocation(), FRotator::ZeroRotator);
+	// 		PC->Possess(NewPawn);
+	//
+	// 		// 클라이언트에서도 새 Pawn Possess 필요하면 RPC 호출 가능
+	// 		PC->ClientRestart(NewPawn);
+	// 	}
+	// }
 }

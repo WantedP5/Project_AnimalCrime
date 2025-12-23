@@ -27,11 +27,15 @@ public:
 	
 #pragma region 엔진 제공 함수
 public:
+	virtual void PostInitializeComponents() override;
+	virtual void PostNetInit() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	void PlayDamagedMontage(const FVector& Attack);
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 #pragma endregion
 	
 public:	// 좌표
@@ -62,6 +66,51 @@ public:
 	
 	void AttackHitCheck();
 	
+
+#pragma region 매시 Get/Set
+	FORCEINLINE USkeletalMesh* GetHeadMesh()		const { return HeadMesh;}
+	FORCEINLINE USkeletalMesh* GetFaceMesh()		const {	return FaceMesh;}
+	FORCEINLINE USkeletalMesh* GetTopMesh()			const {	return TopMesh;}
+	FORCEINLINE USkeletalMesh* GetBottomMesh()		const {	return BottomMesh;}
+	FORCEINLINE USkeletalMesh* GetShoesMesh()		const {	return ShoesMesh;}
+	FORCEINLINE USkeletalMesh* GetFaceAccMesh()		const {	return FaceAccMesh;}
+	
+	FORCEINLINE void UpdateHeadMesh()		const {	HeadMeshComp->SetSkeletalMesh(HeadMesh);	}
+	FORCEINLINE void UpdateFaceMesh()		const {	FaceMeshComp->SetSkeletalMesh(FaceMesh);	}
+	FORCEINLINE void UpdateTopMesh()		const {	TopMeshComp->SetSkeletalMesh(TopMesh);	}
+	FORCEINLINE void UpdateBottomMesh()		const {	BottomMeshComp->SetSkeletalMesh(BottomMesh);	}
+	FORCEINLINE void UpdateShoesMesh()		const {	ShoesMeshComp->SetSkeletalMesh(ShoesMesh);	}
+	FORCEINLINE void UpdateFaceAccMesh()	const {	FaceAccMeshComp->SetSkeletalMesh(FaceAccMesh);	}
+	
+	FORCEINLINE void SetHeadMesh(USkeletalMesh* InMesh)			 {  HeadMesh = InMesh;}
+	FORCEINLINE void SetFaceMesh(USkeletalMesh* InMesh)			 {	FaceMesh = InMesh;}
+	FORCEINLINE void SetTopMesh(USkeletalMesh* InMesh)			 {	TopMesh = InMesh;}
+	FORCEINLINE void SetBottomMesh(USkeletalMesh* InMesh)		 {	BottomMesh = InMesh;}
+	FORCEINLINE void SetShoesMesh(USkeletalMesh* InMesh)		 {	ShoesMesh = InMesh;}
+	FORCEINLINE void SetFaceAccMesh(USkeletalMesh* InMesh)		 {	FaceAccMesh = InMesh;}
+#pragma endregion
+	
+#pragma region 매시 변경 시 호출되는 함수
+public:
+	UFUNCTION()
+	void OnRep_HeadMesh() const;
+
+	UFUNCTION()
+	void OnRep_FaceMesh() const;
+	
+	UFUNCTION()
+	void OnRep_TopMesh() const;
+
+	UFUNCTION()
+	void OnRep_BottomMesh() const;
+	
+	UFUNCTION()
+	void OnRep_ShoesMesh() const;
+
+	UFUNCTION()
+	void OnRep_FaceAccMesh() const;
+#pragma endregion 
+	
 #pragma region 맴버 변수
 public:
 
@@ -81,21 +130,52 @@ public:
 	TObjectPtr<class UAnimMontage> DamagedMontage;
 	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> HeadMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> TopMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
+	
+	
+
+	
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
 	TObjectPtr<class UACMoneyComponent> MoneyComp;
 
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> HeadMeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> FaceMeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> TopMeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> BottomMeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> ShoesMeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	TObjectPtr<class USkeletalMeshComponent> FaceAccMeshComp;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
+	TObjectPtr<class USkeletalMesh> HeadMesh;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
+	TObjectPtr<class USkeletalMesh> FaceMesh;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
+	TObjectPtr<class USkeletalMesh> TopMesh;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
+	TObjectPtr<class USkeletalMesh> BottomMesh;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
+	TObjectPtr<class USkeletalMesh> ShoesMesh;
+	
+	UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
+	TObjectPtr<class USkeletalMesh> FaceAccMesh;
+	
 private:
 #pragma endregion
 };
