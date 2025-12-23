@@ -11,10 +11,11 @@ UENUM()
 enum class ECharacterState : uint8
 {
 	None,
-	Free,
+	Free,		
+	OnDamage,
 	Stun,
 	Prison,
-	Clear
+	MAX_COUNT
 };
 
 UCLASS()
@@ -48,6 +49,7 @@ public:
 	virtual void ItemDrop(const FInputActionValue& Value);
 	virtual void Attack();
 	virtual void SettingsClose(const FInputActionValue& Value);
+	virtual void Jump() override;
 
 protected:
 
@@ -164,10 +166,12 @@ private:
 	  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	  TObjectPtr<class UACShopComponent> ShopComponent;
 
+	UFUNCTION()
+	void OnRep_CharacterState();
   protected:
 	  ESettingMode SettingMode = ESettingMode::None;
 	
 	
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
+	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
 };

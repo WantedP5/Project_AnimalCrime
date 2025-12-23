@@ -158,8 +158,10 @@ AACCharacter::AACCharacter()
 	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
-
 	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
+	
+	
+	bReplicates = true;
 }
 
 
@@ -263,6 +265,23 @@ void AACCharacter::SettingsClose(const FInputActionValue& Value)
 	default:
 		break;
 	}
+}
+
+void AACCharacter::Jump()
+{
+	// Case 스턴 상태일 경우 
+	if (CharacterState == ECharacterState::Stun)
+	{
+		return;
+	}
+	
+	// Case 감옥 상태일 경우 
+	if (CharacterState == ECharacterState::Prison)
+	{
+		return;
+	}
+	
+	Super::Jump();
 }
 
 void AACCharacter::ServerInteract_Implementation()
@@ -430,6 +449,26 @@ bool AACCharacter::SortNearInteractables()
 		});
 
 	return true;
+}
+
+void AACCharacter::OnRep_CharacterState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		return;
+	}
+
+
+	switch (CharacterState)
+	{
+	case ECharacterState::Stun:
+		{
+			MoveComp->MaxWalkSpeed = 10.f;
+			MoveComp->JumpZVelocity = 0.f;
+		}
+		break;
+	}
 }
 
 void AACCharacter::MulticastPlayAttackMontage_Implementation()
