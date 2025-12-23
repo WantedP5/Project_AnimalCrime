@@ -560,17 +560,29 @@ void AACCharacter::OnRep_CharacterState()
 	{
 		return;
 	}
-
-
+	
 	switch (CharacterState)
 	{
 	case ECharacterState::Stun:
 		{
 			MoveComp->MaxWalkSpeed = 10.f;
 			MoveComp->JumpZVelocity = 0.f;
+			break;
 		}
-		break;
+	case ECharacterState::Free:
+		{
+			MoveComp->MaxWalkSpeed = 600.0f;
+			MoveComp->JumpZVelocity = 300.0f;
+			break;
+		}
+	case ECharacterState::OnDamage:
+		{
+			MoveComp->MaxWalkSpeed = 1200.0f;
+			MoveComp->JumpZVelocity = 300.0f;
+			break;
+		}
 	}
+	
 }
 
 void AACCharacter::ResetHoldInteract()

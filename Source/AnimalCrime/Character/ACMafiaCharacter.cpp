@@ -61,6 +61,39 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		CharacterState = ECharacterState::Stun;
 		
 		OnRep_CharacterState();
+		if (CharacterState == ECharacterState::Stun)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+				[this]()
+			{
+				CharacterState = ECharacterState::Free;
+				OnRep_CharacterState();
+			}), 10.0, false);	
+		}
+		else if (CharacterState == ECharacterState::OnDamage)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+				[this]()
+			{
+				CharacterState = ECharacterState::Free;
+				OnRep_CharacterState();
+			}), 10.0, false);	
+		}
+	}
+	else
+	{
+		CharacterState = ECharacterState::OnDamage;
+		
+		OnRep_CharacterState();
+		if (CharacterState == ECharacterState::OnDamage)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+				[this]()
+			{
+				CharacterState = ECharacterState::Free;
+				OnRep_CharacterState();
+			}), 10.0, false);	
+		}
 	}
 
 	return 1.0f;

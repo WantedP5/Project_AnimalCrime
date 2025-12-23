@@ -190,6 +190,8 @@ private:
   protected:
 	  ESettingMode SettingMode = ESettingMode::None;
 	
+	FTimerHandle TimerHandle;
+	
 	
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
