@@ -13,6 +13,9 @@
 #include "Item/ACItemData.h"
 #include "Game/ACAssetManager.h"
 #include "Components/Image.h"
+#include "Component/ACMoneyComponent.h"
+#include "Objects/MoneyData.h"
+#include "Character/ACCharacter.h"
 
 UACShopWidget::UACShopWidget(const FObjectInitializer& ObjectInitializer)
 {
@@ -50,6 +53,31 @@ void UACShopWidget::NativeConstruct()
 
     // 아이템 로드 및 슬롯 생성 
     LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
+ 
+    // ===== 플레이어 돈 연동 =====
+    AACCharacter* OwnerCharacter = Cast<AACCharacter>(GetOwningPlayerPawn());
+    if (OwnerCharacter != nullptr)
+    {
+        UACMoneyComponent* MoneyComponent = OwnerCharacter->FindComponentByClass<UACMoneyComponent>();
+        if (MoneyComponent != nullptr)
+        {
+            // 돈 변경 델리게이트 바인딩
+            MoneyComponent->OnMoneyChanged.AddDynamic(this, &UACShopWidget::UpdateMoneyDisplay);
+
+            // 현재 돈 초기 표시
+            UpdateMoneyDisplay(MoneyComponent->GetMoney());
+
+            UE_LOG(LogHG, Log, TEXT("ACShopWidget: Money display initialized with %d"), MoneyComponent->GetMoney());
+        }
+        else
+        {
+            UE_LOG(LogHG, Error, TEXT("ACShopWidget: MoneyComponent not found on player character"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogHG, Error, TEXT("ACShopWidget: Failed to get owner character"));
+    }
 }
 
 void UACShopWidget::LoadAndCreateSlots(const FString& SearchPath)
@@ -251,6 +279,21 @@ void UACShopWidget::OnCloseButtonClicked()
 {
     // 델리게이트 브로드캐스트 - 누가 바인딩했든 모두에게 알림
     OnCloseRequested.Broadcast();
+}
+
+void UACShopWidget::UpdateMoneyDisplay(int32 NewMoney)
+{
+    if (MyMoneyText == nullptr)
+    {
+        UE_LOG(LogHG, Warning, TEXT("UpdateMoneyDisplay: MyMoneyText is null"));
+        return;
+    }
+
+    // "1000G" 형식으로 표시
+    FText MoneyText = FText::Format(FText::FromString(TEXT("{0}G")), NewMoney);
+    MyMoneyText->SetText(MoneyText);
+
+    UE_LOG(LogHG, Log, TEXT("Money display updated: %d"), NewMoney);
 }
 
 void UACShopWidget::ShowCategory(EShopCategory Category)

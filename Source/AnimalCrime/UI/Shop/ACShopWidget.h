@@ -83,6 +83,13 @@ private:
 	void OnCloseButtonClicked();
 
  /**
+     @brief 상점에 플레이어가 소유한 돈 업데이트 해주는 함수
+     @param NewMoney - 플레이어가 소유한 돈
+ **/
+	UFUNCTION()
+	void UpdateMoneyDisplay(int32 NewMoney);
+
+ /**
      @brief 카테고리 보여주기
      @param Category - 해당 카테고리 보여주기
  **/
