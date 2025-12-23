@@ -45,6 +45,7 @@ public:
 	//virtual AActor* ChoosePlayerStart(AController* Player) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
+	virtual void RestartPlayer(AController* NewPlayer) override;
 protected:
 
  /**

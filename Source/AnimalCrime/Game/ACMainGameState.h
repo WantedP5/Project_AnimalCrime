@@ -8,7 +8,7 @@
 #include "ACMainGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChanged, float, NewScore);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpectatablePawnRemoved, APawn*, RemovedPawn);
 /**
  * 
  */
@@ -30,6 +30,19 @@ public:
 public:
 	UFUNCTION(Server, Reliable)
 	void ServerChangeEscapeState(EEscapeState NewEscapeState);
+
+#pragma region 관전
+public:
+
+	void AddSpectatablePawn(APawn* Pawn);
+	void RemoveSpectatablePawn(APawn* Pawn);
+
+	FORCEINLINE const TArray<TObjectPtr<APawn>>& GetSpectatablePawns() const
+	{
+		return SpectatablePawns;
+	}
+
+#pragma endregion
 
 #pragma region GameRuleManager와 동기화 및 테스트 함수
 public:
@@ -86,6 +99,14 @@ public:
 //!< 서버 전용. Replicated 안 함.
 	UPROPERTY()
 	TArray<TObjectPtr<class AACMafiaCharacter>> MafiaPlayers;
+
+public:
+ //!< 관전 가능한 폰 목록
+	UPROPERTY(Replicated)
+	TArray<TObjectPtr<APawn>> SpectatablePawns;
+ //!< 플레이어가 탈출시 관전 대상 갱신
+	UPROPERTY(BlueprintAssignable)
+	FOnSpectatablePawnRemoved OnSpectatablePawnRemoved;
 	
 public:
 	FOnScoreChanged OnScoreChanged;

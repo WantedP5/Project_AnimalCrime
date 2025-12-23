@@ -17,6 +17,8 @@
 #include "UI/Interaction/ACInteractProgressWidget.h"
 #include "UI/GameStart/ACRoleScreen.h"
 #include "ACPlayerState.h"
+#include "ACMainGameState.h"
+#include "EngineUtils.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -26,7 +28,7 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		EscapeScreenClass = EscapeScreenRef.Class;
 	}
-	
+
 	// HUD Class 대입.
 	static ConstructorHelpers::FClassFinder<UACHUDWidget> ACHUDWidgetRef(TEXT("/Game/Project/UI/WBP_ACHUD.WBP_ACHUD_C"));
 	if (ACHUDWidgetRef.Succeeded())
@@ -50,12 +52,6 @@ AACMainPlayerController::AACMainPlayerController()
 	if (DefaultMappingContextRef.Succeeded())
 	{
 		DefaultMappingContext = DefaultMappingContextRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
-	if (SettingsMappingContextRef.Succeeded())
-	{
-		SettingsMappingContext = SettingsMappingContextRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project/Input/Actions/IA_Move.IA_Move"));
@@ -94,18 +90,39 @@ AACMainPlayerController::AACMainPlayerController()
 		MeleeAction = MeleeActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
-	if (SettingsCloseActionRef.Succeeded())
-	{
-		SettingsCloseAction = SettingsCloseActionRef.Object;
-	}
-
 	// ===== 퀵슬롯 Input Action 로드 (하나만) =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> QuickSlotActionRef(TEXT("/Game/Project/Input/Actions/IA_QuickSlot.IA_QuickSlot"));
 	if (QuickSlotActionRef.Succeeded())
 	{
 		QuickSlotAction = QuickSlotActionRef.Object;
 	}
+
+	// ===== 설정창 입력 로드 =====
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
+	if (SettingsMappingContextRef.Succeeded())
+	{
+		SettingsMappingContext = SettingsMappingContextRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
+	if (SettingsCloseActionRef.Succeeded())
+	{
+		SettingsCloseAction = SettingsCloseActionRef.Object;
+	}
+
+	// ===== 관전자 입력 로드 =====
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SpectatorMappingContextRef(TEXT("/Game/Project/Input/IMC_Spectator.IMC_Spectator"));
+	if (SpectatorMappingContextRef.Succeeded())
+	{
+		SpectatorMappingContext = SpectatorMappingContextRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> SpectatorChangeActionRef(TEXT("/Game/Project/Input/Actions/IA_SpectatorChange.IA_SpectatorChange"));
+	if (SpectatorChangeActionRef.Succeeded())
+	{
+		SpectatorChangeAction = SpectatorChangeActionRef.Object;
+	}
+
 }
 
 void AACMainPlayerController::BeginPlay()
@@ -115,7 +132,7 @@ void AACMainPlayerController::BeginPlay()
 	//ConsoleCommand(TEXT("show Collision"));
 	ConsoleCommand(TEXT("Stat FPS"));
 	UE_LOG(LogTemp, Warning, TEXT("AACMainPlayerController BeginPlay"));
-	
+
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
 	if (IsLocalController() == false)
@@ -127,18 +144,18 @@ void AACMainPlayerController::BeginPlay()
 	if (ACHUDWidget == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACHUDWidget is empty"));
-		return ;
+		return;
 	}
-	
+
 	// 뭐하는 함수인지 알아보기.
 	ACHUDWidget->AddToViewport();
-	
+
 	ACHUDWidget->BindGameState();
-	
+
 	//if (HasAuthority())
 	//{
-	    // 서버와 클라이언트 모두 바인딩 필요
-		ACHUDWidget->BindPlayerState();
+		// 서버와 클라이언트 모두 바인딩 필요
+	ACHUDWidget->BindPlayerState();
 	//}
 
 	RoleScreen = CreateWidget<UACRoleScreen>(this, RoleScreenClass);
@@ -153,6 +170,15 @@ void AACMainPlayerController::BeginPlay()
 	{
 		ScreenSetRole();
 	}
+
+	//관전 자동 변경 델리게이트 바인딩
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		return;
+	}
+	GS->OnSpectatablePawnRemoved.AddDynamic(this, &AACMainPlayerController::OnSpectatablePawnRemoved);
+
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -213,12 +239,17 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(QuickSlotAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleQuickSlot);
 	}
+
+	if (SpectatorChangeAction)
+	{
+		EnhancedInputComponent->BindAction(SpectatorChangeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSpectatorChange);
+	}
 }
 
 void AACMainPlayerController::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-	
+
 	ACHUDWidget->BindPlayerState();
 
 	ScreenSetRole();
@@ -335,6 +366,64 @@ void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value
 	ControlledCharacter->SettingsClose();
 }
 
+void AACMainPlayerController::HandleSpectatorChange(const FInputActionValue& Value)
+{
+	AC_LOG(LogSY, Log, TEXT("Spectator Change!!"));
+
+	if (IsLocalController() == false)
+	{
+		return;
+	}
+
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		AC_LOG(LogSY, Log, TEXT("GS is nullptr"));
+		return;
+	}
+
+	const TArray<TObjectPtr<APawn>>& Targets = GS->GetSpectatablePawns();
+	if (Targets.Num() == 0)
+	{
+		AC_LOG(LogSY, Log, TEXT("Targets zero"));
+		return;
+	}
+
+	// 현재 인덱스 초기화
+	if (CurrentSpectateIndex == INDEX_NONE)
+	{
+		CurrentSpectateIndex = -1; // 다음 루프에서 0부터 시작
+	}
+
+	// 다음 유효한 폰 찾기 (최대 한 바퀴 순회)
+	int32 StartIndex = CurrentSpectateIndex;
+	int32 SearchCount = 0;
+
+	do
+	{
+		CurrentSpectateIndex = (CurrentSpectateIndex + 1) % Targets.Num();
+		SearchCount++;
+
+		if (APawn* NextPawn = Targets[CurrentSpectateIndex].Get())
+		{
+			// 유효한 폰을 찾았을 때
+			SetViewTargetWithBlend(NextPawn, 0.0f);
+			AC_LOG(LogSY, Log, TEXT("Spectate target changed: %s (Index: %d)"),
+				*NextPawn->GetName(), CurrentSpectateIndex);
+			return;
+		}
+
+		// 모든 타겟을 다 확인했는데 유효한 폰이 없을 경우
+		if (SearchCount >= Targets.Num())
+		{
+			AC_LOG(LogSY, Warning, TEXT("No valid spectatable pawns found"));
+			CurrentSpectateIndex = INDEX_NONE;
+			return;
+		}
+
+	} while (CurrentSpectateIndex != StartIndex);
+}
+
 void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)
 {
 	if (ACHUDWidget == nullptr || ACHUDWidget->WBP_QuickSlot == nullptr)
@@ -368,182 +457,192 @@ void AACMainPlayerController::ChangeInputMode(EInputMode NewMode)
 		{
 			Subsystem->AddMappingContext(SettingsMappingContext, 0);
 		}
+		else if (NewMode == EInputMode::Spectator && SpectatorMappingContext)
+		{
+			Subsystem->AddMappingContext(SpectatorMappingContext, 0);
+		}
+		else
+		{
+			AC_LOG(LogSY, Log, TEXT("ChangeMode fail"));
+		}
 	}
 }
 
-void AACMainPlayerController::ShowEscapeUI_Implementation()
+void AACMainPlayerController::ClientOnEscapeSuccess_Implementation()
 {
-    EscapeScreen = CreateWidget<UUserWidget>(this, EscapeScreenClass);
-    if (EscapeScreen == nullptr)
-    {
-        return;
-    }
-    EscapeScreen->AddToViewport();
+	//UI 변경
+	EscapeScreen = CreateWidget<UUserWidget>(this, EscapeScreenClass);
+	if (EscapeScreen == nullptr)
+	{
+		return;
+	}
+	EscapeScreen->AddToViewport();
+
+	// IMC 변경
+	ChangeInputMode(EInputMode::Spectator);
 }
-
-
 
 void AACMainPlayerController::ClientToggleShopWidget_Implementation(TSubclassOf<class UACShopWidget> WidgetClass)
 {
-    if (WidgetClass == nullptr)
-    {
-        UE_LOG(LogHG, Error, TEXT("ClientToggleShopWidget: WidgetClass is null"));
-        return;
-    }
+	if (WidgetClass == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ClientToggleShopWidget: WidgetClass is null"));
+		return;
+	}
 
-    // 이미 위젯이 열려있으면 닫기
-    if (CurrentShopWidget != nullptr && CurrentShopWidget->IsInViewport())
-    {
-        CloseShop();
-    }
-    else
-    {
-        // ===== 상점 열기 =====
-        UE_LOG(LogHG, Log, TEXT("Client: Opening Shop UI"));
+	// 이미 위젯이 열려있으면 닫기
+	if (CurrentShopWidget != nullptr && CurrentShopWidget->IsInViewport())
+	{
+		CloseShop();
+	}
+	else
+	{
+		// ===== 상점 열기 =====
+		UE_LOG(LogHG, Log, TEXT("Client: Opening Shop UI"));
 
-        UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(GetWorld(), WidgetClass);
+		UACShopWidget* ShopWidget = CreateWidget<UACShopWidget>(GetWorld(), WidgetClass);
 
-        if (ShopWidget != nullptr)
-        {
-            ShopWidget->AddToViewport();
-            CurrentShopWidget = ShopWidget;
+		if (ShopWidget != nullptr)
+		{
+			ShopWidget->AddToViewport();
+			CurrentShopWidget = ShopWidget;
 
-            // 델리게이트 바인딩
-            ShopWidget->OnCloseRequested.AddDynamic(this, &AACMainPlayerController::CloseShop);
+			// 델리게이트 바인딩
+			ShopWidget->OnCloseRequested.AddDynamic(this, &AACMainPlayerController::CloseShop);
 
-            // 상점용 카메라로 전환
-            SetShopCamera();
+			// 상점용 카메라로 전환
+			SetShopCamera();
 
-            // 입력모드를 게임,UI로 변경
-            FInputModeGameAndUI InputMode;
-            InputMode.SetWidgetToFocus(ShopWidget->TakeWidget());
-            InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-            InputMode.SetHideCursorDuringCapture(false); // 클릭해도 마우스 커서 계속 보이도록
-            SetInputMode(InputMode);
+			// 입력모드를 게임,UI로 변경
+			FInputModeGameAndUI InputMode;
+			InputMode.SetWidgetToFocus(ShopWidget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetHideCursorDuringCapture(false); // 클릭해도 마우스 커서 계속 보이도록
+			SetInputMode(InputMode);
 
-            SetShowMouseCursor(true); // 마우스 커서 보이도록
+			SetShowMouseCursor(true); // 마우스 커서 보이도록
 
-            // 상점의 슬롯들 로드
-            ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
+			// 상점의 슬롯들 로드
+			ShopWidget->LoadAndCreateSlots(TEXT("/Game/Project/Item/"));
 
-            // 입력 모드 변경
-            ChangeInputMode(EInputMode::Settings);
-        }
-    }
+			// 입력 모드 변경
+			ChangeInputMode(EInputMode::Settings);
+		}
+	}
 }
 
 void AACMainPlayerController::CloseShop()
 {
-    if (CurrentShopWidget == nullptr || CurrentShopWidget->IsInViewport() == false)
-    {
-        // 이미 닫혀있음
-        return;
-    }
+	if (CurrentShopWidget == nullptr || CurrentShopWidget->IsInViewport() == false)
+	{
+		// 이미 닫혀있음
+		return;
+	}
 
-    // ===== 상점 닫기 =====
-    UE_LOG(LogHG, Log, TEXT("Client: Closing Shop UI"));
+	// ===== 상점 닫기 =====
+	UE_LOG(LogHG, Log, TEXT("Client: Closing Shop UI"));
 
-    CurrentShopWidget->RemoveFromParent();
-    CurrentShopWidget = nullptr;
+	CurrentShopWidget->RemoveFromParent();
+	CurrentShopWidget = nullptr;
 
-    // 카메라 복원
-    RestoreOriginalCamera();
+	// 카메라 복원
+	RestoreOriginalCamera();
 
-    // 마우스 숨기기
-    SetShowMouseCursor(false);
+	// 마우스 숨기기
+	SetShowMouseCursor(false);
 
-    // ===== 입력 모드를 게임 모드로 전환 =====
-    FInputModeGameOnly InputMode;
-    InputMode.SetConsumeCaptureMouseDown(false);
-    SetInputMode(InputMode);
+	// ===== 입력 모드를 게임 모드로 전환 =====
+	FInputModeGameOnly InputMode;
+	InputMode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(InputMode);
 
-    // 입력 모드 변경
-    ChangeInputMode(EInputMode::Sholder);
+	// 입력 모드 변경
+	ChangeInputMode(EInputMode::Sholder);
 }
 
 void AACMainPlayerController::SetShopCamera()
 {
-    if (bShopCameraActive == true)
-    {
-        // 이미 상점 카메라 모드
-        return;
-    }
+	if (bShopCameraActive == true)
+	{
+		// 이미 상점 카메라 모드
+		return;
+	}
 
-    AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-    if (ControlledCharacter == nullptr)
-    {
-        return;
-    }
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		return;
+	}
 
-    // CameraBoom 가져오기
-    USpringArmComponent* CameraBoom = ControlledCharacter->FindComponentByClass<USpringArmComponent>();
-    if (CameraBoom == nullptr)
-    {
-        UE_LOG(LogHG, Error, TEXT("CameraBoom not found on Character"));
-        return;
-    }
+	// CameraBoom 가져오기
+	USpringArmComponent* CameraBoom = ControlledCharacter->FindComponentByClass<USpringArmComponent>();
+	if (CameraBoom == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("CameraBoom not found on Character"));
+		return;
+	}
 
-    // ===== 현재 카메라 상태 저장 =====
-    SavedControlRotation = GetControlRotation();
-    SavedTargetArmLength = CameraBoom->TargetArmLength;
-    SavedTargetOffset = CameraBoom->TargetOffset;
-    SavedRelativeLocation = CameraBoom->GetRelativeLocation();
-    SavedRelativeRotation = CameraBoom->GetRelativeRotation();
-    bSavedUsePawnControlRotation = CameraBoom->bUsePawnControlRotation;
+	// ===== 현재 카메라 상태 저장 =====
+	SavedControlRotation = GetControlRotation();
+	SavedTargetArmLength = CameraBoom->TargetArmLength;
+	SavedTargetOffset = CameraBoom->TargetOffset;
+	SavedRelativeLocation = CameraBoom->GetRelativeLocation();
+	SavedRelativeRotation = CameraBoom->GetRelativeRotation();
+	bSavedUsePawnControlRotation = CameraBoom->bUsePawnControlRotation;
 
-    // ===== 월드 기준 고정 각도로 카메라 설정 =====
+	// ===== 월드 기준 고정 각도로 카메라 설정 =====
 
-    // CameraBoom이 컨트롤러 회전을 따라가지 않도록 설정
-    CameraBoom->bUsePawnControlRotation = false;
+	// CameraBoom이 컨트롤러 회전을 따라가지 않도록 설정
+	CameraBoom->bUsePawnControlRotation = false;
 
-    // 캐릭터 정면(월드 기준 북쪽)에서 약간 위에서 보도록 설정
-    FRotator WorldFixedRotation = FRotator(-15.f, 0.f, 0.f);
-    SetControlRotation(WorldFixedRotation);
+	// 캐릭터 정면(월드 기준 북쪽)에서 약간 위에서 보도록 설정
+	FRotator WorldFixedRotation = FRotator(-15.f, 0.f, 0.f);
+	SetControlRotation(WorldFixedRotation);
 
-    // CameraBoom의 로컬 회전을 설정 (캐릭터를 정면에서 봄)
-    CameraBoom->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
-    CameraBoom->SetRelativeLocation(FVector(100.0f, 100.0f, 0.f));
+	// CameraBoom의 로컬 회전을 설정 (캐릭터를 정면에서 봄)
+	CameraBoom->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+	CameraBoom->SetRelativeLocation(FVector(100.0f, 100.0f, 0.f));
 
-    // 카메라 거리 및 오프셋 조정
-    CameraBoom->TargetArmLength = 300.f;
-    CameraBoom->TargetOffset = FVector(0.f, 0.f, 50.f);
+	// 카메라 거리 및 오프셋 조정
+	CameraBoom->TargetArmLength = 300.f;
+	CameraBoom->TargetOffset = FVector(0.f, 0.f, 50.f);
 
-    bShopCameraActive = true;
+	bShopCameraActive = true;
 }
 
 void AACMainPlayerController::RestoreOriginalCamera()
 {
-    if (bShopCameraActive == false)
-    {
-        return;  // 상점 카메라 모드가 아님
-    }
+	if (bShopCameraActive == false)
+	{
+		return;  // 상점 카메라 모드가 아님
+	}
 
-    AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-    if (ControlledCharacter == nullptr)
-    {
-        return;
-    }
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		return;
+	}
 
-    // CameraBoom 가져오기
-    USpringArmComponent* CameraBoom = ControlledCharacter->FindComponentByClass<USpringArmComponent>();
-    if (CameraBoom == nullptr)
-    {
-        return;
-    }
+	// CameraBoom 가져오기
+	USpringArmComponent* CameraBoom = ControlledCharacter->FindComponentByClass<USpringArmComponent>();
+	if (CameraBoom == nullptr)
+	{
+		return;
+	}
 
-    // ===== 원래 카메라 상태 복원 =====
+	// ===== 원래 카메라 상태 복원 =====
 
-    // 컨트롤러 회전 복원
-    SetControlRotation(SavedControlRotation);
+	// 컨트롤러 회전 복원
+	SetControlRotation(SavedControlRotation);
 
-    // CameraBoom 설정 복원
-    CameraBoom->bUsePawnControlRotation = bSavedUsePawnControlRotation;
-    CameraBoom->SetRelativeRotation(SavedRelativeRotation);
-    CameraBoom->SetRelativeLocation(SavedRelativeLocation);
-    CameraBoom->TargetArmLength = SavedTargetArmLength;
-    CameraBoom->TargetOffset = SavedTargetOffset;
+	// CameraBoom 설정 복원
+	CameraBoom->bUsePawnControlRotation = bSavedUsePawnControlRotation;
+	CameraBoom->SetRelativeRotation(SavedRelativeRotation);
+	CameraBoom->SetRelativeLocation(SavedRelativeLocation);
+	CameraBoom->TargetArmLength = SavedTargetArmLength;
+	CameraBoom->TargetOffset = SavedTargetOffset;
 
-    bShopCameraActive = false;
+	bShopCameraActive = false;
 }
 
 void AACMainPlayerController::OnRoleFadeInFinished()
@@ -567,6 +666,116 @@ void AACMainPlayerController::ScreenSetRole()
 	}
 	RoleScreen->SetRole(PS->PlayerRole);
 	AC_LOG(LogSY, Log, TEXT("Set Role!"));
+}
+
+void AACMainPlayerController::OnSpectatablePawnRemoved(APawn* RemovedPawn)
+{
+	if (IsLocalController() == false)
+	{
+		return;
+	}
+
+	// 현재 관전 중인 대상이 제거된 경우
+	AActor* CurrentViewTarget = GetViewTarget();
+	if (CurrentViewTarget == RemovedPawn)
+	{
+		AC_LOG(LogSY, Log, TEXT("Current spectate target removed. Switching to next target."));
+		SwitchToNextValidSpectateTarget();
+	}
+}
+
+void AACMainPlayerController::SwitchToNextValidSpectateTarget()
+{
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		return;
+	}
+
+	const TArray<TObjectPtr<APawn>>& Targets = GS->GetSpectatablePawns();
+
+	// 관전 가능한 대상이 없는 경우
+	if (Targets.Num() == 0)
+	{
+		AC_LOG(LogSY, Warning, TEXT("No more spectatable targets available"));
+		CurrentSpectateIndex = INDEX_NONE;
+
+		// 옵션: 자신의 폰으로 돌아가거나, 고정 카메라로 전환
+		// SetViewTarget(this);
+		return;
+	}
+
+	// 현재 인덱스가 유효하지 않으면 처음부터 시작
+	if (CurrentSpectateIndex == INDEX_NONE || !Targets.IsValidIndex(CurrentSpectateIndex))
+	{
+		CurrentSpectateIndex = -1;
+	}
+
+	// 다음 유효한 대상 찾기
+	int32 SearchCount = 0;
+	int32 StartIndex = CurrentSpectateIndex;
+
+	do
+	{
+		CurrentSpectateIndex = (CurrentSpectateIndex + 1) % Targets.Num();
+		SearchCount++;
+
+		if (APawn* NextPawn = Targets[CurrentSpectateIndex].Get())
+		{
+			SetViewTargetWithBlend(NextPawn, 0.0f);
+			AC_LOG(LogSY, Log, TEXT("Auto-switched to spectate target: %s"), *NextPawn->GetName());
+			return;
+		}
+
+		// 모든 대상을 확인했는데 유효한 폰이 없는 경우
+		if (SearchCount >= Targets.Num())
+		{
+			AC_LOG(LogSY, Warning, TEXT("No valid spectatable pawns found after search"));
+			CurrentSpectateIndex = INDEX_NONE;
+			return;
+		}
+
+	} while (CurrentSpectateIndex != StartIndex);
+}
+
+
+void AACMainPlayerController::ServerStartSpectateOtherPlayer_Implementation()
+{
+	APawn* MyPawn = GetPawn();
+	if (MyPawn == nullptr)
+	{
+		return;
+	}
+
+	MyPawn->SetActorHiddenInGame(true);
+	MyPawn->SetActorEnableCollision(false);
+
+	// 초기 관전 대상 선택
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		AC_LOG(LogSY, Error, TEXT("GameState is nullptr"));
+		return;
+	}
+
+	const TArray<TObjectPtr<APawn>>& Targets = GS->GetSpectatablePawns();
+	if (Targets.Num() == 0)
+	{
+		AC_LOG(LogSY, Warning, TEXT("No spectatable pawns available"));
+		return;
+	}
+
+	// 유효한 첫 번째 폰 찾기
+	for (int32 i = 0; i < Targets.Num(); ++i)
+	{
+		if (APawn* TargetPawn = Targets[i].Get())
+		{
+			CurrentSpectateIndex = i;
+			SetViewTargetWithBlend(TargetPawn, 0.5f);
+			AC_LOG(LogSY, Log, TEXT("Initial spectate target: %s"), *TargetPawn->GetName());
+			return;
+		}
+	}
 }
 
 void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<class UACCCTVWidget> WidgetClass)

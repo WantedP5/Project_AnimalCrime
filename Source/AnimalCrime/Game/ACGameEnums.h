@@ -18,6 +18,7 @@ enum class EInputMode : uint8
 {
 	Sholder		UMETA(DisplayName = "Sholder"),		// 기본
 	Settings	UMETA(DisplayName = "Settings"),	// 설정창
+	Spectator	UMETA(DisplayName = "Spectator"),	// 관전자
 };
 
 //설정창 열거형

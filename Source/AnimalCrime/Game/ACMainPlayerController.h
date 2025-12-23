@@ -36,6 +36,7 @@ protected:
 	void HandleItemDrop(const struct FInputActionValue& Value);
 	void HandleAttack(const struct FInputActionValue& Value);
 	void HandleSettingsClose(const struct FInputActionValue& Value);
+	void HandleSpectatorChange(const struct FInputActionValue& Value);
 
 	// ===== 퀵슬롯 관련 (하나의 핸들러로 통합) =====
 	void HandleQuickSlot(const struct FInputActionValue& Value);
@@ -48,7 +49,7 @@ public:
 
 public:
 	UFUNCTION(Client, Reliable)
-	void ShowEscapeUI();
+	void ClientOnEscapeSuccess();
 
     // ===== 상점 관련 =====
 public:
@@ -91,12 +92,23 @@ public:
 	void HideInteractProgress();
 
 
-
+	// ===== 게임 시작시 역할 UI=====
 protected:
 	UFUNCTION()
 	void OnRoleFadeInFinished();
 
 	void ScreenSetRole();
+
+	// ===== 관전 =====
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerStartSpectateOtherPlayer();
+private:
+	UFUNCTION()
+	void OnSpectatablePawnRemoved(APawn* RemovedPawn);
+
+	void SwitchToNextValidSpectateTarget();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> EscapeScreenClass;
@@ -130,6 +142,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> SettingsCloseAction;
 
+	// ===== 관전자 키 입력 =====
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputMappingContext> SpectatorMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> SpectatorChangeAction;
 
     // ===== 상점 관련 =====
 protected:
@@ -176,4 +193,9 @@ protected:
 	TSubclassOf<class UACRoleScreen> RoleScreenClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
 	TObjectPtr<class UACRoleScreen> RoleScreen;
+
+
+protected:
+ //!< 관전자 Index
+	int32 CurrentSpectateIndex = INDEX_NONE;
 };

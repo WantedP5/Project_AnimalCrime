@@ -5,6 +5,7 @@
 #include "Character/ACMafiaCharacter.h"
 #include "Game/ACMainGameState.h"
 #include "Game/ACMainPlayerController.h"
+#include "Game/ACPlayerState.h"
 
 #include "AnimalCrime.h"
 AACEscapeArea::AACEscapeArea()
@@ -31,17 +32,12 @@ void AACEscapeArea::BeginPlay()
 void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AACMafiaCharacter* Mafia = Cast<AACMafiaCharacter>(OtherActor);
-	if (Mafia == nullptr)
+	if (Mafia == nullptr || HasAuthority() == false)
 	{
 		return;
 	}
 
 	AC_LOG(LogSY, Log, TEXT("Begin EscapeAreas"))
-
-	if (HasAuthority() == false) //서버만 처리
-	{
-		return;
-	}
 
 	AACMainPlayerController* PC = Cast<AACMainPlayerController>(Mafia->GetController());
 	if (PC == nullptr)
@@ -49,7 +45,32 @@ void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponen
 		return;
 	}
 
-	PC->ShowEscapeUI();
-	AC_LOG(LogSY, Log, TEXT("Show UI"));
+	// UI변경, IMC 변경
+	PC->ClientOnEscapeSuccess();
+
+	//관전으로 변경
+	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+	//관전 상태로 전환
+	PS->EnterSpectatorState();
+
+	//1초 뒤에 관전 실행
+	FTimerHandle TimerHandle;
+	FTimerDelegate Delegate;
+	Delegate.BindUFunction(
+		PC,
+		FName("ServerStartSpectateOtherPlayer")
+	);
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		Delegate,
+		1.0f,
+		false
+	);
+
 }
 
