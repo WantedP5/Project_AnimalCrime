@@ -32,12 +32,23 @@ void AACEscapeArea::BeginPlay()
 void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AACMafiaCharacter* Mafia = Cast<AACMafiaCharacter>(OtherActor);
-	if (Mafia == nullptr || HasAuthority() == false)
+	if (Mafia == nullptr)
 	{
+		AC_LOG(LogSY, Log, TEXT("Mafia is nullptr!"));
 		return;
 	}
 
-	AC_LOG(LogSY, Log, TEXT("Begin EscapeAreas"))
+	AC_LOG(LogSY, Log, TEXT("Begin EscapeAreas"));
+
+	if (HasAuthority() == false)
+	{
+		AC_LOG(LogSY, Log, TEXT("HasAuthority false!"));
+		return;
+	}
+	else
+	{
+		AC_LOG(LogSY, Log, TEXT("HasAuthority true!"));
+	}
 
 	AACMainPlayerController* PC = Cast<AACMainPlayerController>(Mafia->GetController());
 	if (PC == nullptr)

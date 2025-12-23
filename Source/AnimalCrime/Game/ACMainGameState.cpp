@@ -7,6 +7,7 @@
 
 #include "Character/ACMafiaCharacter.h"
 #include "ACPlayerState.h"
+#include "EscapeQuest/ACEscapeArea.h"
 #include "AnimalCrime.h"
 
 #pragma region 생성자
@@ -144,6 +145,17 @@ void AACMainGameState::ServerChangeEscapeState_Implementation(EEscapeState NewEs
 			Mafia->ClientSetBombAreaVisible(false);
 			Mafia->ClientSetEscapeAreaVisible(true);
 		}
+
+		//서버에서만 콜리전 충돌 true로 설정
+		for (AACEscapeArea* Area : EscapeAreas)
+		{
+			if (Area == nullptr)
+			{
+				continue;
+			}
+			Area->SetActorEnableCollision(true);
+		}
+
 		break;
 	default:
 		break;

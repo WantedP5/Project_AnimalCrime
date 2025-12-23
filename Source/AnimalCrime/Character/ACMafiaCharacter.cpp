@@ -263,7 +263,6 @@ void AACMafiaCharacter::ClientSetEscapeAreaVisible_Implementation(bool bVisible)
 		}
 		Area->SetActorHiddenInGame(!bVisible);
 
-		Area->SetActorEnableCollision(true);
 		AC_LOG(LogSY, Log, TEXT("ClientSetBombAreaVisible"));
 	}
 }
