@@ -67,11 +67,24 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 		return;
 	}
 	
+	AACMainGameState* MainGameState = GetOwner()->GetGameState<AACMainGameState>();
+	if (MainGameState == nullptr)
+	{
+		return;
+	}
 	GameScoreGauge -= InScore;
+	MainGameState->UpdateTeamScore(GameScoreGauge);
+	if (GetOwner()->HasAuthority())
+	{
+		MainGameState->OnRep_TeamScore();
+	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		// 미구현
-		UE_LOG(LogTemp, Log, TEXT("어머나 마피아 승"));
+		UWorld* World = GameMode->GetWorld();
+		if (World && GameMode->HasAuthority())
+		{
+			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
+		}
 	}
 }
 

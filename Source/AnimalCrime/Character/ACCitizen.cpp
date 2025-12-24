@@ -21,6 +21,7 @@
 
 #include "AnimalCrime.h"
 #include "Engine/OverlapResult.h"
+#include "Game/ACGameRuleManager.h"
 #include "Game/ACMainGameMode.h"
 
 
@@ -308,17 +309,25 @@ FVector AACCitizen::GetRunPosition(const FVector& Attack) const
 
 void AACCitizen::OnDamaged()
 {
-	DamagedFlag += 1;
-	if (DamagedFlag > 1)
+	// DamagedFlag += 1;
+	// if (DamagedFlag > 1)
+	// {
+	// 	AAIController* AICon = GetController<AAIController>();
+	// 	AICon->GetBrainComponent()->StopLogic("HitAbort");
+	//
+	// 	AICon->GetBrainComponent()->StartLogic();
+	// 	
+	// 	
+	// }
+	
+	AACMainGameMode* GameMode = Cast<AACMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode == nullptr)
 	{
-		AAIController* AICon = GetController<AAIController>();
-		AICon->GetBrainComponent()->StopLogic("HitAbort");
-
-		AICon->GetBrainComponent()->StartLogic();
-		
-		
+		return;
 	}
 
+	// 2️⃣ 스코어 업데이트 로직 호출
+	GameMode->UpdateGameScoreFromMafia(EMafiaAction::AttackCivilian,500);
 }
 
 void AACCitizen::OnArrive()
