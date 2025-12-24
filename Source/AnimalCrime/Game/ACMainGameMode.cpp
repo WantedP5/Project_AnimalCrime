@@ -391,6 +391,7 @@ void AACMainGameMode::RegisterPrison(AACPrisonBase* Prison)
 		return;
 	}
 
+	AC_LOG(LogSW, Log, TEXT("RRRegisterPrison"))
 	PrisonManager->RegisterPrison(Prison);
 }
 

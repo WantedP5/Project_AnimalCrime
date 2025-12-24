@@ -17,13 +17,13 @@ AACLobbyGameMode::AACLobbyGameMode()
 		TEXT("/Game/Project/Character/BP_VoiceTestCharacter")
 	);
 
-	if (DefaultPawnBP.Succeeded())
-	{
-		DefaultPawnClass = DefaultPawnBP.Class;
-	}
+	//if (DefaultPawnBP.Succeeded())
+	//{
+	//	DefaultPawnClass = DefaultPawnBP.Class;
+	//}
 
+	DefaultPawnClass = AACLobbyCharacter::StaticClass();
 	bUseSeamlessTravel = true;
-	//DefaultPawnClass = AACLobbyCharacter::StaticClass();
 }
 void AACLobbyGameMode::StartGamePlay()
 {

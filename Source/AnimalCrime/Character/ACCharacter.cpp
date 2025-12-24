@@ -43,8 +43,8 @@ AACCharacter::AACCharacter()
 
 	//캐릭터 무브먼트
 	auto Move = GetCharacterMovement();
-	Move->MaxWalkSpeed = 600.f;
-	Move->JumpZVelocity = 600.f;
+	Move->MaxWalkSpeed = 300.f;
+	Move->JumpZVelocity = 500.f;
 	Move->AirControl = 0.3f;
 	Move->bOrientRotationToMovement = true;
 	Move->RotationRate = FRotator(0.f, 500.f, 0.f);
@@ -587,14 +587,14 @@ void AACCharacter::OnRep_CharacterState()
 		}
 	case ECharacterState::Free:
 		{
-			MoveComp->MaxWalkSpeed = 600.0f;
-			MoveComp->JumpZVelocity = 300.0f;
+			MoveComp->MaxWalkSpeed = 300.0f;
+			MoveComp->JumpZVelocity = 500.0f;
 			break;
 		}
 	case ECharacterState::OnDamage:
 		{
-			MoveComp->MaxWalkSpeed = 1200.0f;
-			MoveComp->JumpZVelocity = 300.0f;
+			MoveComp->MaxWalkSpeed = 600.0f;
+			//MoveComp->JumpZVelocity = 300.0f;
 			break;
 		}
 	}

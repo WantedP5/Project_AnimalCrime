@@ -33,13 +33,15 @@ AACPrisonBase::AACPrisonBase()
 void AACPrisonBase::BeginPlay()
 {
 	Super::BeginPlay();
+	AC_LOG(LogSW, Log, TEXT("RegisterPrison"))
 
 	// 서버에서 GameMode의 PrisonManager에 등록
 	if (HasAuthority() == true)
 	{
 		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
-
+		AC_LOG(LogSW, Log, TEXT("RRegisterPrison"))
 		ensureAlways(GM != nullptr);
+		
 		GM->RegisterPrison(this);  // GameMode에 캡슐화 함수 사용
 	}
 

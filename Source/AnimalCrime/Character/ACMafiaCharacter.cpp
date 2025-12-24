@@ -162,6 +162,7 @@ bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
 {
 	if (ACPlayer->GetCharacterType() == EACCharacterType::Police)
 	{
+		AC_LOG(LogSW, Log, TEXT("1111"));
 		return true;
 	}
 
@@ -174,10 +175,12 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 	{
 		return;
 	}
+	AC_LOG(LogSW, Log, TEXT("2222"));
 
 	//ShowInteractDebug(ACPlayer, GetName());
 
 	// 경찰과 상호작용(신분증)
+	AC_LOG(LogHY, Error, TEXT("%d"), this->CharacterState);
 	if (this->CharacterState == ECharacterState::Free)
 	{
 		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
@@ -194,6 +197,7 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 		{
 			return;
 		}
+		AC_LOG(LogSW, Log, TEXT("4444"));
 
 		GM->ImprisonCharacter(this);  // GameMode에 캡슐화 함수 사용
 	}	
