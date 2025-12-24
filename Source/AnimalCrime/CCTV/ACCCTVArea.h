@@ -51,6 +51,11 @@ protected:
 	void OnInteractBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+public:
+	// Scene Capture 활성화/비활성화 함수
+	UFUNCTION(BlueprintCallable, Category = "CCTV")
+	void SetSceneCaptureActive(bool bActive);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
@@ -58,4 +63,8 @@ protected:
 	// 상점 UI 위젯 클래스(블루프린트에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop")
 	TSubclassOf<class UACCCTVWidget> CCTVWidgetClass;
+
+	// CCTV Scene Capture 컴포넌트들 (블루프린트에서 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	TArray<class USceneCaptureComponent2D*> SceneCaptureComponents;
 };

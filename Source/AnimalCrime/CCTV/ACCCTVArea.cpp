@@ -9,6 +9,7 @@
 #include "Blueprint/UserWidget.h"
 #include "AnimalCrime.h"
 #include "Game/ACMainPlayerController.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 // Sets default values
 AACCCTVArea::AACCCTVArea()
@@ -70,6 +71,9 @@ void AACCCTVArea::OnInteract(AACCharacter* ACPlayer)
         return;
     }
 
+    // Scene Capture 활성화
+    SetSceneCaptureActive(true);
+
     // 서버에서 클라이언트에게 위젯 토글 명령 전송
     PC->ClientToggleCCTVWidget(CCTVWidgetClass);
 }
@@ -87,6 +91,26 @@ void AACCCTVArea::OnInteractBoxOverlapEnd(UPrimitiveComponent* OverlappedCompone
     AACMainPlayerController* PC = ACPlayer->GetController<AACMainPlayerController>();
     if (PC != nullptr)
     {
+        // Scene Capture 비활성화
+        SetSceneCaptureActive(false);
+
         PC->CloseCCTV();
+    }
+}
+
+void AACCCTVArea::SetSceneCaptureActive(bool bActive)
+{
+    for (USceneCaptureComponent2D* SceneCapture : SceneCaptureComponents)
+    {
+        if (SceneCapture)
+        {
+            SceneCapture->bCaptureEveryFrame = bActive;
+
+            // 활성화 시 즉시 한 번 캡처하여 화면 갱신
+            if (bActive)
+            {
+                SceneCapture->CaptureScene();
+            }
+        }
     }
 }
