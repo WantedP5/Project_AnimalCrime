@@ -186,8 +186,13 @@ private:
 	  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	  TObjectPtr<class UACShopComponent> ShopComponent;
 
+
+
+
 	UFUNCTION()
 	void OnRep_CharacterState();
+public:
+	void SetCharacterState(ECharacterState InCharacterState);
   protected:
 	  ESettingMode SettingMode = ESettingMode::None;
 	

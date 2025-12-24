@@ -8,6 +8,7 @@
 #include "AnimalCrime.h"
 #include "Components/BoxComponent.h"
 #include "Game/ACMainGameMode.h"
+#include "Game/ACGameRuleManager.h"
 
 AACPrisonBase::AACPrisonBase()
 {
@@ -33,25 +34,17 @@ AACPrisonBase::AACPrisonBase()
 void AACPrisonBase::BeginPlay()
 {
 	Super::BeginPlay();
-	AC_LOG(LogSW, Log, TEXT("RegisterPrison"))
 
-	// 서버에서 GameMode의 PrisonManager에 등록
-	if (HasAuthority() == true)
-	{
-		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
-		AC_LOG(LogSW, Log, TEXT("RRegisterPrison"))
-		ensureAlways(GM != nullptr);
-		
-		GM->RegisterPrison(this);  // GameMode에 캡슐화 함수 사용
-	}
-
+	// 등록은 GameMode::BeginPlay에서 GetAllActorsOfClass로 처리 (초기화 순서 문제 해결)
+	// if (HasAuthority() == true)
+	// {
+	// 	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	// 	GM->RegisterPrison(this);
+	// }
 
 	// PrisonAreaBox 오버랩 이벤트 바인딩
 	ensureAlways(PrisonAreaBox != nullptr);
-
-	//PrisonAreaBox->OnComponentBeginOverlap.AddDynamic(this, &AACPrisonBase::OnPrisonAreaOverlapBegin);
 	PrisonAreaBox->OnComponentEndOverlap.AddDynamic(this, &AACPrisonBase::OnPrisonAreaOverlapEnd);
-	
 }
 
 void AACPrisonBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -191,6 +184,23 @@ void AACPrisonBase::Imprison(AACCharacter* Character, bool bForced)
 	AC_LOG(LogSW, Warning, TEXT("Character %s imprisoned"), *Character->GetName());
 	// todo: 임시 로그
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("%s 투옥!"), *Character->GetName()));
+
+	Character->SetCharacterState(ECharacterState::Prison);
+	if (HasAuthority())
+	{
+		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+		if (GM == nullptr)
+		{
+			return;
+		}
+		if (GM->GetGameRuleManager() == nullptr)
+		{
+			return;
+		}
+
+		GM->GetGameRuleManager()->CheckGameEndCondition();
+		
+	}
 }
 
 void AACPrisonBase::Release(AACCharacter* Character)
@@ -204,6 +214,8 @@ void AACPrisonBase::Release(AACCharacter* Character)
 	AC_LOG(LogSW, Warning, TEXT("Character %s released"), *Character->GetName());
 	// todo: 임시 로그
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan, FString::Printf(TEXT("%s 탈옥!"), *Character->GetName()));
+
+	Character->SetCharacterState(ECharacterState::Free);
 }
 
 void AACPrisonBase::UpdatePrisoners()

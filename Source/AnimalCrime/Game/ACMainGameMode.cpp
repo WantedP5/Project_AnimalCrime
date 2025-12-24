@@ -81,10 +81,37 @@ void AACMainGameMode::BeginPlay()
 
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
+	if (GameRuleManager == nullptr)
+	{
+		AC_LOG(LogSW, Log, TEXT("Create Fail GameRuleManager null manager"))
+	}
 	GameRuleManager->Init(this);
 
 	PrisonManager = NewObject<UACPrisonManager>(this);
-	
+	if (PrisonManager == nullptr)
+	{
+		AC_LOG(LogSW, Log, TEXT("Create Fail PrisonManager null manager"))
+	}
+	else
+	{
+		// 월드에 있는 모든 감옥을 찾아서 등록 (초기화 순서 문제 해결)
+		TArray<AActor*> FoundPrisons;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AACPrisonBase::StaticClass(), FoundPrisons);
+
+		for (AActor* Actor : FoundPrisons)
+		{
+			AACPrisonBase* Prison = Cast<AACPrisonBase>(Actor);
+			if (Prison == nullptr)
+			{
+				continue;
+			}
+			PrisonManager->RegisterPrison(Prison);
+			AC_LOG(LogSW, Log, TEXT("Prison registered: %s"), *Prison->GetName());
+		}
+
+		AC_LOG(LogSW, Log, TEXT("Total prisons registered: %d"), FoundPrisons.Num());
+	}
+
 	GenerateOutfitPool();
 	SpawnAllAI();
 	AC_LOG(LogHY, Warning, TEXT("End"));
@@ -377,22 +404,6 @@ FOutfitCombo AACMainGameMode::GetClothesFromPool()
 
 	int32 RandIndex = FMath::RandRange(0, OutfitPool.Num() - 1); 
 	return OutfitPool[RandIndex];
-}
-
-
-void AACMainGameMode::RegisterPrison(AACPrisonBase* Prison)
-{
-	if (PrisonManager == nullptr)
-	{
-		return;
-	}
-	if (Prison == nullptr)
-	{
-		return;
-	}
-
-	AC_LOG(LogSW, Log, TEXT("RRRegisterPrison"))
-	PrisonManager->RegisterPrison(Prison);
 }
 
 void AACMainGameMode::ImprisonCharacter(AACCharacter* Character)
