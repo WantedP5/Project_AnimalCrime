@@ -46,7 +46,7 @@ bool AACShopArea::CanInteract(AACCharacter* ACPlayer)
 
 void AACShopArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(ACPlayer, GetName());
+    //ShowInteractDebug(ACPlayer, GetName());
 
     if (ACPlayer == nullptr)
     {

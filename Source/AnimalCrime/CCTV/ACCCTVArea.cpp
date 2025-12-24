@@ -48,7 +48,7 @@ bool AACCCTVArea::CanInteract(AACCharacter* ACPlayer)
 
 void AACCCTVArea::OnInteract(AACCharacter* ACPlayer)
 {
-    ShowInteractDebug(ACPlayer, GetName());
+    //ShowInteractDebug(ACPlayer, GetName());
 
     if (ACPlayer == nullptr)
     {

@@ -25,7 +25,7 @@
 AACCitizen::AACCitizen()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 
 	// AI 설정
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -552,10 +552,12 @@ void AACCitizen::OnInteract(AACCharacter* ACPlayer)
 		return;
 	}
 
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 
 
 	AC_LOG(LogSW, Log, TEXT("시민 신분증!"));
+	// todo: 임시 로그
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("시민 신분증!"));
 }
 
 float AACCitizen::GetRequiredHoldTime() const

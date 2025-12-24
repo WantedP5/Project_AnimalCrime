@@ -257,6 +257,13 @@ void AACCharacter::InteractStarted()
 			CurrentHoldTarget = Target;
 			CurrentHoldTime = 0.f;
 
+			// todo: 임시 움직임 차단
+			ACharacter* Char = Cast<ACharacter>(CurrentHoldTarget);
+			if (Char != nullptr)
+			{
+				Char->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+			}
+
 
 			AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
 			if (PC == nullptr)
@@ -512,7 +519,7 @@ bool AACCharacter::CanInteract(AACCharacter* ACPlayer)
 
 void AACCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 }
 
 void AACCharacter::AddInteractable(AActor* Interactor)
@@ -601,7 +608,13 @@ void AACCharacter::ResetHoldInteract()
 		return;
 	}
 
-	AC_LOG(LogSW, Log, TEXT("%s Reset"), *CurrentHoldTarget->GetName());
+	// todo: 임시 움직임 차단
+	ACharacter* Char = Cast<ACharacter>(CurrentHoldTarget);
+	if (Char != nullptr)
+	{
+		Char->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+	//AC_LOG(LogSW, Log, TEXT("%s Reset"), *CurrentHoldTarget->GetName());
 
 	bIsHoldingInteract = false;
 	CurrentHoldTarget = nullptr;
