@@ -1,6 +1,5 @@
 ﻿
 #include "ACAdvancedFriendsGameInstance.h"
-#include "AudioDevice.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -73,14 +72,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
         return ;
     }
 
-    if (UWorld* World = GetWorld())
-    {
-        if (FAudioDevice* AudioDevice = World->GetAudioDevice())
-        {
-            AudioDevice->StopAllSounds(true);
-        }
-    }
-        
+
     switch (InMapType)
     {
     case EMapType::Lobby:
