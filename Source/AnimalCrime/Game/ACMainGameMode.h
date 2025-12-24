@@ -88,6 +88,25 @@ public:
 	
 	void GenerateOutfitPool();
 	FOutfitCombo GiveOutfitFromPool();
+
+#pragma region PrisonManager
+public:
+ /**
+     @brief 감옥 등록.
+	 감옥매니저에 전달하는 래퍼 함수.
+     @param Prison - 등록할 감옥.
+ **/
+	UFUNCTION(BlueprintCallable)
+	void RegisterPrison(class AACPrisonBase* Prison);
+
+/**
+	@brief 투옥.
+	감옥매니저에 전달하는 래퍼 함수.
+	@param Prison - 투옥할 캐릭터.
+**/
+	UFUNCTION(BlueprintCallable)
+	void ImprisonCharacter(class AACCharacter* Character);
+#pragma endregion
 	
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowedClasses=Actor))
@@ -115,6 +134,13 @@ private:
 	/** 게임 Score와 종료 시점을 판단하는 매니저 */
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = true))
 	TObjectPtr<class UACGameRuleManager> GameRuleManager;
+#pragma endregion 
+
+#pragma region 감옥을 관리하는 맴버 변수
+public:
+	/** 게임 감옥 매니저 */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UACPrisonManager> PrisonManager;
 #pragma endregion 
 
 	virtual void PostSeamlessTravel() override;
