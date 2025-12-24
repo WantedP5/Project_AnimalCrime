@@ -4,6 +4,7 @@
 #include "ACCitizen.h"
 
 #include "ACCharacter.h"
+#include "ACPoliceCharacter.h"
 #include "AnimalCrime.h"
 #include "BrainComponent.h"
 #include "NavigationSystem.h"
@@ -19,6 +20,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "AnimalCrime.h"
+#include "Engine/OverlapResult.h"
 #include "Game/ACMainGameMode.h"
 
 
@@ -154,6 +156,18 @@ void AACCitizen::BeginPlay()
 	Super::BeginPlay();
 	
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyCitizenType);
+	
+	//float RandomRate = FMath::RandRange(0.f, 10.f);
+	float RandomRate = 40.0f;
+	GetWorld()->GetTimerManager().SetTimer(InitialSkillBlockTimerHandle,
+		FTimerDelegate::CreateLambda([this]()
+		{
+			if (IsValid(this))
+			{
+				bIsInitialSkillBlocked = false;
+			}
+		}), RandomRate, false);
+
 	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
@@ -376,6 +390,91 @@ void AACCitizen::ChangeClothes()
 	FaceAccMesh = OutfitCombo.FaceAccAsset.LoadSynchronous();
 	ShoesMesh = OutfitCombo.ShoesAsset.LoadSynchronous();
 	HeadMesh = OutfitCombo.HairAsset.LoadSynchronous();
+}
+
+bool AACCitizen::DetectPolice()
+{
+	FVector Origin = GetActorLocation();
+    
+	//float CircleRadius = FMath::FRandRange(500.0f, 2000.0f);
+	float CircleRadius = 500.0f;
+
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel7);
+
+	// 결과 배열
+	TArray<FOverlapResult> Overlaps;
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(CircleRadius);
+
+	// Sphere 범위 내 검사
+	bool bFound = GetWorld()->OverlapMultiByObjectType(Overlaps, Origin, FQuat::Identity, ObjectQueryParams, Sphere);
+	if (bFound == true)
+	{
+		// 0번째를 하는 게 맞는지
+		PoliceCharacter = Cast<AACPoliceCharacter>(Overlaps[0].GetActor());
+	}
+	else
+	{
+		PoliceCharacter = nullptr;
+	}
+	
+	DrawDebugSphere(GetWorld(), Origin, CircleRadius, 16, bFound ? FColor::Red : FColor::Green, false, 1.0f);
+
+	return bFound;
+}
+
+void AACCitizen::RunFromPolice()
+{
+	if (PoliceCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("PoliceCharacter is nullptr"));
+		return;
+	}
+	
+	// 경찰 위치와 내 위치를 구하고 방향 벡터를 구한다.
+	FVector EnemyPosition = PoliceCharacter->GetActorLocation();
+	FVector CurrentPosition = GetActorLocation();
+	FVector DirVector = (CurrentPosition - EnemyPosition).GetSafeNormal2D();
+	
+	FVector NextPoint = CurrentPosition + DirVector * FMath::FRandRange(500.0f, 3000.0f);
+	
+	// NavMesh에서 Radius 500.f 범위 내 랜덤 포인트 구하기
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys == nullptr)
+	{
+		return;
+	}
+	
+	// 결과 담을 변수
+	FNavLocation RandomPoint;
+	float CircleRadius = FMath::FRandRange(100.0f, 500.0f);
+	bool bFound = NavSys->GetRandomReachablePointInRadius(NextPoint, CircleRadius, RandomPoint);
+	if (bFound == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("GetRandomReachablePointInRadius Fail: %s %s"), *NextPoint.ToString(), *RandomPoint.Location.ToString());
+		return ;
+	}
+	
+	// AC_LOG(LogHY, Log, TEXT("Enemy:%s"), *EnemyPosition.ToString());
+	// AC_LOG(LogHY, Log, TEXT("My:%s"), *CurrentPosition.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Dir:%s"), *DirVector.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Next:%s"), *NextPoint.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Random Point: %s"), *RandomPoint.Location.ToString());
+	
+	AACCitizenAIController* AIController = Cast<AACCitizenAIController>(GetController());
+	if (AIController == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("AIController is nullptr"));
+		return;
+	}
+	UBlackboardComponent* BBComp = AIController->GetBlackboardComponent();
+	if (BBComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("BBComp is nullptr"));
+		return;
+	}
+	
+	BBComp->SetValueAsVector(TEXT("RunPosition"), RandomPoint.Location);
 }
 
 void AACCitizen::OnRep_HeadMesh() const
