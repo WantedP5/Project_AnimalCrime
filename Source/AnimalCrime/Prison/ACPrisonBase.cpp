@@ -95,7 +95,7 @@ bool AACPrisonBase::CanInteract(AACCharacter* ACPlayer)
 
 void AACPrisonBase::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 
 	// 서버에서만 문 열기
 	if (HasAuthority() == true)
@@ -187,6 +187,8 @@ void AACPrisonBase::Imprison(AACCharacter* Character, bool bForced)
 	Prisoners.Add(Character);
 
 	AC_LOG(LogSW, Warning, TEXT("Character %s imprisoned"), *Character->GetName());
+	// todo: 임시 로그
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("%s 투옥!"), *Character->GetName()));
 }
 
 void AACPrisonBase::Release(AACCharacter* Character)
@@ -198,6 +200,8 @@ void AACPrisonBase::Release(AACCharacter* Character)
 
 	Prisoners.Remove(Character);
 	AC_LOG(LogSW, Warning, TEXT("Character %s released"), *Character->GetName());
+	// todo: 임시 로그
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan, FString::Printf(TEXT("%s 탈옥!"), *Character->GetName()));
 }
 
 void AACPrisonBase::UpdatePrisoners()

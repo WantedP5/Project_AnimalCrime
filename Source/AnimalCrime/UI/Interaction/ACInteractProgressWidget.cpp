@@ -29,7 +29,9 @@ void UACInteractProgressWidget::SetTargetName(const FString& Name)
 		return;
 	}
 
-	TargetNameText->SetText(FText::FromString(FString::Printf(TEXT("%s 상호작용 중..."), *Name)));
+	// todo: 마피아 시민 구분못하도록 임시로 삭제
+	//TargetNameText->SetText(FText::FromString(FString::Printf(TEXT("%s 상호작용 중..."), *Name)));
+	TargetNameText->SetText(FText::FromString(FString::Printf(TEXT("상호작용 중..."))));
 }
 
 void UACInteractProgressWidget::ShowWidget()

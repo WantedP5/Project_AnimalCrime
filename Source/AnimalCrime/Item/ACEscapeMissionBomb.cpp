@@ -145,7 +145,7 @@ bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
 
 void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 
 	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 

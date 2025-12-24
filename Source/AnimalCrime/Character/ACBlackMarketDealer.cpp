@@ -38,7 +38,7 @@ bool AACBlackMarketDealer::CanInteract(AACCharacter* ACPlayer)
 
 void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 
 	if (BlackMarketComponent)
 	{

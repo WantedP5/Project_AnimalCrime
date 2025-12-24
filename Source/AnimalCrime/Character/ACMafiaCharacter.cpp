@@ -55,7 +55,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	float CurrentHp = Stat->GetCurrentHp();
 	CurrentHp -= 1.0f;
 	Stat->SetCurrentHp(CurrentHp);
-	AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
+	//AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
 	if (CurrentHp <= 0)
 	{
 		// 상태 변경
@@ -109,12 +109,12 @@ void AACMafiaCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	TickDeltaTime -=DeltaSeconds;
+	/*TickDeltaTime -=DeltaSeconds;
 	if (TickDeltaTime <= 0.0f)
 	{
 		AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
 		TickDeltaTime += 1.0f;
-	}
+	}*/
 }
 
 void AACMafiaCharacter::BeginPlay()
@@ -161,7 +161,6 @@ void AACMafiaCharacter::BeginPlay()
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
 {
-	// 경찰과 상호작용(신분증)
 	if (ACPlayer->GetCharacterType() == EACCharacterType::Police)
 	{
 		return true;
@@ -177,17 +176,28 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
 		return;
 	}
 
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 
 	// 경찰과 상호작용(신분증)
-	AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
-
-	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
-	if (GM)
+	if (this->CharacterState == ECharacterState::Free)
 	{
-		GM->ImprisonCharacter(this);  // GameMode에 캡슐화 함수 사용
+		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
+		// todo: 임시 로그
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("마피아 신분증!"));
 	}
-	
+
+	// 경찰과 상호작용(투옥)
+	if (this->CharacterState == ECharacterState::Stun)
+	{
+		// 경찰과 상호작용(투옥)
+		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+		if (GM == nullptr)
+		{
+			return;
+		}
+
+		GM->ImprisonCharacter(this);  // GameMode에 캡슐화 함수 사용
+	}	
 }
 
 void AACMafiaCharacter::ServerFireHitscan_Implementation()

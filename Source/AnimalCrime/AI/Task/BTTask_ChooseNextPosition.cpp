@@ -38,7 +38,7 @@ EBTNodeResult::Type UBTTask_ChooseNextPosition::ExecuteTask(UBehaviorTreeCompone
 	
 	FVector NextPosition = NPCPawn->GetNextPosition();
 	BBComp->SetValueAsVector(TEXT("Position"), NextPosition);
-	UE_LOG(LogTemp, Log, TEXT("Next Position: (%f, %f, %f)"), NextPosition.X, NextPosition.Y, NextPosition.Z);
+	//UE_LOG(LogTemp, Log, TEXT("Next Position: (%f, %f, %f)"), NextPosition.X, NextPosition.Y, NextPosition.Z);
 	
 	return EBTNodeResult::Succeeded;
 }

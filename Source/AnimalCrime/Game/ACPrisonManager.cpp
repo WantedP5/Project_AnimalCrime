@@ -31,6 +31,11 @@ void UACPrisonManager::ImprisonCharacter(AACCharacter* ACPlayer)
 
 AACPrisonBase* UACPrisonManager::FindEmptyPrison()
 {
+    if (Prisons.Num() == 0)
+    {
+        UE_LOG(LogSW, Log, TEXT("NO PRISON REGISTERED"));
+        return nullptr;
+    }
     for (AACPrisonBase* Prison : Prisons)
     {
         if (Prison == nullptr)

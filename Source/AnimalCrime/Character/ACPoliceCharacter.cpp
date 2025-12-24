@@ -110,6 +110,6 @@ bool AACPoliceCharacter::CanInteract(AACCharacter* ACPlayer)
 
 void AACPoliceCharacter::OnInteract(AACCharacter* ACPlayer)
 {
-	ShowInteractDebug(ACPlayer, GetName());
+	//ShowInteractDebug(ACPlayer, GetName());
 }
 
