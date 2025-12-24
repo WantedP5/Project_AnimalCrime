@@ -574,9 +574,12 @@ void AACCharacter::OnRep_CharacterState()
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp == nullptr)
 	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
 		return;
 	}
 	
+	AC_LOG(LogHY, Error, TEXT("CharacterType:%d name:%s"), CharacterState, *GetName());
+
 	switch (CharacterState)
 	{
 	case ECharacterState::Stun:
