@@ -85,6 +85,28 @@ void AACMainGameState::RemoveSpectatablePawn(APawn* Pawn)
 	}
 }
 
+TArray<TObjectPtr<class AACPlayerState>> AACMainGameState::GetPlayersByState(ECharacterState CharacterState) const
+{
+	TArray<TObjectPtr<AACPlayerState>> Result;
+
+	for (APlayerState* PS : PlayerArray)
+	{
+		AACPlayerState* ACPS = Cast<AACPlayerState>(PS);
+		if (ACPS == nullptr)
+		{
+			continue;
+		}
+
+		//찾는 State와 같으면 배열에 추가
+		if (ACPS->CharacterState == CharacterState)
+		{
+			Result.Add(ACPS);
+		}
+	}
+
+	return Result;
+}
+
 #pragma region GameRuleManager와 동기화 및 테스트 함수
 void AACMainGameState::UpdateTeamScore(float InScore)
 {

@@ -91,6 +91,11 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void OnAttackCitizen(float InScore);
 	
+public:
+ /**
+     @brief 탈출, 체포 시에 게임 종료 조건 판단하는 함수
+ **/
+	void CheckGameEndCondition();
 private:
 	UPROPERTY()
 	TObjectPtr<AACMainGameMode> GameMode;

@@ -18,6 +18,8 @@
 #include "UI/GameStart/ACRoleScreen.h"
 #include "ACPlayerState.h"
 #include "ACMainGameState.h"
+#include "ACMainGameMode.h"
+#include "ACGameRuleManager.h"
 #include "EngineUtils.h"
 
 AACMainPlayerController::AACMainPlayerController()
@@ -746,6 +748,15 @@ void AACMainPlayerController::ServerStartSpectateOtherPlayer_Implementation()
 
 	//관전 대상 선택
 	ServerSwitchToNextSpectateTarget();
+
+	//게임종료 조건 체크
+	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	if (GM == nullptr)
+	{
+		return;
+	}
+
+	GM->GetGameRuleManager()->CheckGameEndCondition();
 }
 
 void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<class UACCCTVWidget> WidgetClass)

@@ -37,6 +37,7 @@ enum class EPlayerRole : uint8
 {
 	Police			UMETA(DisplayName = "Police"),		// 경찰
 	Mafia			UMETA(DisplayName = "Mafia"),		// 마피아
+	Observer		UMETA(DisplayName = "Observer"),	// 관전자
 };
 
 //보이스 모드

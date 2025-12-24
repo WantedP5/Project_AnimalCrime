@@ -8,6 +8,8 @@
 #include "ACMainGameMode.h"
 #include "ACMainGameState.h"
 #include "Kismet/GameplayStatics.h"
+#include "ACPlayerState.h"
+#include "AnimalCrime.h"
 
 UACGameRuleManager::UACGameRuleManager()
 {
@@ -72,6 +74,59 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 	{
 		// 미구현
 		UE_LOG(LogTemp, Log, TEXT("어머나 마피아 승"));
+	}
+}
+
+void UACGameRuleManager::CheckGameEndCondition()
+{
+	UE_LOG(LogSY, Log, TEXT("게임종료 판단"));
+
+	if (GetOwner() == nullptr)
+	{
+		UE_LOG(LogSY, Log, TEXT("GameMode가 nullptr 이어서 게임 종료 판단 불가능"));
+		return;
+	}
+
+	AACMainGameState* GS = GetOwner()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
+		return;
+	}
+
+	int32 MafiaNum = 0;
+	int32 PrisonNum = 0;
+	int32 EscapeNum = 0;
+
+
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		AACPlayerState* ACPS = Cast<AACPlayerState>(PS);
+		if (ACPS == nullptr)
+		{
+			continue;
+		}
+
+		//찾는 State와 같으면 배열에 추가
+		if (ACPS->PlayerRole == EPlayerRole::Mafia)
+		{
+			++MafiaNum;
+		}
+		if (ACPS->CharacterState == ECharacterState::Prison)
+		{
+			++PrisonNum;
+		}
+		else if (ACPS->CharacterState == ECharacterState::Escape)
+		{
+			++EscapeNum;
+		}
+	}
+
+	UE_LOG(LogSY, Log, TEXT("총 마피아 수: %d 감옥: %d 탈출: %d"), MafiaNum, PrisonNum, EscapeNum);
+
+	//모든 마피아가 감옥 또는 탈출 상태면 게임 종료
+	if (MafiaNum == PrisonNum + EscapeNum)
+	{
+		LoadNextMap();
 	}
 }
 

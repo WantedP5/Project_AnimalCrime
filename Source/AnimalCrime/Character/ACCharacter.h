@@ -15,7 +15,8 @@ enum class ECharacterState : uint8
 	OnDamage,
 	Stun,
 	Prison,
-	MAX_COUNT
+	MAX_COUNT,
+	Escape
 };
 
 UCLASS()

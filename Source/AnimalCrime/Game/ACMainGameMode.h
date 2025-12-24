@@ -35,9 +35,7 @@ struct FOutfitCombo
 };
 	
 
-/**
- * 
- */
+class UACGameRuleManager;
 UCLASS()
 class ANIMALCRIME_API AACMainGameMode : public AGameMode
 {
@@ -76,6 +74,10 @@ protected:
 	
 public:
 #pragma region GameRule
+	UACGameRuleManager* GetGameRuleManager() const
+	{
+		return GameRuleManager;
+	}
 	/** BP_Bush 테스트하던 용도. */
 	UFUNCTION(BlueprintCallable)
 	void AddTeamScore(int32 Score);
