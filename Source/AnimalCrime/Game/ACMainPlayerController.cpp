@@ -622,7 +622,7 @@ void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<
 
 void AACMainPlayerController::ShowInteractProgress(const FString& TargetName)
 {
-	UE_LOG(LogSW, Log, TEXT("Showing"));
+	//UE_LOG(LogSW, Log, TEXT("Showing"));
 	if (ACHUDWidget == nullptr)
 	{
 		return;
@@ -653,7 +653,7 @@ void AACMainPlayerController::UpdateInteractProgress(float Progress)
 
 void AACMainPlayerController::HideInteractProgress()
 {
-	UE_LOG(LogSW, Log, TEXT("Hiding"));
+	//UE_LOG(LogSW, Log, TEXT("Hiding"));
 	if (ACHUDWidget == nullptr)
 	{
 		return;

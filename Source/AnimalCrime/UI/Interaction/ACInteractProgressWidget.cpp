@@ -34,12 +34,12 @@ void UACInteractProgressWidget::SetTargetName(const FString& Name)
 
 void UACInteractProgressWidget::ShowWidget()
 {
-	UE_LOG(LogSW, Log, TEXT("Shown"));
+	//UE_LOG(LogSW, Log, TEXT("Shown"));
 	SetVisibility(ESlateVisibility::Visible);
 }
 
 void UACInteractProgressWidget::HideWidget()
 {
-	UE_LOG(LogSW, Log, TEXT("Hid"));
+	//UE_LOG(LogSW, Log, TEXT("Hid"));
 	SetVisibility(ESlateVisibility::Hidden);
 }
