@@ -59,6 +59,12 @@ public:
      @param InMargin - 새로 지정할 박스 컴포넌트의 Margin 크기. 디폴트 크기는 FVector(50.f)으로 설정되어있음.
  **/
 	void SetMargin(FVector InMargin);
+
+ /**
+     @brief 이 컴포넌트 오너의 위치를 조절하는 함수. 기본값은 루트의 위치임.
+     @param InOffset - 루트의 위치에서 위치를 바꿀 오프셋.
+ **/
+	void SetOffset(FVector InOffset);
 protected:
 private:
 
@@ -67,6 +73,9 @@ public:
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FVector BoxMargin;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FVector BoxOffset;
 
 	/*UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	uint64 ;*/

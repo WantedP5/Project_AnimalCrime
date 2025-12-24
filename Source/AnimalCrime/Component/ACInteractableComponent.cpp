@@ -6,13 +6,12 @@
 
 UACInteractableComponent::UACInteractableComponent()
 {
-	// 박스 위치 루트에 맞추기
-	SetRelativeLocation(FVector::ZeroVector);
 	SetCollisionProfileName(TEXT("InteractableCollision"));
 
 	// 부모의 회전을 무시하고 월드 기준 회전 유지
 	SetAbsolute(false, true, false);
 	BoxMargin = FVector(50.f);
+	BoxOffset = FVector::ZeroVector;
 }
 
 void UACInteractableComponent::BeginPlay()
@@ -37,6 +36,9 @@ void UACInteractableComponent::BeginPlay()
 
 	// BoxExtent 설정 (약간 여유 포함)
 	SetBoxExtent(RootBounds.BoxExtent + BoxMargin);
+
+	// 박스 위치 루트 + Offset 만큼 위치 맞추기
+	SetRelativeLocation(BoxOffset);
 }
 
 void UACInteractableComponent::OnInteractOverlapBegin(
@@ -80,4 +82,9 @@ void UACInteractableComponent::OnInteractOverlapEnd(
 void UACInteractableComponent::SetMargin(FVector InMargin)
 {
 	BoxMargin = InMargin;
+}
+
+void UACInteractableComponent::SetOffset(FVector InOffset)
+{
+	BoxOffset = InOffset;
 }

@@ -17,6 +17,9 @@
 #include "ACGameEnums.h"
 #include "AnimalCrime.h"
 
+#include "ACPrisonManager.h"
+#include "Prison/ACPrisonBase.h"
+
 AACMainGameMode::AACMainGameMode()
 {
 	PlayerControllerClass = AACMainPlayerController::StaticClass();
@@ -79,6 +82,8 @@ void AACMainGameMode::BeginPlay()
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
 	GameRuleManager->Init(this);
+
+	PrisonManager = NewObject<UACPrisonManager>(this);
 	
 	GenerateOutfitPool();
 	SpawnAllAI();
@@ -361,6 +366,35 @@ FOutfitCombo AACMainGameMode::GiveOutfitFromPool()
 
 	return OutfitPool[CurrentOutfitIndex];
 }
+
+void AACMainGameMode::RegisterPrison(AACPrisonBase* Prison)
+{
+	if (PrisonManager == nullptr)
+	{
+		return;
+	}
+	if (Prison == nullptr)
+	{
+		return;
+	}
+
+	PrisonManager->RegisterPrison(Prison);
+}
+
+void AACMainGameMode::ImprisonCharacter(AACCharacter* Character)
+{
+	if (PrisonManager == nullptr)
+	{
+		return;
+	}
+	if (Character == nullptr)
+	{
+		return;
+	}
+	
+	PrisonManager->ImprisonCharacter(Character);	
+}
+
 
 void AACMainGameMode::PostSeamlessTravel()
 {
