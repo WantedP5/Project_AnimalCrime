@@ -72,6 +72,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
         return ;
     }
 
+
     switch (InMapType)
     {
     case EMapType::Lobby:
