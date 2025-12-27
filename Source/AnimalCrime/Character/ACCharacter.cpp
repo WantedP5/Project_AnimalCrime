@@ -259,11 +259,11 @@ void AACCharacter::InteractStarted()
 			CurrentHoldTarget = Target;
 			CurrentHoldTime = 0.f;
 
-			// todo: 임시 움직임 차단
-			ACharacter* Char = Cast<ACharacter>(CurrentHoldTarget);
-			if (Char != nullptr)
+			// Server RPC로 대상 움직임 멈춤 (ACharacter 사용 - 시민도 포함)
+			ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
+			if (TargetChar != nullptr)
 			{
-				Char->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+				ServerFreezeCharacter(TargetChar, true);
 			}
 
 
@@ -589,6 +589,11 @@ void AACCharacter::OnRep_CharacterState()
 
 	switch (CharacterState)
 	{
+	case ECharacterState::Interact:
+		{
+			MoveComp->SetMovementMode(MOVE_None);
+			break;
+		}
 	case ECharacterState::Stun:
 		{
 			MoveComp->MaxWalkSpeed = 10.f;
@@ -597,14 +602,21 @@ void AACCharacter::OnRep_CharacterState()
 		}
 	case ECharacterState::Free:
 		{
-			MoveComp->MaxWalkSpeed = 300.0f;
+			MoveComp->SetMovementMode(MOVE_Walking);
+			if (GetCharacterType() == EACCharacterType::Police)
+			{
+				MoveComp->MaxWalkSpeed = 500.0f;  // 경찰
+			}
+			else
+			{
+				MoveComp->MaxWalkSpeed = 300.0f;  // 마피아/시민
+			}
 			MoveComp->JumpZVelocity = 500.0f;
 			break;
 		}
 	case ECharacterState::OnDamage:
 		{
 			MoveComp->MaxWalkSpeed = 600.0f;
-			//MoveComp->JumpZVelocity = 300.0f;
 			break;
 		}
 	}
@@ -634,13 +646,12 @@ void AACCharacter::ResetHoldInteract()
 		return;
 	}
 
-	// todo: 임시 움직임 차단
-	ACharacter* Char = Cast<ACharacter>(CurrentHoldTarget);
-	if (Char != nullptr)
+	// Server RPC로 대상 움직임 재개 (ACharacter 사용 - 시민도 포함)
+	ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
+	if (TargetChar != nullptr)
 	{
-		Char->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		ServerFreezeCharacter(TargetChar, false);
 	}
-	//AC_LOG(LogSW, Log, TEXT("%s Reset"), *CurrentHoldTarget->GetName());
 
 	bIsHoldingInteract = false;
 	CurrentHoldTarget = nullptr;
@@ -674,6 +685,38 @@ void AACCharacter::ServerAttack_Implementation()
 void AACCharacter::ServerItemDrop_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
+}
+
+void AACCharacter::ServerSetTargetState_Implementation(AACCharacter* Target, ECharacterState NewState)
+{
+	if (Target == nullptr)
+	{
+		return;
+	}
+	Target->SetCharacterState(NewState);
+}
+
+void AACCharacter::ServerFreezeCharacter_Implementation(ACharacter* Target, bool bFreeze)
+{
+	if (Target == nullptr)
+	{
+		return;
+	}
+
+	UCharacterMovementComponent* MoveComp = Target->GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		return;
+	}
+
+	if (bFreeze)
+	{
+		MoveComp->SetMovementMode(MOVE_None);
+	}
+	else
+	{
+		MoveComp->SetMovementMode(MOVE_Walking);
+	}
 }
 
 EACCharacterType AACCharacter::GetCharacterType()

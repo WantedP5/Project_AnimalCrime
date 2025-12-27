@@ -11,9 +11,10 @@ UENUM()
 enum class ECharacterState : uint8
 {
 	None,
-	Free,		
+	Free,
 	OnDamage,
 	Stun,
+	Interact,
 	Prison,
 	MAX_COUNT,
 	Escape
@@ -64,6 +65,12 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetTargetState(AACCharacter* Target, ECharacterState NewState);
+
+	UFUNCTION(Server, Reliable)
+	void ServerFreezeCharacter(ACharacter* Target, bool bFreeze);
 
 public:
 
