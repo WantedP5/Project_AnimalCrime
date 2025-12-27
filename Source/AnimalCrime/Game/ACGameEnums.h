@@ -37,3 +37,16 @@ enum class EPlayerRole : uint8
 	Police			UMETA(DisplayName = "Police"),		// 경찰
 	Mafia			UMETA(DisplayName = "Mafia"),		// 마피아
 };
+
+// 캐릭터 상태
+UENUM(BlueprintType)
+enum class ECharacterState : uint8
+{
+	None,
+	Free,		
+	OnDamage,
+	Angry,
+	Stun,
+	Prison,
+	MAX_COUNT
+};
