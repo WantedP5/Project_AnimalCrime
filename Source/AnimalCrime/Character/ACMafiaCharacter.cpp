@@ -68,7 +68,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 			{
 				CharacterState = ECharacterState::Free;
 				OnRep_CharacterState();
-			}), 10.0, false);	
+			}), 10.0, false);
 		}
 		else if (CharacterState == ECharacterState::OnDamage)
 		{
@@ -108,12 +108,12 @@ void AACMafiaCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	TickDeltaTime -=DeltaSeconds;
-	if (TickDeltaTime <= 0.0f)
-	{
-		AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
-		TickDeltaTime += 1.0f;
-	}
+	// TickDeltaTime -=DeltaSeconds;
+	// if (TickDeltaTime <= 0.0f)
+	// {
+	// 	AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
+	// 	TickDeltaTime += 1.0f;
+	// }
 }
 
 void AACMafiaCharacter::BeginPlay()
@@ -434,4 +434,9 @@ void AACMafiaCharacter::FireBullet()
 float AACMafiaCharacter::GetRequiredHoldTime() const
 {
 	return 5.0f;
+}
+
+float AACMafiaCharacter::GetCurrentHP() const
+{
+	return Stat->GetCurrentHp();
 }
