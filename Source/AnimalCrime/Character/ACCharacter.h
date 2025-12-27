@@ -7,17 +7,6 @@
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
-UENUM()
-enum class ECharacterState : uint8
-{
-	None,
-	Free,		
-	OnDamage,
-	Stun,
-	Prison,
-	MAX_COUNT
-};
-
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
