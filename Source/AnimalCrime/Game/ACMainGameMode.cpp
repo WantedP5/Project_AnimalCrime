@@ -36,6 +36,12 @@ AACMainGameMode::AACMainGameMode()
 		MafiaPawnClass = MafiaPawnBP.Class;
 	}
 	PolicePawnClass = AACPoliceCharacter::StaticClass();
+	
+	static ConstructorHelpers::FClassFinder<AACCitizen> CitizenBP(TEXT("/Script/Engine.Blueprint'/Game/Project/AI/BP_Citizen.BP_Citizen_C'"));
+	if (CitizenBP.Succeeded())
+	{
+		CitizenBPClass = CitizenBP.Class;
+	}
 
 	bUseSeamlessTravel = true;
 }
@@ -197,7 +203,7 @@ void AACMainGameMode::SpawnAllAI()
 
 		FTransform Transform(Pos);
 		Transform.SetRotation(Rot.Quaternion());
-		AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(AACCitizen::StaticClass(), Transform);
+		AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform);
 		if (NewAI)
 		{
 			// AI 관리하는 애

@@ -107,6 +107,9 @@ private:
 	UPROPERTY(EditAnywhere, meta=(AllowedClasses=Actor))
 	TArray<TObjectPtr<class AACCitizen>> AIObjectArray;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	TSubclassOf<AACCitizen> CitizenBPClass;
+	
 	UPROPERTY(EditAnywhere, meta=(AllowedClasses=Actor))
 	int32 AINums = 5;
 	
