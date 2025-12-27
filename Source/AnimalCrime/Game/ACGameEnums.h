@@ -56,6 +56,7 @@ enum class ECharacterState : uint8
 	None,
 	Free,		
 	OnDamage,
+	Escape,
 	Angry,
 	Stun,
 	Prison,
