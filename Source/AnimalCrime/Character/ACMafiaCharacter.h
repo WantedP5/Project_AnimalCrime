@@ -11,7 +11,6 @@ class ANIMALCRIME_API AACMafiaCharacter : public AACCharacter
 
 public:
 	AACMafiaCharacter();
-	
 
 protected:
 	virtual void BeginPlay() override;
@@ -65,6 +64,8 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_HandBomb)
 	TObjectPtr<class AACEscapeMissionBomb> HandBomb;
 
+public:
+	float GetCurrentHP() const;
 
 protected:
 	UPROPERTY(Replicated,EditAnywhere)

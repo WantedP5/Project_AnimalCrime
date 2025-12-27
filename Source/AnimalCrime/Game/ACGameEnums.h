@@ -48,3 +48,16 @@ enum class EVoiceMode : uint8
 	Positional		UMETA(DisplayName = "Positional"),	// Positional
 	Radio			UMETA(DisplayName = "Radio"),		// Radio
 };
+
+// 캐릭터 상태
+UENUM(BlueprintType)
+enum class ECharacterState : uint8
+{
+	None,
+	Free,		
+	OnDamage,
+	Angry,
+	Stun,
+	Prison,
+	MAX_COUNT
+};

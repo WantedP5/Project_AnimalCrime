@@ -4,10 +4,12 @@
 #include "AI/Task/BTTask_MoveToOrigin.h"
 
 #include "AIController.h"
+#include "AnimalCrime.h"
 #include "Character/ACCitizen.h"
 
 UBTTask_MoveToOrigin::UBTTask_MoveToOrigin()
 {
+	UE_LOG(LogHY, Error, TEXT("생성자"));
 }
 
 EBTNodeResult::Type UBTTask_MoveToOrigin::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -38,16 +40,33 @@ void UBTTask_MoveToOrigin::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uin
 		UE_LOG(LogTemp, Error, TEXT("CitizenPawn is nullptr"));
 		return;
 	}
-	
+
 	if (bAbortFlag == false)
 	{
 		CitizenPawn->OnArrive();
 	}
+	
+	// 왜지?
+	//bAbortFlag = false;
 }
 
 EBTNodeResult::Type UBTTask_MoveToOrigin::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UE_LOG(LogTemp, Log, TEXT("AbortTask Move To Origin"));
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	if (AIController == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AIController is nullptr"));
+		return EBTNodeResult::Failed;
+	}
+	
+	AACCitizen* CitizenPawn = Cast<AACCitizen>(AIController->GetPawn());
+	if (CitizenPawn == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CitizenPawn is nullptr"));
+		return EBTNodeResult::Failed;
+	}
+	CitizenPawn->OnArrive();
 	bAbortFlag = true;
 	return Super::AbortTask(OwnerComp, NodeMemory);
 }

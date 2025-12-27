@@ -7,18 +7,6 @@
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
-UENUM()
-enum class ECharacterState : uint8
-{
-	None,
-	Free,		
-	OnDamage,
-	Stun,
-	Prison,
-	MAX_COUNT,
-	Escape
-};
-
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
@@ -185,9 +173,6 @@ private:
 	  // 상점 컴포넌트는 유지 (아이템 장착 로직이 있으므로)
 	  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	  TObjectPtr<class UACShopComponent> ShopComponent;
-
-
-
 
 	UFUNCTION()
 	void OnRep_CharacterState();

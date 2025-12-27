@@ -66,7 +66,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 			{
 				CharacterState = ECharacterState::Free;
 				OnRep_CharacterState();
-			}), 10.0, false);	
+			}), 10.0, false);
 		}
 		else if (CharacterState == ECharacterState::OnDamage)
 		{
@@ -449,4 +449,9 @@ void AACMafiaCharacter::FireBullet()
 float AACMafiaCharacter::GetRequiredHoldTime() const
 {
 	return 5.0f;
+}
+
+float AACMafiaCharacter::GetCurrentHP() const
+{
+	return Stat->GetCurrentHp();
 }

@@ -1,13 +1,17 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BTTask_DoSomething.h"
+#include "AI/Task/BTTask_Jump.h"
 
 #include "AnimalCrime.h"
 #include "AI/ACCitizenAIController.h"
 #include "Character/ACCitizen.h"
 
-EBTNodeResult::Type UBTTask_DoSomething::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+UBTTask_Jump::UBTTask_Jump()
+{
+}
+
+EBTNodeResult::Type UBTTask_Jump::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	EBTNodeResult::Type SuperResult = Super::ExecuteTask(OwnerComp, NodeMemory); 
 
@@ -25,11 +29,7 @@ EBTNodeResult::Type UBTTask_DoSomething::ExecuteTask(UBehaviorTreeComponent& Own
 		return EBTNodeResult::Failed;
 	}
 	
-	CitizenPawn->MulticastPlayAttackMontage();
-	// if (CitizenPawn->DetectPolice())
-	// {
-	// 	CitizenPawn->RunFromPolice();
-	// 	return EBTNodeResult::Succeeded;	
-	// }
+	CitizenPawn->JumpInPlace();
+	
 	return EBTNodeResult::Succeeded;
 }

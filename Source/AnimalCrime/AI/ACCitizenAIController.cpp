@@ -3,6 +3,7 @@
 
 #include "ACCitizenAIController.h"
 
+#include "AnimalCrime.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -48,11 +49,13 @@ void AACCitizenAIController::Tick(float DeltaTime)
 
 void AACCitizenAIController::OnPossess(APawn* InPawn)
 {
+	AC_LOG(LogHY, Error, TEXT("Begin"));
 	Super::OnPossess(InPawn);
 	
 	UE_LOG(LogTemp, Log, TEXT("OnPossess Name: %s"), *InPawn->GetName());
 	
 	RunAI();
+	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
 void AACCitizenAIController::OnUnPossess()
