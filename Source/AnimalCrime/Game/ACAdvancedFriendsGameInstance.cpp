@@ -7,7 +7,7 @@
 #include "CreateSessionCallbackProxyAdvanced.h"
 #include "Engine/NetDriver.h"
 #include "Engine/Engine.h"
-
+#include "AudioDevice.h"
 #include "AnimalCrime.h"
 
 #pragma region 엔진 제공 함수
@@ -29,7 +29,7 @@ void UACAdvancedFriendsGameInstance::Init()
 
 	// 월드가 파괴되거나 변경될 때 호출되는 델리게이트 등록
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &UACAdvancedFriendsGameInstance::OnWorldCleanup);
-	
+
 	// 맵 관련 초기화
 	CurrentMapType = EMapType::None;
 
@@ -90,21 +90,35 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 		return;
 	}
 
-	// 맵 변경 전에 보이스 먼저 종료. 
-	// 서버호스트만 정리됨. 클라이언트는 OnWorldCleanup에서 정리.
-	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
-	if (Voice.IsValid() == true)
-	{
-		// 네트워크 보이스 중지
-		Voice->StopNetworkedVoice(0);
-		// 로컬 Talker 제거
-		Voice->UnregisterLocalTalker(0);
-		bVoiceInitialized = false;
-	}
-
-
 	// 현재 맵을 변경된 맵으로 Update
 	CurrentMapType = InMapType;
+	
+	// 먼저 Voice 정리
+	CleanupVoiceSystem();
+
+	// 모든 오디오 정리
+	if (UWorld* World = GetWorld())
+	{
+		if (FAudioDevice* AudioDevice = World->GetAudioDeviceRaw())
+		{
+			// 모든 active sound 중지
+			AudioDevice->StopAllSounds(true);
+			// 오디오 컴포넌트들이 정리될 시간 확보
+			AudioDevice->Flush(World);
+		}
+	}
+
+	// 맵 변경 전에 보이스 먼저 종료. 
+	// 서버호스트만 정리됨. 클라이언트는 OnWorldCleanup에서 정리.
+	//IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	//if (Voice.IsValid() == true)
+	//{
+	//	// 네트워크 보이스 중지
+	//	Voice->StopNetworkedVoice(0);
+	//	// 로컬 Talker 제거
+	//	Voice->UnregisterLocalTalker(0);
+	//	bVoiceInitialized = false;
+	//}
 
 	FTimerHandle TravelTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
@@ -121,7 +135,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 				break;
 			}
 		},
-		0.1f,  // 100ms 딜레이
+		0.5f,  // 500ms 딜레이
 		false
 	);
 }
@@ -174,6 +188,32 @@ void UACAdvancedFriendsGameInstance::OnWorldCleanup(UWorld* World, bool bSession
 			Voice->UnregisterLocalTalker(0);
 		}
 		bVoiceInitialized = false;
+	}
+}
+
+void UACAdvancedFriendsGameInstance::CleanupVoiceSystem()
+{
+	if (!bVoiceInitialized)
+	{
+		return;
+	}
+
+	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	if (Voice.IsValid())
+	{
+		UE_LOG(LogSY, Warning, TEXT("Cleaning up Voice System"));
+
+		// 순서 중요: 먼저 네트워크 보이스 중지
+		Voice->StopNetworkedVoice(0);
+
+		// 약간의 딜레이 후 Talker 제거
+		FPlatformProcess::Sleep(0.05f);
+
+		Voice->UnregisterLocalTalker(0);
+
+		bVoiceInitialized = false;
+
+		UE_LOG(LogSY, Warning, TEXT("Voice System Cleaned"));
 	}
 }
 

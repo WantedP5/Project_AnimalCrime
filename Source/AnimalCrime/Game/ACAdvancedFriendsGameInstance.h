@@ -90,6 +90,10 @@ private:
 	UFUNCTION()
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
 
+ /**
+     @brief Voice 정리
+ **/
+	void CleanupVoiceSystem();
 private:
 	FDelegateHandle OnDestroySessionCompleteHandle;
 
