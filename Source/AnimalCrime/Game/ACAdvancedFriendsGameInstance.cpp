@@ -9,6 +9,10 @@
 #include "Engine/Engine.h"
 #include "AudioDevice.h"
 #include "AnimalCrime.h"
+#include "Net/VoiceConfig.h"
+#include "Sound/SoundBase.h"
+#include "Components/AudioComponent.h"
+#include "ACPlayerControllerBase.h"
 
 #pragma region 엔진 제공 함수
 void UACAdvancedFriendsGameInstance::Init()
@@ -28,7 +32,7 @@ void UACAdvancedFriendsGameInstance::Init()
 	}
 
 	// 월드가 파괴되거나 변경될 때 호출되는 델리게이트 등록
-	FWorldDelegates::OnWorldCleanup.AddUObject(this, &UACAdvancedFriendsGameInstance::OnWorldCleanup);
+	//FWorldDelegates::OnWorldCleanup.AddUObject(this, &UACAdvancedFriendsGameInstance::OnWorldCleanup);
 
 	// 맵 관련 초기화
 	CurrentMapType = EMapType::None;
@@ -92,21 +96,68 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 
 	// 현재 맵을 변경된 맵으로 Update
 	CurrentMapType = InMapType;
-	
+	NumClientsReady = 0;
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AACPlayerControllerBase* PC = Cast<AACPlayerControllerBase>(It->Get());
+		if (PC == nullptr)
+		{
+			continue;
+		}
+		PC->Client_CleanupVoiceBeforeTravel();
+	}
+
 	// 먼저 Voice 정리
-	CleanupVoiceSystem();
+	//CleanupVoiceSystem();
+
+	//// Voice 컴포넌트가 실제로 사라질 때까지 대기
+	//if (UWorld* World = GetWorld())
+	//{
+	//	// VoIP 컴포넌트 강제 정리
+	//	TArray<UAudioComponent*> VoipComponents;
+	//	for (TObjectIterator<UAudioComponent> It; It; ++It)
+	//	{
+	//		if (It->GetWorld() == World && It->GetName().Contains(TEXT("VoipListener")))
+	//		{
+	//			VoipComponents.Add(*It);
+	//		}
+	//	}
+
+	//	// 컴포넌트 정리
+	//	for (UAudioComponent* Comp : VoipComponents)
+	//	{
+	//		if (Comp->IsPlaying())
+	//		{
+	//			Comp->Stop();
+	//		}
+	//		if (Comp->IsRegistered())
+	//		{
+	//			Comp->UnregisterComponent();
+	//		}
+	//		// 컴포넌트를 파괴 대기열에 추가
+	//		Comp->DestroyComponent();
+	//	}
+
+	//	// 오디오 시스템 정리
+	//	if (FAudioDevice* AudioDevice = World->GetAudioDeviceRaw())
+	//	{
+	//		AudioDevice->StopAllSounds(true);
+	//		AudioDevice->Flush(World);
+	//	}
+	//}
 
 	// 모든 오디오 정리
-	if (UWorld* World = GetWorld())
-	{
-		if (FAudioDevice* AudioDevice = World->GetAudioDeviceRaw())
-		{
-			// 모든 active sound 중지
-			AudioDevice->StopAllSounds(true);
-			// 오디오 컴포넌트들이 정리될 시간 확보
-			AudioDevice->Flush(World);
-		}
-	}
+	//if (UWorld* World = GetWorld())
+	//{
+	//	if (FAudioDevice* AudioDevice = World->GetAudioDeviceRaw())
+	//	{
+	//		// 모든 active sound 중지
+	//		AudioDevice->StopAllSounds(true);
+	//		// 오디오 컴포넌트들이 정리될 시간 확보
+	//		AudioDevice->Flush(World);
+	//	}
+	//}
 
 	// 맵 변경 전에 보이스 먼저 종료. 
 	// 서버호스트만 정리됨. 클라이언트는 OnWorldCleanup에서 정리.
@@ -120,24 +171,24 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 	//	bVoiceInitialized = false;
 	//}
 
-	FTimerHandle TravelTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		TravelTimerHandle,
-		[this, InMapType]()
-		{
-			switch (InMapType)
-			{
-			case EMapType::Lobby:
-				GetWorld()->ServerTravel("LobbyMap", true);
-				break;
-			case EMapType::Game:
-				GetWorld()->ServerTravel("DemoMap", true);
-				break;
-			}
-		},
-		0.5f,  // 500ms 딜레이
-		false
-	);
+	//FTimerHandle TravelTimerHandle;
+	//GetWorld()->GetTimerManager().SetTimer(
+	//	TravelTimerHandle,
+	//	[this, InMapType]()
+	//	{
+	//switch (InMapType)
+	//{
+	//case EMapType::Lobby:
+	//	GetWorld()->ServerTravel("LobbyMap", true);
+	//	break;
+	//case EMapType::Game:
+	//	GetWorld()->ServerTravel("DemoMap", true);
+	//	break;
+	//}
+	//	},
+	//	0.5f,  // 500ms 딜레이
+	//	false
+	//);
 }
 #pragma endregion
 
@@ -174,48 +225,44 @@ void UACAdvancedFriendsGameInstance::OnDestroySessionComplete(FName SessionName,
 	bVoiceInitialized = false;
 }
 
-void UACAdvancedFriendsGameInstance::OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
-{
-	// 현재 작동 중인 월드가 정리될 때 실행됨 (서버/클라이언트 공통)
-	if (World == GetWorld())
-	{
-		UE_LOG(LogSY, Warning, TEXT("World Cleanup Detected - Resetting Voice State"));
+//void UACAdvancedFriendsGameInstance::OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
+//{
+//	// 현재 작동 중인 월드가 정리될 때 실행됨 (서버/클라이언트 공통)
+//	if (World == GetWorld())
+//	{
+//		UE_LOG(LogSY, Warning, TEXT("World Cleanup Detected - Resetting Voice State"));
+//
+//		// Voice 정리
+//		CleanupVoiceSystem();
+//	}
+//}
 
-		IOnlineVoicePtr Voice = Online::GetVoiceInterface();
-		if (Voice.IsValid() == true)
-		{
-			Voice->StopNetworkedVoice(0);
-			Voice->UnregisterLocalTalker(0);
-		}
-		bVoiceInitialized = false;
-	}
-}
-
-void UACAdvancedFriendsGameInstance::CleanupVoiceSystem()
-{
-	if (!bVoiceInitialized)
-	{
-		return;
-	}
-
-	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
-	if (Voice.IsValid())
-	{
-		UE_LOG(LogSY, Warning, TEXT("Cleaning up Voice System"));
-
-		// 순서 중요: 먼저 네트워크 보이스 중지
-		Voice->StopNetworkedVoice(0);
-
-		// 약간의 딜레이 후 Talker 제거
-		FPlatformProcess::Sleep(0.05f);
-
-		Voice->UnregisterLocalTalker(0);
-
-		bVoiceInitialized = false;
-
-		UE_LOG(LogSY, Warning, TEXT("Voice System Cleaned"));
-	}
-}
+//void UACAdvancedFriendsGameInstance::CleanupVoiceSystem()
+//{
+//	if (!bVoiceInitialized)
+//	{
+//		return;
+//	}
+//
+//	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+//	if (Voice.IsValid())
+//	{
+//		UE_LOG(LogSY, Warning, TEXT("Cleaning up Voice System"));
+//
+//		// 1. 모든 원격 Talker 먼저 제거 (중요!)
+//		Voice->RemoveAllRemoteTalkers();
+//
+//		// 2. 네트워크 보이스 중지
+//		Voice->StopNetworkedVoice(0);
+//
+//		// 3. 로컬 Talker 제거
+//		Voice->UnregisterLocalTalker(0);
+//
+//		bVoiceInitialized = false;
+//
+//		UE_LOG(LogSY, Warning, TEXT("Voice System Cleaned"));
+//	}
+//}
 
 void UACAdvancedFriendsGameInstance::TryStartVoice()
 {
@@ -246,4 +293,32 @@ void UACAdvancedFriendsGameInstance::TryStartVoice()
 	Voice->StartNetworkedVoice(0);
 	bVoiceInitialized = true;
 	UE_LOG(LogSY, Log, TEXT("Voice initialized"));
+}
+
+void UACAdvancedFriendsGameInstance::OnClientVoiceCleanupFinished()
+{
+	UE_LOG(LogSY, Log, TEXT("OnClientVoiceCleanupFinished!!"));
+	++NumClientsReady;
+
+	if (NumClientsReady >= GetWorld()->GetNumPlayerControllers())
+	{
+		GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UACAdvancedFriendsGameInstance::DoServerTravel);
+		//DoServerTravel();
+	}
+}
+
+void UACAdvancedFriendsGameInstance::DoServerTravel()
+{
+	UE_LOG(LogSY, Log, TEXT("DoServerTravel!!"));
+	bVoiceInitialized = false;
+
+	switch (CurrentMapType)
+	{
+	case EMapType::Lobby:
+		GetWorld()->ServerTravel("LobbyMap", true);
+		break;
+	case EMapType::Game:
+		GetWorld()->ServerTravel("DemoMap", true);
+		break;
+	}
 }

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "ACPlayerControllerBase.h"
 #include "Game/ACGameEnums.h"
 #include "ACMainPlayerController.generated.h"
 
@@ -11,7 +11,7 @@
  *
  */
 UCLASS()
-class ANIMALCRIME_API AACMainPlayerController : public APlayerController
+class ANIMALCRIME_API AACMainPlayerController : public AACPlayerControllerBase
 {
 	GENERATED_BODY()
 
