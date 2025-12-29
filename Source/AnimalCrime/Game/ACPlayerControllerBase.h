@@ -8,11 +8,11 @@ UCLASS()
 class ANIMALCRIME_API AACPlayerControllerBase : public APlayerController
 {
 	GENERATED_BODY()
-	
-public:
-    UFUNCTION(Client, Reliable)
-    void Client_CleanupVoiceBeforeTravel();
 
-    UFUNCTION(Server, Reliable)
-    void Server_NotifyVoiceCleaned();
+public:
+	UFUNCTION(Client, Reliable)
+	void Client_CleanupVoiceBeforeTravel();
+
+	UFUNCTION(Server, Reliable)
+	void Server_NotifyVoiceCleaned();
 };

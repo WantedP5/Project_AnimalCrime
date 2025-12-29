@@ -2,20 +2,45 @@
 #include "ACPlayerControllerBase.h"
 #include "ACAdvancedFriendsGameInstance.h"
 #include "AudioDevice.h"
-
 #include "AnimalCrime.h"
 
 void AACPlayerControllerBase::Client_CleanupVoiceBeforeTravel_Implementation()
 {
 	AC_LOG(LogSY, Log, TEXT("Client_CleanupVoiceBeforeTravel!!"));
-	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
-	if (Voice == nullptr)
+
+	UWorld* World = GetWorld();
+	if (World == nullptr)
 	{
-		AC_LOG(LogSY, Warning, TEXT("Voice is nullptr"));
+		AC_LOG(LogSY, Warning, TEXT("World is nullptr"));
+		return;
+	}
+
+	// PIE에서는 Voice / Audio 정리 스킵
+	if (World->IsPlayInEditor())
+	{
+		AC_LOG(LogSY, Log, TEXT("PIE detected - skip voice cleanup"));
+		Server_NotifyVoiceCleaned();
+		return;
+	}
+
+
+	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	if (Voice.IsValid() == false)
+	{
+		AC_LOG(LogSY, Warning, TEXT("Voice is fail"));
 		return;
 	}
 	Voice->StopNetworkedVoice(0);
 	Voice->UnregisterLocalTalker(0);
+
+	FAudioDevice* AudioDevice = World->GetAudioDeviceRaw();
+	if (AudioDevice == nullptr)
+	{
+		AC_LOG(LogSY, Warning, TEXT("AudioDevice is nullptr"));
+		return;
+	}
+
+	AudioDevice->Flush(World);
 
 	Server_NotifyVoiceCleaned();
 }

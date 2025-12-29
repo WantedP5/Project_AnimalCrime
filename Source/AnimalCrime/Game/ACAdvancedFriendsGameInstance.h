@@ -38,6 +38,10 @@ public:
 
 private:
 	void UpdateMap(EMapType InMapType);
+
+	void BeginLoadingScreen(const FString& MapName);
+	void OnSeamlessTravelStart(UWorld* CurrentWorld, const FString& LevelName);
+
 #pragma endregion
 
 public:
@@ -117,6 +121,9 @@ public:
 	TMap<FUniqueNetIdRepl, EPlayerRole> SavedPlayerRoles;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Loading")
+	TSubclassOf<UUserWidget> BlackScreenClass;
+
 	bool bVoiceInitialized = false;
 
 	int32 NumClientsReady = 0;

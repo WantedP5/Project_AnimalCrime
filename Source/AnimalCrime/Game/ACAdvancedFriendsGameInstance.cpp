@@ -13,6 +13,8 @@
 #include "Sound/SoundBase.h"
 #include "Components/AudioComponent.h"
 #include "ACPlayerControllerBase.h"
+#include "MoviePlayer.h"
+#include "Blueprint/UserWidget.h"
 
 #pragma region 엔진 제공 함수
 void UACAdvancedFriendsGameInstance::Init()
@@ -46,6 +48,10 @@ void UACAdvancedFriendsGameInstance::Init()
 	{
 		GEngine->Exec(GetWorld(), TEXT("net.AllowPIESeamlessTravel 1"));
 	}
+
+	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UACAdvancedFriendsGameInstance::BeginLoadingScreen);
+	// Seamless Travel용 (transition map 시작 시)
+	FWorldDelegates::OnSeamlessTravelStart.AddUObject(this, &UACAdvancedFriendsGameInstance::OnSeamlessTravelStart);
 }
 
 void UACAdvancedFriendsGameInstance::Shutdown()
@@ -189,6 +195,36 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 	//	0.5f,  // 500ms 딜레이
 	//	false
 	//);
+}
+void UACAdvancedFriendsGameInstance::BeginLoadingScreen(const FString& MapName)
+{
+	UE_LOG(LogSY, Log, TEXT("BeginLoadingScreen"));
+	if (IsRunningDedicatedServer())
+	{
+		return;
+	}
+
+	if (BlackScreenClass == nullptr)
+	{
+		UE_LOG(LogSY, Error, TEXT("BlackScreenClass is null"));
+		return;
+	}
+
+	// UMG → Slate Widget 변환
+	TSharedRef<SWidget> LoadingWidget = CreateWidget<UUserWidget>(this, BlackScreenClass)->TakeWidget();
+
+	FLoadingScreenAttributes LoadingScreen;
+	LoadingScreen.bAutoCompleteWhenLoadingCompletes = false;
+	LoadingScreen.MinimumLoadingScreenDisplayTime = 0.f;
+	LoadingScreen.WidgetLoadingScreen = LoadingWidget;
+
+	GetMoviePlayer()->SetupLoadingScreen(LoadingScreen);
+}
+
+void UACAdvancedFriendsGameInstance::OnSeamlessTravelStart(UWorld* CurrentWorld, const FString& LevelName)
+{
+	UE_LOG(LogSY, Log, TEXT("OnSeamlessTravelStart: %s"), *LevelName);
+	BeginLoadingScreen(LevelName);
 }
 #pragma endregion
 
