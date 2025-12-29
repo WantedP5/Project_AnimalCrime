@@ -413,6 +413,42 @@ void AACCharacter::ResetDashFlag()
 	bDashCoolDown = true;
 }
 
+void AACCharacter::Sprint(const FInputActionValue& Value)
+{
+	ServerSprint();
+}
+
+void AACCharacter::ServerSprint_Implementation()
+{
+	// bSprint = !bSprint;
+	if (bSprint == false)
+	{
+		bSprint = true;
+	}
+	else
+	{
+		bSprint = false;
+	}
+	OnRep_Sprint();
+}
+
+void AACCharacter::ResetSprint()
+{
+	bSprint = false;
+}
+
+void AACCharacter::OnRep_Sprint()
+{
+	if (bSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 1200;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 600;
+	}
+}
+
 void AACCharacter::Dash(const FInputActionValue& Value)
 {
 	bool Flag = Value.Get<bool>();

@@ -57,6 +57,17 @@ public:
 	// 쿨타임 시 Flag 되돌리는 함수.
 	void ResetDashFlag();
 	
+	
+	// 클라이언트 Input을 받는 함수
+	void Sprint(const FInputActionValue& Value);
+
+	// 서버에 Dash 요청 함수
+	UFUNCTION(Server, Reliable)
+	void ServerSprint();
+	
+	// 쿨타임 시 Flag 되돌리는 함수.
+	void ResetSprint();
+	
 protected:
 
 	UFUNCTION(Server, Reliable)
@@ -211,6 +222,14 @@ protected: // Dash 전용 맴버 변수
 
 	UPROPERTY(Replicated)
 	uint8 bDashCoolDown = true;
+	
+	
+protected: // Sprint 전용 맴버 변수
+	UPROPERTY(ReplicatedUsing = OnRep_Sprint)
+	uint8 bSprint = false;
+	
+	UFUNCTION()
+	void OnRep_Sprint();
 	
 protected:
 	UPROPERTY(Replicated,EditAnywhere)
