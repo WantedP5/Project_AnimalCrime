@@ -19,6 +19,7 @@
 
 #include "ACPrisonManager.h"
 #include "Prison/ACPrisonBase.h"
+#include "StartPosition/ACPlayerStart.h"
 
 AACMainGameMode::AACMainGameMode()
 {
@@ -72,6 +73,44 @@ void AACMainGameMode::PostLogin(APlayerController* NewPlayer)
 	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
+void AACMainGameMode::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	TArray<AActor*> FoundStarts;
+	UGameplayStatics::GetAllActorsOfClass(
+		GetWorld(),
+		AACPlayerStart::StaticClass(),
+		FoundStarts
+	);
+
+	for (AActor* Actor : FoundStarts)
+	{
+		AACPlayerStart* Start = Cast<AACPlayerStart>(Actor);
+		if (Start == nullptr)
+		{
+			continue;
+		}
+
+		switch (Start->GetSpawnType())
+		{
+		case ESpawnTypeState::POLICE:
+			{
+				AC_LOG(LogHY, Error, TEXT("Police 언제"));
+				PoliceStartArray.Add(Start);
+				break;
+			}
+
+		case ESpawnTypeState::MAFIA:
+			{
+				AC_LOG(LogHY, Error, TEXT("Mafia 언제"));
+				MafiaStartArray.Add(Start);
+				break;
+			}
+		}
+	}
+}
+
 void AACMainGameMode::StartPlay()
 {
 	AC_LOG(LogHY, Warning, TEXT("Begin"));
@@ -120,17 +159,58 @@ void AACMainGameMode::BeginPlay()
 
 	GenerateOutfitPool();
 	SpawnAllAI();
+	
+	
+	
+	
 	AC_LOG(LogHY, Warning, TEXT("End"));
+	
+	
+	
+	
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	Super::ChoosePlayerStart_Implementation(Player);
-	TArray<AActor*> PlayerStarts;
-	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+	
+	
+	
+	
+	AACPlayerState* ACPlayerState = Cast<AACPlayerState>(Player->PlayerState);
+	if (ACPlayerState == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("ACPlayerState is nullptr"));
+		return nullptr;
+	}
 
-	int32 PlayerIndex = GameState ? GameState->PlayerArray.Num() - 1 : 0;
-	return PlayerStarts.Num() > 0 ? PlayerStarts[PlayerIndex % PlayerStarts.Num()] : nullptr;
+	AC_LOG(LogHY, Error, TEXT("ACPlayerState Choose 뭐시기"));
+	switch (ACPlayerState->PlayerRole)
+	{
+	case EPlayerRole::Police:
+	{
+		++PoliceCount;
+		int32 PlayerIndex = PoliceCount - 1;
+			
+		// FVector Location = PoliceStartArray[PlayerIndex % PoliceStartArray.Num()]->GetActorLocation();	
+		// AC_LOG(LogHY, Error, TEXT("Police 들어옴 %s"), *Location.ToString());
+		return PoliceStartArray.Num() > 0 ? PoliceStartArray[PlayerIndex % PoliceStartArray.Num()] : nullptr;
+		break;
+	}
+		
+	case EPlayerRole::Mafia:
+	{
+		++MafiaCount;
+		int32 PlayerIndex = MafiaCount - 1;
+		// FVector Location = MafiaStartArray[PlayerIndex % MafiaStartArray.Num()]->GetActorLocation();
+		// AC_LOG(LogHY, Error, TEXT("Mafia 들어옴 %s"), *Location.ToString());
+		return MafiaStartArray.Num() > 0 ? MafiaStartArray[PlayerIndex % MafiaStartArray.Num()] : nullptr;
+		break;
+	}
+	}
+
+	return nullptr;
+	
 }
 
 void AACMainGameMode::RestartPlayer(AController* NewPlayer)

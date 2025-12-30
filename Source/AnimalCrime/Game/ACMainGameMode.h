@@ -51,6 +51,7 @@ public:
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual APlayerController* Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void PostInitializeComponents() override;
 	virtual void StartPlay() override;
 	virtual void BeginPlay() override;
 	//virtual AActor* ChoosePlayerStart(AController* Player) override;
@@ -184,5 +185,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Pawn")
 	TSubclassOf<APawn> MafiaPawnClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Pawn")
+	TArray<TObjectPtr<class AACPlayerStart>> PoliceStartArray;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Pawn")
+	TArray<TObjectPtr<class AACPlayerStart>> MafiaStartArray;
+	
+	UPROPERTY()
+	int32 PoliceCount;
+	
+	UPROPERTY()
+	int32 MafiaCount;
+	
 #pragma endregion 
 };
