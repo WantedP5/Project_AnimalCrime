@@ -284,11 +284,16 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<class AACMafiaCharacter> MafiaCharacter;
-	
-	
-	
-	
 private:
 	float DebugDelta = 1.0f;
+	
+public:
+	void RegenMoney();
+	void TryRegenMoneyTimer();
+	
+protected:
+	FTimerHandle RegenMoneyTimerHandle;
+	float RegenRateMin = 20.0f;
+	float RegenRateMax = 60.0f;
 #pragma endregion
 };

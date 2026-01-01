@@ -183,7 +183,9 @@ void UACMoneyComponent::InitMoney(int32 InMoney)
 
 void UACMoneyComponent::GenerateRandomMoney(int32 InMaxMoney)
 {
-	MoneyData.Money = FMath::RandRange(0, InMaxMoney);
+	//MoneyData.Money = FMath::RandRange(100, InMaxMoney);
+	MoneyData.Money = FMath::RandRange(1, InMaxMoney / 100);
+	MoneyData.Money *= 100;
 
 	// 서버에서 초기화 시 델리게이트 브로드캐스트
 	if (GetOwner() && GetOwner()->HasAuthority())

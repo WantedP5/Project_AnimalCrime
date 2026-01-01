@@ -463,6 +463,8 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 			{
 				TempCharacterState = ECharacterState::Angry;
 				MafiaCharacter = Cast<AACMafiaCharacter>(Actor);
+				
+				TryRegenMoneyTimer();
 				AC_LOG(LogHY, Error, TEXT("CurrentMoney <= 0  name:%s"), *MafiaCharacter->GetName());
 			}
 			else
@@ -754,6 +756,25 @@ void AACCitizen::OnRep_CharacterState()
 		GetCharacterMovement()->MaxWalkSpeed = 2000.0f;
 		AC_LOG(LogHY, Warning, TEXT("Cur  WalSpeed Target: %f"), GetCharacterMovement()->MaxWalkSpeed);
 	}
+}
+
+void AACCitizen::RegenMoney()
+{
+	MoneyComp->GenerateRandomMoney(500);
+}
+
+void AACCitizen::TryRegenMoneyTimer()
+{
+	if (HasAuthority() == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("AI인데 클라가 실행?"));
+		return;
+	}
+	
+	FTimerDelegate RegenDelegate;
+	RegenDelegate.BindUObject(this, &AACCitizen::RegenMoney);
+	float RegenRate = FMath::FRandRange(RegenRateMin, RegenRateMax);
+	GetWorld()->GetTimerManager().SetTimer(RegenMoneyTimerHandle, RegenDelegate, RegenRate, false);
 }
 
 void AACCitizen::MulticastPlayAttackMontage_Implementation()
