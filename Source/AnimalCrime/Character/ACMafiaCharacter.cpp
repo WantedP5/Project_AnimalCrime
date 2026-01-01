@@ -199,6 +199,9 @@ void AACMafiaCharacter::BeginPlay()
 	Stat->SetArmor(0);
 	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"), Stat->GetCurrentHp(), HasAuthority());
 	
+	// Tax 설정
+	ChangeTax(60);
+	
 	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
@@ -491,6 +494,28 @@ void AACMafiaCharacter::FireHitscan()
 
 void AACMafiaCharacter::FireBullet()
 {
+}
+
+void AACMafiaCharacter::CalculateTax()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this is not Valid"));
+		return;
+	}
+	
+	// 돈 추가 로직
+	MoneyComp->LoseMoney(5);
+}
+
+void AACMafiaCharacter::ChangeTax(float InTimeRate)
+{
+	GetWorldTimerManager().ClearTimer(TaxTimerHandle);
+	
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACMafiaCharacter::CalculateTax);
+	TaxTimeRate = InTimeRate;
+	GetWorld()->GetTimerManager().SetTimer(TaxTimerHandle, TimerDelegate, TaxTimeRate, true);
 }
 
 float AACMafiaCharacter::GetRequiredHoldTime() const

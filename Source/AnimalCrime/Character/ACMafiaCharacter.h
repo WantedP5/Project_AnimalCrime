@@ -61,6 +61,17 @@ protected:
 	// Preojectile 소환
 	void FireBullet();
 
+	/**
+	 * @brief TimeRate마다 세금을 내는 함수
+	 */
+	void CalculateTax();
+
+	/**
+	 * @brief TimeRate와 기존 Timer 제거 후 재실행
+	 * @param InTimeRate 
+	 */
+	void ChangeTax(float InTimeRate);
+	
 protected:
 	virtual float GetRequiredHoldTime() const override;
 
@@ -71,8 +82,9 @@ public:
 
 public:
 	float GetCurrentHP() const;
-
-
-
 	float TickDeltaTime = 1.0f;
+
+protected:
+	FTimerHandle TaxTimerHandle;
+	float TaxTimeRate = 60.0f;
 };
