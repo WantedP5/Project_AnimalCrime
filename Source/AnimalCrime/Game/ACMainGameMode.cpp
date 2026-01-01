@@ -122,7 +122,6 @@ void AACMainGameMode::BeginPlay()
 {
 	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
-	AC_LOG(LogHY, Warning, TEXT("End"));
 
 	// Game Rule Manager 생성 및 초기화
 	GameRuleManager = NewObject<UACGameRuleManager>(this);
@@ -160,14 +159,7 @@ void AACMainGameMode::BeginPlay()
 	GenerateOutfitPool();
 	SpawnAllAI();
 	
-	
-	
-	
 	AC_LOG(LogHY, Warning, TEXT("End"));
-	
-	
-	
-	
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
