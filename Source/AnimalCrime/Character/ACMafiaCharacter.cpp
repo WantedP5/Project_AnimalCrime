@@ -138,29 +138,54 @@ void AACMafiaCharacter::UpdateCharacterStatusRevive()
 
 void AACMafiaCharacter::BeginPlay()
 {
+	AC_LOG(LogHY, Error, TEXT("Begin"));
 	Super::BeginPlay();
 
 	// 서버만 GameState에 등록
-	if (HasAuthority() == true) 
+	if (HasAuthority() == false) 
 	{
-		// Mafia는 100원으로 시작
-		MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
-
-		// GameState에 등록
-		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
-		if (GS != nullptr)
-		{
-			GS->MafiaPlayers.Add(this);
-			AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
-		}
+		AC_LOG(LogHY, Error, TEXT("HasAuthority is false"));
+		return;
 	}
-	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
-	if (GS == nullptr)
+	
+	AACMainGameMode* ACGameMode = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	// 게임 모드 확인
+	if (ACGameMode == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("ACGameMode is null"));
+		return;
+	}
+	
+	/*
+	*	랜덤 옷 입히기 로직
+	*/
+	FOutfitCombo OutFit = ACGameMode->GetClothesFromPool();
+	
+	HeadMeshReal = OutFit.HairAsset.LoadSynchronous();
+	OnRep_HeadMesh();
+	
+	FaceMeshReal = OutFit.FaceAsset.LoadSynchronous();
+	OnRep_FaceMesh();
+	TopMeshReal = OutFit.TopAsset.LoadSynchronous();
+	OnRep_TopMesh();
+	BottomMeshReal = OutFit.BottomAsset.LoadSynchronous();
+	OnRep_BottomMesh();
+	ShoesMeshReal = OutFit.ShoesAsset.LoadSynchronous();
+	OnRep_ShoesMesh();
+	FaceAccMeshReal = OutFit.FaceAccAsset.LoadSynchronous();
+	OnRep_FaceAccMesh();
+	
+	// Mafia는 100원으로 시작
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+
+	// GameState에 등록
+	AACMainGameState* ACGameState = GetWorld()->GetGameState<AACMainGameState>();
+	if (ACGameState == nullptr)
 	{
 		return;
 	}
-	GS->MafiaPlayers.Add(this);
-	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
+	ACGameState->MafiaPlayers.Add(this);
+	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), ACGameState->MafiaPlayers.Num());
 	
 	// 마피아가 처음에 가지고 있는 돈 설정
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
@@ -172,9 +197,9 @@ void AACMafiaCharacter::BeginPlay()
 	Stat->SetMaxHp(6);
 	Stat->SetCurrentHp(6);
 	Stat->SetArmor(0);
-	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"),
-		Stat->GetCurrentHp(),
-		HasAuthority());
+	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"), Stat->GetCurrentHp(), HasAuthority());
+	
+	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
