@@ -4,6 +4,7 @@
 #include "Game/ACGameEnums.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
 
@@ -97,6 +98,11 @@ public:
 	
 
 public:
+	// TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
+	// TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
+	// TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
+	// TObjectPtr<class USkeletalMeshComponent> GetBottomMesh() const { return BottomMesh; }
+	// TObjectPtr<class USkeletalMeshComponent> GetShoesMesh() const { return ShoesMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
@@ -106,19 +112,97 @@ public:
 
 protected:
 	//!< 메쉬 컴포넌트
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> HeadMesh;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> FaceMesh;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> TopMesh;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> BottomMesh;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	// TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> HeadMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> FaceMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> TopMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
 
+	UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
+	TObjectPtr<class USkeletalMesh> HeadMeshReal;
+
+	UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
+	TObjectPtr<class USkeletalMesh> FaceMeshReal;
+
+	UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
+	TObjectPtr<class USkeletalMesh> TopMeshReal;
+
+	UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
+	TObjectPtr<class USkeletalMesh> BottomMeshReal;
+
+	UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
+	TObjectPtr<class USkeletalMesh> ShoesMeshReal;
+
+	UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
+	TObjectPtr<class USkeletalMesh> FaceAccMeshReal;
+
+	#pragma region 매시 Get/Set
+public:
+	FORCEINLINE USkeletalMesh* GetHeadMeshT()		const { return HeadMeshReal;}
+	FORCEINLINE USkeletalMesh* GetFaceMeshT()		const {	return FaceMeshReal;}
+	FORCEINLINE USkeletalMesh* GetTopMeshT()			const {	return TopMeshReal;}
+	FORCEINLINE USkeletalMesh* GetBottomMeshT()		const {	return BottomMeshReal;}
+	FORCEINLINE USkeletalMesh* GetShoesMeshT()		const {	return ShoesMeshReal;}
+	FORCEINLINE USkeletalMesh* GetFaceAccMeshT()		const {	return FaceAccMeshReal;}
+
+	FORCEINLINE void UpdateHeadMesh()		const {	HeadMesh->SetSkeletalMesh(HeadMeshReal);	}
+	FORCEINLINE void UpdateFaceMesh()		const {	FaceMesh->SetSkeletalMesh(FaceMeshReal);	}
+	FORCEINLINE void UpdateTopMesh()		const {	TopMesh->SetSkeletalMesh(TopMeshReal);	}
+	FORCEINLINE void UpdateBottomMesh()		const {	BottomMesh->SetSkeletalMesh(BottomMeshReal);	}
+	FORCEINLINE void UpdateShoesMesh()		const {	ShoesMesh->SetSkeletalMesh(ShoesMeshReal);	}
+	FORCEINLINE void UpdateFaceAccMesh()	const {	FaceAccMesh->SetSkeletalMesh(FaceAccMeshReal);	}
+
+	FORCEINLINE void SetHeadMesh(USkeletalMesh* InMesh)			 {  HeadMeshReal = InMesh;}
+	FORCEINLINE void SetFaceMesh(USkeletalMesh* InMesh)			 {	FaceMeshReal = InMesh;}
+	FORCEINLINE void SetTopMesh(USkeletalMesh* InMesh)			 {	TopMeshReal = InMesh;}
+	FORCEINLINE void SetBottomMesh(USkeletalMesh* InMesh)		 {	BottomMeshReal = InMesh;}
+	FORCEINLINE void SetShoesMesh(USkeletalMesh* InMesh)		 {	ShoesMeshReal = InMesh;}
+	FORCEINLINE void SetFaceAccMesh(USkeletalMesh* InMesh)		 {	FaceAccMeshReal = InMesh;}
+#pragma endregion
+public:
+	UFUNCTION()
+	void OnRep_HeadMesh() const;
+
+	UFUNCTION()
+	void OnRep_FaceMesh() const;
+
+	UFUNCTION()
+	void OnRep_TopMesh() const;
+
+	UFUNCTION()
+	void OnRep_BottomMesh() const;
+
+	UFUNCTION()
+	void OnRep_ShoesMesh() const;
+
+	UFUNCTION()
+	void OnRep_FaceAccMesh() const;
+	
 protected:
 	//!< 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
