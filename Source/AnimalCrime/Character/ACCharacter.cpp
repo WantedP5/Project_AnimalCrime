@@ -33,6 +33,8 @@
 
 #include "Game/ACPlayerState.h"
 
+#include "Sound/SoundBase.h"
+
 AACCharacter::AACCharacter()
 {
 	bUseControllerRotationYaw = false;
@@ -173,6 +175,15 @@ AACCharacter::AACCharacter()
 
 
 	bReplicates = true;
+
+	// 방망이 휘두르기 사운드 로드
+	static ConstructorHelpers::FObjectFinder<USoundBase> BatSwingSoundRef(
+		TEXT("/Game/Project/SFX/422506__nightflame__swinging-staff-whoosh-strong-01")
+	);
+	if (BatSwingSoundRef.Succeeded())
+	{
+		BatSwingSound = BatSwingSoundRef.Object;
+	}
 }
 
 
@@ -853,6 +864,18 @@ void AACCharacter::MulticastPlayAttackMontage_Implementation()
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(MeleeMontage, 2.0f);
+	}
+
+	// 로컬 클라이언트 + 무기 장착 시에만 사운드 재생
+	if (IsLocallyControlled() && BatSwingSound && ShopComponent)
+	{
+		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+
+		// 무기를 들고 있는지 확인
+		if (EquippedWeapon != nullptr && EquippedWeapon->ItemType == EItemType::Weapon)
+		{
+			UGameplayStatics::PlaySound2D(this, BatSwingSound);
+		}
 	}
 }
 

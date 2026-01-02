@@ -335,4 +335,9 @@ protected: // Sprint 전용 맴버 변수
 protected:
 	UPROPERTY(Replicated,EditAnywhere)
 	TObjectPtr<class UACDestroyableStatComponent> Stat;
+
+// 사운드 관련
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	TObjectPtr<USoundBase> BatSwingSound;
 };
