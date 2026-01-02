@@ -39,9 +39,6 @@ public:
 private:
 	void UpdateMap(EMapType InMapType);
 
-	//void BeginLoadingScreen(const FString& MapName);
-	//void OnSeamlessTravelStart(UWorld* CurrentWorld, const FString& LevelName);
-
 #pragma endregion
 
 public:
@@ -88,9 +85,6 @@ private:
 	//UFUNCTION()
 	//void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 
-	void CheckServerVoiceCleanup();
-	void CheckFinalStateBeforeTravel();
-
 private:
 	FDelegateHandle OnDestroySessionCompleteHandle;
 
@@ -112,17 +106,5 @@ public:
 
 private:
 	int32 NumClientsReady = 0;
-
-	int32 ServerCleanupPollingAttempts = 0;
-	int32 FinalCheckPollingAttempts = 0;
-	int32 ConsecutiveCleanPolls = 0; // 연속으로 컴포넌트가 없었던 횟수
-	bool bServerVoiceCleaned = false;
-	int32 DoServerTravelRetryCount = 0; // DoServerTravel 재시도 횟수
-
-	static constexpr int32 MaxServerCleanupPollingAttempts = 100; // 최대 1초
-	static constexpr int32 MaxFinalCheckPollingAttempts = 100; // 최대 1초
-	static constexpr int32 RequiredCleanPolls = 20; // 연속 20번(200ms) 깨끗해야 완료
-	static constexpr float ServerPollingInterval = 0.01f; // 10ms
-	static constexpr int32 MaxDoServerTravelRetry = 50; // DoServerTravel 최대 재시도 (500ms)
 };
 

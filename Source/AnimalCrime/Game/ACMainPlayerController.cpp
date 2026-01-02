@@ -174,11 +174,7 @@ void AACMainPlayerController::BeginPlay()
 	}
 
 	// 보이스 연결
-	UACAdvancedFriendsGameInstance* GI = GetGameInstance<UACAdvancedFriendsGameInstance>();
-	if (GI)
-	{
-		GI->TryStartVoice();
-	}
+	TryStartVoice();
 
 	// 거리 기반 Voice 타이머 시작
 	StartProximityVoiceTimer();
@@ -220,6 +216,9 @@ void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 거리 기반 Voice 타이머 정지
 	StopProximityVoiceTimer();
+
+	// 자기 Voice 정리
+	CleanupMyVoice();
 
 	Super::EndPlay(EndPlayReason);
 }
