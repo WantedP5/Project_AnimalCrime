@@ -40,5 +40,8 @@ private:
 	// Behaviour Tree 애셋.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UBehaviorTree> BTAsset;
+	
+	UPROPERTY(EditAnywhere, Category = AI)
+	TObjectPtr<class UBehaviorTreeComponent> BTComp;
 #pragma endregion
 };

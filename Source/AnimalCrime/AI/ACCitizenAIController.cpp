@@ -12,7 +12,9 @@
 AACCitizenAIController::AACCitizenAIController()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	
+	BTComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BTComponent"));
 	
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBWAssetRef(TEXT("/Script/AIModule.BlackboardData'/Game/Project/AI/BB_Citizen.BB_Citizen'"));
 	ensureAlways(BBWAssetRef.Object);
@@ -38,6 +40,7 @@ AACCitizenAIController::AACCitizenAIController()
 void AACCitizenAIController::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	
 }
 
@@ -76,15 +79,18 @@ void AACCitizenAIController::RunAI()
 		return;
 	}
 
-	APawn* PawnPtr = GetPawn();
-	BlackboardPtr->SetValueAsVector(TEXT("Position"), FVector(-1200, 3600, 0));
+	// bool RunResult = RunBehaviorTree(BTAsset);
+	// if (RunResult == false)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("[AVMBossAIController::RunAI] RunBehaviorTree를 실패하였습니다."));
+	// 	return;
+	// }
+	
+	// 행동 트리 시작.
+	BTComp->StartTree(*BTAsset);
 
-	bool RunResult = RunBehaviorTree(BTAsset);
-	if (RunResult == false)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[AVMBossAIController::RunAI] RunBehaviorTree를 실패하였습니다."));
-		return;
-	}
+	// 행동트리의 Tick 조절
+	BTComp->SetComponentTickInterval(0.5f);
 }
 
 void AACCitizenAIController::StopAI()
