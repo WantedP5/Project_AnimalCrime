@@ -18,6 +18,7 @@
 #include "AnimalCrime.h"
 
 #include "ACPrisonManager.h"
+#include "Components/CapsuleComponent.h"
 #include "Prison/ACPrisonBase.h"
 #include "StartPosition/ACPlayerStart.h"
 
@@ -329,7 +330,8 @@ void AACMainGameMode::SpawnAllAI()
 
 		FTransform Transform(Pos);
 		Transform.SetRotation(Rot.Quaternion());
-		AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform);
+		AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform,nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		
 		if (NewAI)
 		{
 			// AI 관리하는 애
@@ -342,8 +344,6 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetHeadMesh(LoadedHair);
 				NewAI->OnRep_HeadMesh();
-				//NewAI->UpdateHeadMesh(LoadedHair);
-				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedHair->GetName());
 			}
 			
 			USkeletalMesh* LoadedFace = OutfitCombo.FaceAsset.LoadSynchronous();
@@ -351,17 +351,13 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetFaceMesh(LoadedFace);
 				NewAI->OnRep_FaceMesh();
-				UE_LOG(LogTemp, Log, TEXT("Loaded Mesh: %s"), *LoadedFace->GetName());
 			}
 
 			USkeletalMesh* LoadedTop = OutfitCombo.TopAsset.LoadSynchronous();
 			if (LoadedTop)
 			{
-				//NewAI->TopMesh = LoadedTop;
-				//NewAI->GetTopMesh()->SetTopMesh(LoadedMesh);
 				NewAI->SetTopMesh(LoadedTop);
 				NewAI->OnRep_TopMesh();
-				UE_LOG(LogTemp, Log, TEXT("Loaded Top: %s"), *LoadedTop->GetName());
 			}
 
 			USkeletalMesh* LoadedBottom = OutfitCombo.BottomAsset.LoadSynchronous();
@@ -369,7 +365,6 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetBottomMesh(LoadedBottom);
 				NewAI->OnRep_BottomMesh();
-				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedBottom->GetName());
 			}
 			
 			USkeletalMesh* LoadedShoes = OutfitCombo.ShoesAsset.LoadSynchronous();
@@ -377,7 +372,6 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetShoesMesh(LoadedShoes);
 				NewAI->OnRep_ShoesMesh();
-				UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedShoes->GetName());
 			}
 			
 			USkeletalMesh* LoadedFaceAcc = OutfitCombo.FaceAccAsset.LoadSynchronous();
@@ -385,12 +379,26 @@ void AACMainGameMode::SpawnAllAI()
             {
             	NewAI->SetFaceAccMesh(LoadedFaceAcc);
             	NewAI->OnRep_FaceAccMesh();
-            	UE_LOG(LogTemp, Log, TEXT("Loaded Bottom: %s"), *LoadedFaceAcc->GetName());
             }
+			UE_LOG(LogTemp, Log, TEXT("Spawn Success %d"), i);
 		}
-
+		else
+		{
+			AC_LOG(LogHY, Warning, TEXT("스폰 실패"));
+		}
+		
+		// Capsule 크기 가져오기
+		ACharacter* DefaultChar = CitizenBPClass->GetDefaultObject<ACharacter>();
+		UCapsuleComponent* Capsule = DefaultChar->GetCapsuleComponent();
+		
+		FVector Location = Transform.GetLocation();
+		Location.Z += Capsule->GetScaledCapsuleHalfHeight();
+		Transform.SetLocation(Location);
 		NewAI->FinishSpawning(Transform);
-		UE_LOG(LogTemp, Log, TEXT("Spawn Success"));
+		if (IsValid(NewAI) == false)
+		{
+			DrawDebugCapsule(GetWorld(), Transform.GetLocation(), Capsule->GetScaledCapsuleHalfHeight(), Capsule->GetScaledCapsuleRadius(), Transform.GetRotation(), FColor::Red, false, 200.0f);
+		}
 	}
 }
 
@@ -399,8 +407,21 @@ FVector AACMainGameMode::GetRandomSpawnLocation() const
 	FNavLocation RandomLocation;
 
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
-	float Radius = 3000;
+	float Radius = 5000;
 	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector::ZeroVector, Radius, RandomLocation))
+	{
+		return RandomLocation.Location;
+	}
+
+	return FVector::ZeroVector;
+}
+
+FVector AACMainGameMode::GetRandomSpawnLocation(const FVector& Location, float Radius) const
+{
+	FNavLocation RandomLocation;
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys && NavSys->GetRandomReachablePointInRadius(Location, Radius, RandomLocation))
 	{
 		return RandomLocation.Location;
 	}

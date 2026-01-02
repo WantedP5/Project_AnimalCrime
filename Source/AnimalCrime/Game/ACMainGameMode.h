@@ -105,6 +105,7 @@ public:
 public:
 	void SpawnAllAI();
 	FVector GetRandomSpawnLocation() const;
+	FVector GetRandomSpawnLocation(const FVector& Location, float Radius = 5000) const;
 	
 	
 	void GenerateOutfitPool();
