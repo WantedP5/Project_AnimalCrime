@@ -99,6 +99,7 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 	CurrentMapType = InMapType;
 	NumClientsReady = 0;
 	bServerVoiceCleaned = false;
+	DoServerTravelRetryCount = 0;
 
 	// ★ Server Voice를 먼저 중지해서 Client들 사이의 Voice 패킷 전달을 차단
 	// 이렇게 해야 Client들이 정리하는 동안 새로운 VoipListenerSynthComponent가 생성되지 않음
@@ -109,6 +110,8 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 		IOnlineVoicePtr Voice = Online::GetVoiceInterface();
 		if (Voice.IsValid())
 		{
+			// ★ Voice 패킷 버퍼 먼저 비우기 - 버퍼에 남아있는 패킷이 처리되어 새 컴포넌트가 생성되는 것 방지
+			Voice->ClearVoicePackets();
 			Voice->RemoveAllRemoteTalkers();
 			Voice->StopNetworkedVoice(0);
 			Voice->UnregisterLocalTalker(0);
@@ -203,6 +206,13 @@ void UACAdvancedFriendsGameInstance::CheckServerVoiceCleanup()
 		return;
 	}
 
+	// ★ Voice 패킷 버퍼 계속 비우기 - 지연된 패킷이 새 컴포넌트를 생성하는 것 방지
+	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	if (Voice.IsValid())
+	{
+		Voice->ClearVoicePackets();
+	}
+
 	// VoipListenerSynthComponent 및 내부 AudioComponent 직접 찾아서 정리 (Transient 패키지 포함)
 	// UE-146893, UE-169798 버그 대응: DestroyComponent()로 강제 파괴
 	bool bServerVoipExists = false;
@@ -290,6 +300,13 @@ void UACAdvancedFriendsGameInstance::CheckFinalStateBeforeTravel()
 		UE_LOG(LogSY, Error, TEXT("World is null in final check"));
 		DoServerTravel();
 		return;
+	}
+
+	// ★ Voice 패킷 버퍼 계속 비우기 - 지연된 패킷이 새 컴포넌트를 생성하는 것 방지
+	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	if (Voice.IsValid())
+	{
+		Voice->ClearVoicePackets();
 	}
 
 	// 최종 검증: VoipListenerSynthComponent 및 내부 AudioComponent 직접 확인 (Transient 패키지 포함)
@@ -439,6 +456,13 @@ void UACAdvancedFriendsGameInstance::DoServerTravel()
 	UWorld* World = GetWorld();
 	if (World)
 	{
+		// ★ Voice 패킷 버퍼 한 번 더 비우기 - 지연된 패킷이 새 컴포넌트를 생성하는 것 방지
+		IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+		if (Voice.IsValid())
+		{
+			Voice->ClearVoicePackets();
+		}
+
 		// 최종 안전 체크: VoipListenerSynthComponent 및 내부 AudioComponent 강제 파괴 (Transient 패키지 포함)
 		int32 ForcedRemovalCount = 0;
 
@@ -479,12 +503,28 @@ void UACAdvancedFriendsGameInstance::DoServerTravel()
 
 		if (ForcedRemovalCount > 0)
 		{
-			UE_LOG(LogSY, Warning, TEXT("🔧 DoServerTravel - Force destroyed %d VoIP components"), ForcedRemovalCount);
+			UE_LOG(LogSY, Warning, TEXT("🔧 DoServerTravel - Force destroyed %d VoIP components, retrying final check..."), ForcedRemovalCount);
 
 			// Audio Flush
 			if (FAudioDeviceHandle AudioDeviceHandle = World->GetAudioDevice())
 			{
 				AudioDeviceHandle->Flush(World);
+			}
+
+			// ★ 컴포넌트가 발견되면 다시 최종 확인으로 돌아감
+			// 지연된 Voice 패킷으로 인해 새로 생성될 수 있으므로 다시 폴링
+			DoServerTravelRetryCount++;
+			if (DoServerTravelRetryCount < MaxDoServerTravelRetry)
+			{
+				FTimerHandle RetryTimer;
+				World->GetTimerManager().SetTimer(RetryTimer,
+					this, &UACAdvancedFriendsGameInstance::DoServerTravel,
+					ServerPollingInterval, false);
+				return;
+			}
+			else
+			{
+				UE_LOG(LogSY, Warning, TEXT("⚠️ DoServerTravel - Max retry reached, proceeding anyway"));
 			}
 		}
 		else
@@ -492,6 +532,9 @@ void UACAdvancedFriendsGameInstance::DoServerTravel()
 			UE_LOG(LogSY, Log, TEXT("✅ No lingering VoIP components - safe to travel"));
 		}
 	}
+
+	// 재시도 카운터 리셋
+	DoServerTravelRetryCount = 0;
 
 	switch (CurrentMapType)
 	{

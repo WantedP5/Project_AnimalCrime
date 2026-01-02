@@ -27,6 +27,8 @@ void AACPlayerControllerBase::Client_CleanupVoiceBeforeTravel_Implementation()
 	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
 	if (Voice.IsValid() == true)
 	{
+		// ★ Voice 패킷 버퍼 먼저 비우기 - 버퍼에 남아있는 패킷이 처리되어 새 컴포넌트가 생성되는 것 방지
+		Voice->ClearVoicePackets();
 		Voice->RemoveAllRemoteTalkers();
 		Voice->StopNetworkedVoice(0);
 		Voice->UnregisterLocalTalker(0);
@@ -111,6 +113,13 @@ void AACPlayerControllerBase::CheckClientVoiceCleanupComplete()
         AC_LOG(LogSY, Error, TEXT("World is null in polling"));
         Server_NotifyVoiceCleaned();
         return;
+    }
+
+    // ★ Voice 패킷 버퍼 계속 비우기 - 지연된 패킷이 새 컴포넌트를 생성하는 것 방지
+    IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+    if (Voice.IsValid())
+    {
+        Voice->ClearVoicePackets();
     }
 
     // VoipListenerSynthComponent 및 내부 AudioComponent 직접 확인 (Transient 패키지 포함)
