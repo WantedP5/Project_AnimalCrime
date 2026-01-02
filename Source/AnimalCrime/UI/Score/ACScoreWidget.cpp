@@ -8,6 +8,7 @@
 
 void UACScoreWidget::UpdateScore(float CurrentScore, float MaxScore)
 {
+	CurrentScore = FMath::Clamp(CurrentScore, 0.f, MaxScore);
 	const float Percent = FMath::Clamp(CurrentScore / MaxScore, 0.f, 1.f);
 
 	UE_LOG(LogTemp, Log, TEXT("[UACScoreWidget::UpdateScore]"));
@@ -23,5 +24,5 @@ void UACScoreWidget::UpdateScore(float CurrentScore, float MaxScore)
 		UE_LOG(LogTemp, Log, TEXT("ScoreText nullptr"));
 		return ;
 	}
-	ScoreText->SetText(FText::FromString(FString::Printf(TEXT("%f / %f"), CurrentScore, MaxScore)));
+	ScoreText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), CurrentScore, MaxScore)));
 }

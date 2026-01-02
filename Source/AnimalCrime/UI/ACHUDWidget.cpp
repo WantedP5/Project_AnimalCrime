@@ -54,10 +54,6 @@ void UACHUDWidget::BindPlayerState()
 
 void UACHUDWidget::HandleScoreChanged(float NewScore)
 {
-	const float Percent = FMath::Clamp(NewScore / 7000.f,
-		0.f,
-		1.f
-	);
 	if (WBP_Score == nullptr)
 	{
 		return;
