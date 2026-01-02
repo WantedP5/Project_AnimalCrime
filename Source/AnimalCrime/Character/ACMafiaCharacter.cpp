@@ -33,7 +33,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
-	// 클라이언트에서 계산 시 데미지가 중첩되는 버그가 발생.
+	// 권한있는 APawn만 계산해야 함.
 	if (HasAuthority() == false)
 	{
 		return 0.0f;
@@ -53,44 +53,29 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	CurrentHp -= 1.0f;
 	Stat->SetCurrentHp(CurrentHp);
 	//AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
+	
+	FTimerDelegate TimerDelegate;
 	if (CurrentHp <= 0)
 	{
 		// 상태 변경
 		CharacterState = ECharacterState::Stun;
-		
 		OnRep_CharacterState();
+		
 		if (CharacterState == ECharacterState::Stun)
 		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-				[this]()
-			{
-				CharacterState = ECharacterState::Free;
-				OnRep_CharacterState();
-			}), 10.0, false);
-		}
-		else if (CharacterState == ECharacterState::OnDamage)
-		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-				[this]()
-			{
-				CharacterState = ECharacterState::Free;
-				OnRep_CharacterState();
-			}), 10.0, false);	
+			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusRevive);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
 		}
 	}
 	else
 	{
 		CharacterState = ECharacterState::OnDamage;
-		
 		OnRep_CharacterState();
+		
 		if (CharacterState == ECharacterState::OnDamage)
 		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-				[this]()
-			{
-				CharacterState = ECharacterState::Free;
-				OnRep_CharacterState();
-			}), 10.0, false);	
+			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusFree);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
 		}
 	}
 
@@ -114,31 +99,93 @@ void AACMafiaCharacter::Tick(float DeltaSeconds)
 	}*/
 }
 
+void AACMafiaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AC_LOG(LogHY, Warning, TEXT("AACMafiaCharacter::EndPlay"));
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	
+	Super::EndPlay(EndPlayReason);
+}
+
+void AACMafiaCharacter::UpdateCharacterStatusFree()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this가 올바르지 않습니다."));
+		return;
+	}
+	
+	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
+	CharacterState = ECharacterState::Free;
+	OnRep_CharacterState();
+}
+
+void AACMafiaCharacter::UpdateCharacterStatusRevive()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this가 올바르지 않습니다."));
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
+	CharacterState = ECharacterState::Free;
+	OnRep_CharacterState();
+	if (HasAuthority() == true)
+	{
+		Stat->SetCurrentHp(6);
+	}
+}
+
 void AACMafiaCharacter::BeginPlay()
 {
+	AC_LOG(LogHY, Error, TEXT("Begin"));
 	Super::BeginPlay();
 
 	// 서버만 GameState에 등록
-	if (HasAuthority() == true) 
+	if (HasAuthority() == false) 
 	{
-		// Mafia는 100원으로 시작
-		MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
-
-		// GameState에 등록
-		AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
-		if (GS != nullptr)
-		{
-			GS->MafiaPlayers.Add(this);
-			AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
-		}
+		AC_LOG(LogHY, Error, TEXT("HasAuthority is false"));
+		return;
 	}
-	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
-	if (GS == nullptr)
+	
+	AACMainGameMode* ACGameMode = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	// 게임 모드 확인
+	if (ACGameMode == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("ACGameMode is null"));
+		return;
+	}
+	
+	/*
+	*	랜덤 옷 입히기 로직
+	*/
+	FOutfitCombo OutFit = ACGameMode->GetClothesFromPool();
+	
+	HeadMeshReal = OutFit.HairAsset.LoadSynchronous();
+	OnRep_HeadMesh();
+	
+	FaceMeshReal = OutFit.FaceAsset.LoadSynchronous();
+	OnRep_FaceMesh();
+	TopMeshReal = OutFit.TopAsset.LoadSynchronous();
+	OnRep_TopMesh();
+	BottomMeshReal = OutFit.BottomAsset.LoadSynchronous();
+	OnRep_BottomMesh();
+	ShoesMeshReal = OutFit.ShoesAsset.LoadSynchronous();
+	OnRep_ShoesMesh();
+	FaceAccMeshReal = OutFit.FaceAccAsset.LoadSynchronous();
+	OnRep_FaceAccMesh();
+	
+	// Mafia는 100원으로 시작
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+
+	// GameState에 등록
+	AACMainGameState* ACGameState = GetWorld()->GetGameState<AACMainGameState>();
+	if (ACGameState == nullptr)
 	{
 		return;
 	}
-	GS->MafiaPlayers.Add(this);
-	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), GS->MafiaPlayers.Num());
+	ACGameState->MafiaPlayers.Add(this);
+	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), ACGameState->MafiaPlayers.Num());
 	
 	// 마피아가 처음에 가지고 있는 돈 설정
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
@@ -150,9 +197,12 @@ void AACMafiaCharacter::BeginPlay()
 	Stat->SetMaxHp(6);
 	Stat->SetCurrentHp(6);
 	Stat->SetArmor(0);
-	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"),
-		Stat->GetCurrentHp(),
-		HasAuthority());
+	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"), Stat->GetCurrentHp(), HasAuthority());
+	
+	// Tax 설정
+	ChangeTax(60);
+	
+	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
 bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
@@ -444,6 +494,28 @@ void AACMafiaCharacter::FireHitscan()
 
 void AACMafiaCharacter::FireBullet()
 {
+}
+
+void AACMafiaCharacter::CalculateTax()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this is not Valid"));
+		return;
+	}
+	
+	// 돈 추가 로직
+	MoneyComp->LoseMoney(5);
+}
+
+void AACMafiaCharacter::ChangeTax(float InTimeRate)
+{
+	GetWorldTimerManager().ClearTimer(TaxTimerHandle);
+	
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACMafiaCharacter::CalculateTax);
+	TaxTimeRate = InTimeRate;
+	GetWorld()->GetTimerManager().SetTimer(TaxTimerHandle, TimerDelegate, TaxTimeRate, true);
 }
 
 float AACMafiaCharacter::GetRequiredHoldTime() const

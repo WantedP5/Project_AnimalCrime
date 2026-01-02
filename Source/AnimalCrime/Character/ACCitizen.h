@@ -64,6 +64,8 @@ public:
 	 * @return 
 	 */
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #pragma endregion
 
 #pragma region 인터랙션 인터페이스
@@ -87,6 +89,11 @@ public: // 임시
 	void MulticastOnPlayMontage(const FVector& Attack);
 
 	void AttackHitCheck();
+	
+public:
+	void UpdateAISkillFlag();
+	void UpdateCharacterStatusFree();
+	void UpdateCharacterStatusRevive();
 	
 #pragma region 상태 변화 함수
 public:
@@ -277,11 +284,16 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<class AACMafiaCharacter> MafiaCharacter;
-	
-	
-	
-	
 private:
 	float DebugDelta = 1.0f;
+	
+public:
+	void RegenMoney();
+	void TryRegenMoneyTimer();
+	
+protected:
+	FTimerHandle RegenMoneyTimerHandle;
+	float RegenRateMin = 20.0f;
+	float RegenRateMax = 60.0f;
 #pragma endregion
 };

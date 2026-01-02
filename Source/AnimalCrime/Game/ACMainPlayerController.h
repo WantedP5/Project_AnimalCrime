@@ -22,6 +22,7 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void PostNetInit() override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
 
 
@@ -39,6 +40,9 @@ protected:
 	void HandleAttack(const struct FInputActionValue& Value);
 	void HandleSettingsClose(const struct FInputActionValue& Value);
 	void HandleSpectatorChange(const struct FInputActionValue& Value);
+	void HandleDash(const struct FInputActionValue& Value);
+	void HandleSprintStart(const struct FInputActionValue& Value);
+	void HandleSprintEnd(const struct FInputActionValue& Value);
 
 	// ===== 퀵슬롯 관련 (하나의 핸들러로 통합) =====
 	void HandleQuickSlot(const struct FInputActionValue& Value);
@@ -155,6 +159,10 @@ protected:
 	TObjectPtr<class UInputAction> ItemDropAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> MeleeAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> DashAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> SprintAction;
 
 	// ===== 퀵슬롯 관련 (하나만) =====
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -221,4 +229,38 @@ protected:
 protected:
 	//!< 관전자 Index
 	int32 CurrentSpectateIndex = INDEX_NONE;
+
+#pragma region Proximity Voice (거리 기반 보이스)
+public:
+	/**
+		@brief 거리 기반 Voice 업데이트 (타이머로 주기적 호출)
+	**/
+	void UpdateProximityVoice();
+
+protected:
+	/**
+		@brief Voice 업데이트 타이머 시작
+	**/
+	void StartProximityVoiceTimer();
+
+	/**
+		@brief Voice 업데이트 타이머 정지
+	**/
+	void StopProximityVoiceTimer();
+
+protected:
+	//!< Voice가 들리는 최대 거리 (cm 단위, 기본 15m)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice")
+	float VoiceMaxDistance = 1500.0f;
+
+	//!< Voice 업데이트 주기 (초 단위)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice")
+	float VoiceUpdateInterval = 0.1f;
+
+	//!< Voice 업데이트 타이머 핸들
+	FTimerHandle VoiceUpdateTimerHandle;
+
+	//!< 현재 음소거 상태인 플레이어 목록 (최적화용)
+	TSet<FUniqueNetIdRepl> MutedPlayers;
+#pragma endregion
 };

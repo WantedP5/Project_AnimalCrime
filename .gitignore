@@ -1,6 +1,9 @@
 # Visual Studio 2015 user specific files
 .vs/
 .vsconfig
+packages/
+todo.md
+install.cmd
 
 ###################################
 # JetBrains Rider Generated Files #

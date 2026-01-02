@@ -9,6 +9,8 @@
 #include <Kismet/GameplayStatics.h>
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 AACPoliceCharacter::AACPoliceCharacter()
 {
 	// 콜리전 세팅
@@ -42,23 +44,39 @@ AACPoliceCharacter::AACPoliceCharacter()
 
 	ShoesMesh->SetSkeletalMesh(nullptr);
 	
-	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;  // 경찰
 }
 
-EACCharacterType AACPoliceCharacter::GetCharacterType()
+void AACPoliceCharacter::PostInitializeComponents()
 {
-	return EACCharacterType::Police;
+	Super::PostInitializeComponents();
+}
+
+void AACPoliceCharacter::PostNetInit()
+{
+	Super::PostNetInit();
 }
 
 void AACPoliceCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Police는 200원으로 시작
-	if (HasAuthority())
+	if (HasAuthority() == false)
 	{
-		MoneyComp->InitMoneyComponent(EMoneyType::MoneyPoliceType);
+		AC_LOG(LogHY, Error, TEXT("HasAuthority is false"));
+		return;
 	}
+	
+	// Police의 type의 돈을 설정.
+	MoneyComp->InitMoneyComponent(EMoneyType::MoneyPoliceType);
+	
+	// 월급 주기 지정 및 월급 실행 함수
+	ChangeSalary(20.0f);
+}
+
+EACCharacterType AACPoliceCharacter::GetCharacterType()
+{
+	return EACCharacterType::Police;
 }
 
 void AACPoliceCharacter::AttackHitCheck()
@@ -105,6 +123,28 @@ void AACPoliceCharacter::AttackHitCheck()
 		UE_LOG(LogTemp, Error, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
 	}
+}
+
+void AACPoliceCharacter::CalculateSalary()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this is not Valid"));
+		return;
+	}
+	
+	// 돈 추가 로직
+	MoneyComp->EarnMoney(100);
+}
+
+void AACPoliceCharacter::ChangeSalary(float InTimeRate)
+{
+	GetWorldTimerManager().ClearTimer(SalaryTimerHandle);
+	
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACPoliceCharacter::CalculateSalary);
+	TimeRate = InTimeRate;
+	GetWorld()->GetTimerManager().SetTimer(SalaryTimerHandle, TimerDelegate, TimeRate, true);
 }
 
 bool AACPoliceCharacter::CanInteract(AACCharacter* ACPlayer)

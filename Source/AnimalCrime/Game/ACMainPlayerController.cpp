@@ -4,6 +4,7 @@
 #include "ACTitlePlayerController.h"
 #include "UI/Shop/ACShopWidget.h"
 #include "AnimalCrime.h"
+#include "ACAdvancedFriendsGameInstance.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
@@ -21,6 +22,8 @@
 #include "ACMainGameMode.h"
 #include "ACGameRuleManager.h"
 #include "EngineUtils.h"
+#include "OnlineSubsystem.h"
+#include "GameFramework/GameStateBase.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -91,6 +94,18 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		MeleeAction = MeleeActionRef.Object;
 	}
+	
+	static ConstructorHelpers::FObjectFinder<UInputAction> DashActionRef(TEXT("/Game/Project/Input/Actions/IA_Dash.IA_Dash"));
+	if (DashActionRef.Succeeded())
+	{
+		DashAction = DashActionRef.Object;
+	}
+	
+	static ConstructorHelpers::FObjectFinder<UInputAction> SprintActionRef(TEXT("/Game/Project/Input/Actions/IA_Sprint.IA_Sprint"));
+	if (SprintActionRef.Succeeded())
+	{
+		SprintAction = SprintActionRef.Object;
+	}
 
 	// ===== 퀵슬롯 Input Action 로드 (하나만) =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> QuickSlotActionRef(TEXT("/Game/Project/Input/Actions/IA_QuickSlot.IA_QuickSlot"));
@@ -157,6 +172,17 @@ void AACMainPlayerController::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("IsLocalController false"));
 		return;
 	}
+
+	// 보이스 연결
+	UACAdvancedFriendsGameInstance* GI = GetGameInstance<UACAdvancedFriendsGameInstance>();
+	if (GI)
+	{
+		GI->TryStartVoice();
+	}
+
+	// 거리 기반 Voice 타이머 시작
+	//StartProximityVoiceTimer();
+
 	ACHUDWidget = CreateWidget<UACHUDWidget>(this, ACHUDWidgetClass);
 	if (ACHUDWidget == nullptr)
 	{
@@ -189,6 +215,14 @@ void AACMainPlayerController::BeginPlay()
 	}
 	AC_LOG(LogHY, Warning, TEXT("End"));
 
+}
+
+void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// 거리 기반 Voice 타이머 정지
+	StopProximityVoiceTimer();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -240,6 +274,20 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleAttack);
 	}
+	
+	// 캐릭터 스킬 - Dash
+	if (DashAction)
+	{
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleDash);
+	}
+	// 캐릭터 스킬 - Sprint
+	if (SprintAction)
+	{
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSprintStart);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleSprintEnd);
+		// EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &AACMainPlayerController::HandleSprintEnd);
+	}
+	
 	if (SettingsCloseAction)
 	{
 		EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSettingsClose);
@@ -387,6 +435,42 @@ void AACMainPlayerController::HandleSpectatorChange(const FInputActionValue& Val
 
 	//관전 대상 변경
 	ServerSwitchToNextSpectateTarget();
+}
+
+void AACMainPlayerController::HandleDash(const struct FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+
+	ControlledCharacter->Dash(Value);
+}
+
+void AACMainPlayerController::HandleSprintStart(const struct FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("Start Hi"));
+	ControlledCharacter->Sprint(Value);
+}
+
+void AACMainPlayerController::HandleSprintEnd(const struct FInputActionValue& Value)
+{
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("End Hi"));
+	ControlledCharacter->Sprint(Value);
 }
 
 void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)
@@ -835,3 +919,128 @@ void AACMainPlayerController::HideInteractProgress()
 
 	ACHUDWidget->WBP_InteractProgress->HideWidget();
 }
+
+#pragma region Proximity Voice (거리 기반 보이스)
+void AACMainPlayerController::StartProximityVoiceTimer()
+{
+	if (IsLocalController() == false)
+	{
+		return;
+	}
+
+	// 기존 타이머가 있으면 정지
+	StopProximityVoiceTimer();
+
+	// 타이머 시작
+	GetWorldTimerManager().SetTimer(
+		VoiceUpdateTimerHandle,
+		this,
+		&AACMainPlayerController::UpdateProximityVoice,
+		VoiceUpdateInterval,
+		true  // 반복 실행
+	);
+
+	AC_LOG(LogSY, Log, TEXT("Proximity Voice Timer Started (Interval: %.2f sec, MaxDistance: %.0f cm)"),
+		VoiceUpdateInterval, VoiceMaxDistance);
+}
+
+void AACMainPlayerController::StopProximityVoiceTimer()
+{
+	if (VoiceUpdateTimerHandle.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(VoiceUpdateTimerHandle);
+		VoiceUpdateTimerHandle.Invalidate();
+	}
+
+	// 음소거 목록 초기화
+	MutedPlayers.Empty();
+}
+
+void AACMainPlayerController::UpdateProximityVoice()
+{
+	// 내 폰 가져오기
+	APawn* MyPawn = GetPawn();
+	if (MyPawn == nullptr)
+	{
+		return;
+	}
+
+	// Voice 인터페이스 가져오기
+	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
+	if (Voice.IsValid() == false)
+	{
+		return;
+	}
+
+	// GameState 가져오기
+	AGameStateBase* GameState = GetWorld()->GetGameState();
+	if (GameState == nullptr)
+	{
+		return;
+	}
+
+	FVector MyLocation = MyPawn->GetActorLocation();
+
+	// 모든 PlayerState 순회
+	for (APlayerState* PS : GameState->PlayerArray)
+	{
+		// 자기 자신 스킵
+		if (PS == nullptr || PS == PlayerState)
+		{
+			continue;
+		}
+
+		// 상대방 폰 가져오기
+		APawn* OtherPawn = PS->GetPawn();
+		if (OtherPawn == nullptr)
+		{
+			continue;
+		}
+
+		// 상대방 NetId 가져오기
+		FUniqueNetIdRepl OtherNetId = PS->GetUniqueId();
+		if (OtherNetId.IsValid() == false)
+		{
+			continue;
+		}
+
+		// 거리 계산
+		float Distance = FVector::Dist(MyLocation, OtherPawn->GetActorLocation());
+
+		// TODO: 무전기 로직 추가 예정
+		// bool bBothHaveWalkieTalkie = CheckBothHaveWalkieTalkie(PS);
+		bool bBothHaveWalkieTalkie = false;
+
+		if (bBothHaveWalkieTalkie)
+		{
+			// 무전기 보유 시: 거리 상관없이 음소거 해제
+			if (MutedPlayers.Contains(OtherNetId))
+			{
+				Voice->UnmuteRemoteTalker(0, *OtherNetId, false);
+				MutedPlayers.Remove(OtherNetId);
+				AC_LOG(LogSY, Verbose, TEXT("Voice Unmuted (WalkieTalkie): %s"), *PS->GetPlayerName());
+			}
+		}
+		else if (Distance > VoiceMaxDistance)
+		{
+			// 거리가 멀면: 음소거
+			if (MutedPlayers.Contains(OtherNetId) == false)
+			{
+				Voice->MuteRemoteTalker(0, *OtherNetId, false);
+				MutedPlayers.Add(OtherNetId);
+				AC_LOG(LogSY, Verbose, TEXT("Voice Muted: %s (Distance: %.0f cm)"), *PS->GetPlayerName(), Distance);
+			}
+		}
+		else
+		{
+			// 거리가 가까우면: 음소거 해제
+			if (MutedPlayers.Contains(OtherNetId))
+			{
+				Voice->UnmuteRemoteTalker(0, *OtherNetId, false);
+				MutedPlayers.Remove(OtherNetId);
+				AC_LOG(LogSY, Verbose, TEXT("Voice Unmuted: %s (Distance: %.0f cm)"), *PS->GetPlayerName(), Distance);
+			}
+		}
+	}
+}
+#pragma endregion

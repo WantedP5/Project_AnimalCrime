@@ -18,7 +18,12 @@ protected:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void PostNetInit() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+public:
+	void UpdateCharacterStatusFree();
+	void UpdateCharacterStatusRevive();
+	
 	//!< 상호작용 인터페이스
 protected:
 	virtual bool CanInteract(AACCharacter* ACPlayer) override;
@@ -56,6 +61,17 @@ protected:
 	// Preojectile 소환
 	void FireBullet();
 
+	/**
+	 * @brief TimeRate마다 세금을 내는 함수
+	 */
+	void CalculateTax();
+
+	/**
+	 * @brief TimeRate와 기존 Timer 제거 후 재실행
+	 * @param InTimeRate 
+	 */
+	void ChangeTax(float InTimeRate);
+	
 protected:
 	virtual float GetRequiredHoldTime() const override;
 
@@ -66,10 +82,9 @@ public:
 
 public:
 	float GetCurrentHP() const;
+	float TickDeltaTime = 1.0f;
 
 protected:
-	UPROPERTY(Replicated,EditAnywhere)
-	TObjectPtr<class UACDestroyableStatComponent> Stat;
-
-	float TickDeltaTime = 1.0f;
+	FTimerHandle TaxTimerHandle;
+	float TaxTimeRate = 60.0f;
 };

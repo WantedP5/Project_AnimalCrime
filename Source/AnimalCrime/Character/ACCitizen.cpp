@@ -31,7 +31,7 @@
 AACCitizen::AACCitizen()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	//PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// AI 설정
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -100,11 +100,6 @@ AACCitizen::AACCitizen()
 	BottomMeshComp->SetIsReplicated(true);
 	
 	ShoesMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
-	if (ShoesMeshRef.Succeeded() == true)
-	{
-		ShoesMeshComp->SetSkeletalMesh(ShoesMeshRef.Object);
-	}
 	ShoesMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	ShoesMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	ShoesMeshComp->SetupAttachment(RootComponent);
@@ -113,11 +108,6 @@ AACCitizen::AACCitizen()
 	ShoesMeshComp->SetIsReplicated(true);
 
 	FaceAccMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
-	if (FaceAccMeshRef.Succeeded() == true)
-	{
-		FaceAccMeshComp->SetSkeletalMesh(FaceAccMeshRef.Object);
-	}
 	FaceAccMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	FaceAccMeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	FaceAccMeshComp->SetupAttachment(RootComponent);
@@ -125,6 +115,14 @@ AACCitizen::AACCitizen()
 	FaceAccMeshComp->SetReceivesDecals(false);
 	FaceAccMeshComp->SetIsReplicated(true);
 	
+	
+	// 최적화 하기.
+	HeadMeshComp->PrimaryComponentTick.bCanEverTick = false;
+	FaceMeshComp->PrimaryComponentTick.bCanEverTick = false;
+	TopMeshComp->PrimaryComponentTick.bCanEverTick = false;
+	BottomMeshComp->PrimaryComponentTick.bCanEverTick = false;
+	ShoesMeshComp->PrimaryComponentTick.bCanEverTick = false;
+	FaceAccMeshComp->PrimaryComponentTick.bCanEverTick = false;
 	
 	// 애니메이션 몽타주
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(TEXT("/Game/Project/Character/AM_AIMelee.AM_AIMelee"));
@@ -170,15 +168,21 @@ void AACCitizen::BeginPlay()
 	
 	//float RandomRate = FMath::RandRange(0.f, 10.f);
 	float RandomRate = 40.0f;
-	GetWorld()->GetTimerManager().SetTimer(InitialSkillBlockTimerHandle,
-		FTimerDelegate::CreateLambda([this]()
-		{
-			if (IsValid(this))
-			{
-				bIsInitialSkillBlocked = false;
-			}
-		}), RandomRate, false);
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACCitizen::UpdateAISkillFlag);
+	GetWorld()->GetTimerManager().SetTimer(InitialSkillBlockTimerHandle, TimerDelegate, RandomRate, false);
 
+	// 최적화
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		// 1. URO 활성화 스위치
+		MeshComp->bEnableUpdateRateOptimizations = true;
+	
+		// 2. 가시성 기반 최적화 (매우 중요)
+		// 화면에 안 보이면 애니메이션 업데이트를 하지 않거나 몽타주만 재생하도록 설정
+		MeshComp->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+	}
+	
 	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
@@ -353,12 +357,9 @@ void AACCitizen::OnChangeState()
 	
 	if (CharacterState == ECharacterState::OnDamage)
 	{
-		GetWorld()->GetTimerManager().SetTimer(MoveSpeedTimerHandle, FTimerDelegate::CreateLambda(
-			[this]()
-		{
-			CharacterState = ECharacterState::Free;
-			OnRep_CharacterState();
-		}), 10.0, false);
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUObject(this, &AACCitizen::UpdateCharacterStatusFree);
+		GetWorld()->GetTimerManager().SetTimer(MoveSpeedTimerHandle, TimerDelegate, 10.0, false);
 	}
 	else if (CharacterState == ECharacterState::Angry)
 	{
@@ -471,12 +472,19 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 			{
 				TempCharacterState = ECharacterState::Angry;
 				MafiaCharacter = Cast<AACMafiaCharacter>(Actor);
+				
+				TryRegenMoneyTimer();
 				AC_LOG(LogHY, Error, TEXT("CurrentMoney <= 0  name:%s"), *MafiaCharacter->GetName());
 			}
 			else
 			{
 				GetWorldTimerManager().SetTimer(MoneyCoolTimerHandle, FTimerDelegate::CreateLambda([this]
 				{
+					if (IsValid(this) == false)
+					{
+						UE_LOG(LogHY, Error, TEXT("[MoneyCoolTimerHandle] this is Invalid"));	
+						return;
+					}
 					AC_LOG(LogHY, Error, TEXT("끝"));
 				}), 10, false);
 				ACCharacter->MoneyComp->EarnMoney(Result);
@@ -556,6 +564,31 @@ void AACCitizen::AttackHitCheck()
 			BB->SetValueAsObject(TEXT("Target"), nullptr);
 		}
 	}
+}
+
+void AACCitizen::UpdateAISkillFlag()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this는 Invalid입니다."));
+		return;
+	}
+	
+	AC_LOG(LogHY, Error, TEXT("Call UpdateAISkillFlag"));
+	
+	bIsInitialSkillBlocked = false;
+}
+
+void AACCitizen::UpdateCharacterStatusFree()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this는 Invalid입니다."));
+		return;
+	}
+	
+	CharacterState = ECharacterState::Free;
+	OnRep_CharacterState();
 }
 
 void AACCitizen::ChangeClothes()
@@ -734,6 +767,25 @@ void AACCitizen::OnRep_CharacterState()
 	}
 }
 
+void AACCitizen::RegenMoney()
+{
+	MoneyComp->GenerateRandomMoney(500);
+}
+
+void AACCitizen::TryRegenMoneyTimer()
+{
+	if (HasAuthority() == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("AI인데 클라가 실행?"));
+		return;
+	}
+	
+	FTimerDelegate RegenDelegate;
+	RegenDelegate.BindUObject(this, &AACCitizen::RegenMoney);
+	float RegenRate = FMath::FRandRange(RegenRateMin, RegenRateMax);
+	GetWorld()->GetTimerManager().SetTimer(RegenMoneyTimerHandle, RegenDelegate, RegenRate, false);
+}
+
 void AACCitizen::MulticastPlayAttackMontage_Implementation()
 {
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
@@ -863,6 +915,13 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	OnChangeState();
 
 	return SuperDamage;
+}
+
+void AACCitizen::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AC_LOG(LogHY, Warning, TEXT("AACCitizen::EndPlay"));
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 bool AACCitizen::CanInteract(AACCharacter* ACPlayer)

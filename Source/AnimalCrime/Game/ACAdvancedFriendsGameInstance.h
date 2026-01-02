@@ -25,7 +25,7 @@ class ANIMALCRIME_API UACAdvancedFriendsGameInstance : public UAdvancedFriendsGa
 #pragma region 엔진 제공 함수
 public:
 	virtual void Init() override;
-	virtual void Shutdown() override;
+	//virtual void Shutdown() override;
 	virtual void OnStart() override;
 #pragma endregion
 
@@ -39,8 +39,8 @@ public:
 private:
 	void UpdateMap(EMapType InMapType);
 
-	void BeginLoadingScreen(const FString& MapName);
-	void OnSeamlessTravelStart(UWorld* CurrentWorld, const FString& LevelName);
+	//void BeginLoadingScreen(const FString& MapName);
+	//void OnSeamlessTravelStart(UWorld* CurrentWorld, const FString& LevelName);
 
 #pragma endregion
 
@@ -85,22 +85,12 @@ private:
 		@param SessionName    - 삭제된 세션의 이름
 		@param bWasSuccessful - 세션 삭제 성공 여부 (true = 성공, false = 실패)
 	**/
-	UFUNCTION()
-	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
-
-	/**
-		@brief 월드(레벨)가 파괴되거나 전환될 때 호출되는 콜백 함수
-		@param World             - 현재 정리 중인 UWorld 객체
-		@param bSessionEnded     - 게임 세션이 종료되었는지를 나타내는 플래그. true이면 플레이 세션이 종료된 상태, false면 단순 레벨 전환
-		@param bCleanupResources - 월드 관련 리소스를 정리할지 여부를 나타내는 플래그. true이면 월드에 연결된 컴포넌트, Audio, VoIP 등 리소스를 강제로 정리해야함.
-	**/
 	//UFUNCTION()
-	//void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
+	//void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 
-	/**
-		@brief Voice 정리
-	**/
-	//void CleanupVoiceSystem();
+	void CheckServerVoiceCleanup();
+	void CheckFinalStateBeforeTravel();
+
 private:
 	FDelegateHandle OnDestroySessionCompleteHandle;
 
@@ -121,11 +111,18 @@ public:
 	TMap<FUniqueNetIdRepl, EPlayerRole> SavedPlayerRoles;
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Loading")
-	TSubclassOf<UUserWidget> BlackScreenClass;
-
-	bool bVoiceInitialized = false;
-
 	int32 NumClientsReady = 0;
+
+	int32 ServerCleanupPollingAttempts = 0;
+	int32 FinalCheckPollingAttempts = 0;
+	int32 ConsecutiveCleanPolls = 0; // 연속으로 컴포넌트가 없었던 횟수
+	bool bServerVoiceCleaned = false;
+	int32 DoServerTravelRetryCount = 0; // DoServerTravel 재시도 횟수
+
+	static constexpr int32 MaxServerCleanupPollingAttempts = 100; // 최대 1초
+	static constexpr int32 MaxFinalCheckPollingAttempts = 100; // 최대 1초
+	static constexpr int32 RequiredCleanPolls = 20; // 연속 20번(200ms) 깨끗해야 완료
+	static constexpr float ServerPollingInterval = 0.01f; // 10ms
+	static constexpr int32 MaxDoServerTravelRetry = 50; // DoServerTravel 최대 재시도 (500ms)
 };
 

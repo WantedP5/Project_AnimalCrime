@@ -1,5 +1,4 @@
-﻿
-#include "ACCharacter.h"
+﻿#include "ACCharacter.h"
 
 #include "AIController.h"
 #include "Components/CapsuleComponent.h"
@@ -53,19 +52,23 @@ AACCharacter::AACCharacter()
 
 	//스켈레탈 메시
 	USkeletalMeshComponent* MeshComp = GetMesh();
-	MeshComp->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Body_010.SK_Body_010")));
+	MeshComp->SetSkeletalMesh(
+		LoadObject<USkeletalMesh>(
+			nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Body_010.SK_Body_010")));
 	MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	MeshComp->SetReceivesDecals(false);
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(
+		TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
 	if (AnimRef.Succeeded())
 	{
 		MeshComp->SetAnimInstanceClass(AnimRef.Class);
 	}
 
 	HeadMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> HeadMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hat_049.SK_Hat_049"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> HeadMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hat_049.SK_Hat_049"));
 	if (HeadMeshRef.Succeeded() == true)
 	{
 		HeadMesh->SetSkeletalMesh(HeadMeshRef.Object);
@@ -75,9 +78,10 @@ AACCharacter::AACCharacter()
 	HeadMesh->SetupAttachment(RootComponent);
 	HeadMesh->SetLeaderPoseComponent(MeshComp);
 	HeadMesh->SetReceivesDecals(false);
-	
+
 	FaceMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Face"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Male_emotion_usual_001.SK_Male_emotion_usual_001"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Male_emotion_usual_001.SK_Male_emotion_usual_001"));
 	if (FaceMeshRef.Succeeded() == true)
 	{
 		FaceMesh->SetSkeletalMesh(FaceMeshRef.Object);
@@ -89,7 +93,8 @@ AACCharacter::AACCharacter()
 	FaceMesh->SetReceivesDecals(false);
 
 	TopMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Top"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> TopMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Outerwear_036.SK_Outerwear_036"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> TopMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Outerwear_036.SK_Outerwear_036"));
 	if (TopMeshRef.Succeeded() == true)
 	{
 		TopMesh->SetSkeletalMesh(TopMeshRef.Object);
@@ -101,7 +106,8 @@ AACCharacter::AACCharacter()
 	TopMesh->SetReceivesDecals(false);
 
 	BottomMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bottom"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BottomMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Pants_014.SK_Pants_014"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BottomMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Pants_014.SK_Pants_014"));
 	if (BottomMeshRef.Succeeded() == true)
 	{
 		BottomMesh->SetSkeletalMesh(BottomMeshRef.Object);
@@ -113,7 +119,8 @@ AACCharacter::AACCharacter()
 	BottomMesh->SetReceivesDecals(false);
 
 	ShoesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoes"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Shoe_Slippers_005.SK_Shoe_Slippers_005"));
 	if (ShoesMeshRef.Succeeded() == true)
 	{
 		ShoesMesh->SetSkeletalMesh(ShoesMeshRef.Object);
@@ -125,7 +132,8 @@ AACCharacter::AACCharacter()
 	ShoesMesh->SetReceivesDecals(false);
 
 	FaceAccMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FaceAcc"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceAccMeshRef(
+		TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Moustache_002.SK_Moustache_002"));
 	if (FaceAccMeshRef.Succeeded() == true)
 	{
 		FaceAccMesh->SetSkeletalMesh(FaceAccMeshRef.Object);
@@ -150,19 +158,20 @@ AACCharacter::AACCharacter()
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(
+		TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
 	if (MeleeMontageRef.Succeeded())
 	{
 		MeleeMontage = MeleeMontageRef.Object;
 	}
-	
+
 	// ShopComponent 생성
 	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
-	
+
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
 	MoneyComp = CreateDefaultSubobject<UACMoneyComponent>(TEXT("MoneyComponent"));
-	
-	
+
+
 	bReplicates = true;
 }
 
@@ -170,12 +179,12 @@ AACCharacter::AACCharacter()
 void AACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	
+
+
 	CharacterState = ECharacterState::Free;
-	
+
 	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
-    // Police와 Mafia는 각자의 BeginPlay에서 초기화
+	// Police와 Mafia는 각자의 BeginPlay에서 초기화
 	// ※ 얘도 확인 했으면 지워주세요
 	//MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 }
@@ -183,8 +192,21 @@ void AACCharacter::BeginPlay()
 void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(AACCharacter, CharacterState);
+	DOREPLIFETIME(AACCharacter, HeadMeshReal);
+	DOREPLIFETIME(AACCharacter, FaceMeshReal);
+	DOREPLIFETIME(AACCharacter, TopMeshReal);
+	DOREPLIFETIME(AACCharacter, BottomMeshReal);
+	DOREPLIFETIME(AACCharacter, ShoesMeshReal);
+	DOREPLIFETIME(AACCharacter, FaceAccMeshReal);
+}
+
+void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AC_LOG(LogHY, Warning, TEXT("AACCharacter::EndPlay %s"), *GetName());
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
@@ -319,7 +341,6 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 		ServerInteract(CurrentHoldTarget);
 		InteractReleased();
 	}
-
 }
 
 void AACCharacter::InteractReleased()
@@ -349,14 +370,14 @@ void AACCharacter::Attack()
 {
 	if (CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::Prison)
 	{
-		return ;
+		return;
 	}
 	// 현재 공격 중인지 확인. 
 	if (CheckProcessAttack() == true)
 	{
 		return;
 	}
-	
+
 	// Listen Server에 존재하는 클라이언트 경우
 	if (HasAuthority())
 	{
@@ -383,6 +404,159 @@ void AACCharacter::SettingsClose()
 	}
 }
 
+void AACCharacter::ServerDash_Implementation()
+{
+	if (GetWorldTimerManager().IsTimerActive(DashTimerHandle) == true)
+	{
+		AC_LOG(LogHY, Error, TEXT("Dash Timer is already active"));
+		return;
+	}
+
+	FVector ForwardDir = GetActorForwardVector();
+
+	FVector LaunchVel = ForwardDir * 1000 + FVector(0.f, 0.f, 500.f);
+	LaunchCharacter(LaunchVel, true, false);
+	FTimerDelegate TimerDelegate;
+	bDashCoolDown = false;
+	TimerDelegate.BindUObject(this, &AACCharacter::ResetDashFlag);
+	GetWorld()->GetTimerManager().SetTimer(DashTimerHandle, TimerDelegate, 10, false);
+}
+
+void AACCharacter::ResetDashFlag()
+{
+	bDashCoolDown = true;
+}
+
+void AACCharacter::Sprint(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
+	{
+		if (SprintGauge > 0)
+		{
+			ServerSprintStart();
+		}
+	}
+	else
+	{
+		ServerSprintEnd();
+	}
+}
+
+void AACCharacter::ServerSprintStart_Implementation()
+{
+	if (bSprint == true)
+	{
+		return;
+	}
+
+	// Delete Guage Up 
+	GetWorld()->GetTimerManager().ClearTimer(SprintGaugeUpTimerHandle);
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACCharacter::GaugeDown);
+
+	GetWorld()->GetTimerManager().SetTimer(SprintGaugeDownTimerHandle,
+	                                       TimerDelegate,
+	                                       1, true);
+
+
+	bSprint = true;
+	// AC_LOG(LogHY, Error, TEXT("ServerSprintStart_Implementation %d"), bSprint);
+	OnRep_Sprint();
+}
+
+void AACCharacter::ServerSprintEnd_Implementation()
+{
+	// if (bSprint == false)
+	// {
+	// 	return;
+	// }
+	// Delete Guage Down 
+	GetWorld()->GetTimerManager().ClearTimer(SprintGaugeDownTimerHandle);
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AACCharacter::GaugeUp);
+
+	GetWorld()->GetTimerManager().SetTimer(SprintGaugeUpTimerHandle,
+	                                       TimerDelegate,
+	                                       1, true);
+
+
+	bSprint = false;
+	OnRep_Sprint();
+}
+
+// void AACCharacter::ServerSprint_Implementation()
+// {
+// 	// // bSprint = !bSprint;
+// 	// if (bSprint == false)
+// 	// {
+// 	// 	bSprint = true;
+// 	// }
+// 	// else
+// 	// {
+// 	// 	bSprint = false;
+// 	// }
+// 	// OnRep_Sprint();
+// }
+
+void AACCharacter::ResetSprint()
+{
+	bSprint = false;
+}
+
+void AACCharacter::OnRep_Sprint()
+{
+	if (bSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 1200;
+		// AC_LOG(LogHY, Warning, TEXT("Sprint is active %f"), GetCharacterMovement()->MaxWalkSpeed);
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 600;
+		// AC_LOG(LogHY, Warning, TEXT("Sprint is deactive %f"), GetCharacterMovement()->MaxWalkSpeed);
+	}
+}
+
+void AACCharacter::GaugeUp()
+{
+	SprintGauge += 1;
+	// AC_LOG(LogHY, Warning, TEXT("Gauge Up: %d"), SprintGauge);
+	if (SprintGauge > 10)
+	{
+		SprintGauge = 10;
+		// Todo
+	}
+}
+
+void AACCharacter::GaugeDown()
+{
+	SprintGauge -= 1;
+	// AC_LOG(LogHY, Warning, TEXT("Gauge Down: %d"), SprintGauge);
+	if (SprintGauge <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(SprintGaugeDownTimerHandle);
+		bSprint = false;
+		OnRep_Sprint();
+	}
+}
+
+void AACCharacter::Dash(const FInputActionValue& Value)
+{
+	bool Flag = Value.Get<bool>();
+	AC_LOG(LogHY, Error, TEXT("Try Dash!! %d"), Flag);
+
+	if (Flag == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("Dash Input False"));
+		return;
+	}
+
+	// Client가 Server에게 대쉬 요청
+	ServerDash();
+}
+
 void AACCharacter::Jump()
 {
 	// Case 스턴 상태일 경우 
@@ -390,13 +564,13 @@ void AACCharacter::Jump()
 	{
 		return;
 	}
-	
+
 	// Case 감옥 상태일 경우 
 	if (CharacterState == ECharacterState::Prison)
 	{
 		return;
 	}
-	
+
 	Super::Jump();
 }
 
@@ -469,7 +643,7 @@ void AACCharacter::AttackHitCheck()
 	//
 	// // 시작 위치 = 캐릭터 위치
 	// FVector Start = GetActorLocation();
- //                
+	//                
 	// // 끝 위치 = 캐릭터 앞 방향 * 거리
 	// FVector Forward = GetActorForwardVector();
 	// FVector End = Start + Forward * TraceDistance;
@@ -560,13 +734,13 @@ bool AACCharacter::SortNearInteractables()
 		return true;
 	}
 
-	const FVector PlayerLocation  = GetActorLocation();
+	const FVector PlayerLocation = GetActorLocation();
 	NearInteractables.Sort([PlayerLocation](const AActor& A, const AActor& B)
-		{
-			float DistA = FVector::DistSquared(PlayerLocation, A.GetActorLocation());
-			float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
-			return DistA < DistB;
-		});
+	{
+		float DistA = FVector::DistSquared(PlayerLocation, A.GetActorLocation());
+		float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
+		return DistA < DistB;
+	});
 
 	return true;
 }
@@ -579,19 +753,25 @@ void AACCharacter::OnRep_CharacterState()
 	//}		
 
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this is Invalid"));
+		return;
+	}
+
 	if (MoveComp == nullptr)
 	{
 		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
 		return;
 	}
-	
+
 	AC_LOG(LogHY, Error, TEXT("CharacterType:%d name:%s"), CharacterState, *GetName());
 
 	switch (CharacterState)
 	{
 	case ECharacterState::Interact:
 		{
-			MoveComp->SetMovementMode(MOVE_None);
+			// MoveComp->SetMovementMode(MOVE_None);
 			break;
 		}
 	case ECharacterState::Stun:
@@ -602,14 +782,14 @@ void AACCharacter::OnRep_CharacterState()
 		}
 	case ECharacterState::Free:
 		{
-			MoveComp->SetMovementMode(MOVE_Walking);
+			// MoveComp->SetMovementMode(MOVE_Walking);
 			if (GetCharacterType() == EACCharacterType::Police)
 			{
-				MoveComp->MaxWalkSpeed = 500.0f;  // 경찰
+				MoveComp->MaxWalkSpeed = 500.0f; // 경찰
 			}
 			else
 			{
-				MoveComp->MaxWalkSpeed = 300.0f;  // 마피아/시민
+				MoveComp->MaxWalkSpeed = 300.0f; // 마피아/시민
 			}
 			MoveComp->JumpZVelocity = 500.0f;
 			break;
@@ -620,7 +800,6 @@ void AACCharacter::OnRep_CharacterState()
 			break;
 		}
 	}
-	
 }
 
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
@@ -722,4 +901,52 @@ void AACCharacter::ServerFreezeCharacter_Implementation(ACharacter* Target, bool
 EACCharacterType AACCharacter::GetCharacterType()
 {
 	return EACCharacterType::Citizen;
+}
+
+void AACCharacter::OnRep_HeadMesh() const
+{
+	if (HeadMesh)
+	{
+		UpdateHeadMesh();
+	}
+}
+
+void AACCharacter::OnRep_FaceMesh() const
+{
+	if (FaceMesh)
+	{
+		UpdateFaceMesh();
+	}
+}
+
+void AACCharacter::OnRep_TopMesh() const
+{
+	if (TopMesh)
+	{
+		UpdateTopMesh();
+	}
+}
+
+void AACCharacter::OnRep_BottomMesh() const
+{
+	if (BottomMesh)
+	{
+		UpdateBottomMesh();
+	}
+}
+
+void AACCharacter::OnRep_ShoesMesh() const
+{
+	if (ShoesMesh)
+	{
+		UpdateShoesMesh();
+	}
+}
+
+void AACCharacter::OnRep_FaceAccMesh() const
+{
+	if (FaceAccMesh)
+	{
+		UpdateFaceAccMesh();
+	}
 }

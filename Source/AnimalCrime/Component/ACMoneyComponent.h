@@ -49,6 +49,9 @@ public:
 	UFUNCTION()
 	void OnRep_MoneyData();
 	
+public:
+	void GenerateRandomMoney(int32 InMaxMoney);
+	
 private:
 	// 1. Mafia 세팅
 	void InitMafiaSetting();
@@ -60,7 +63,6 @@ private:
 	void InitCitizenSetting();
 	
 	void InitMoney(int32 InMoney);
-	void GenerateRandomMoney(int32 InMaxMoney);
 	
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_MoneyData, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
