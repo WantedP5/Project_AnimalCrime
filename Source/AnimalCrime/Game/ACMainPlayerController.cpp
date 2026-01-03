@@ -181,7 +181,7 @@ void AACMainPlayerController::BeginPlay()
 	}
 
 	// 거리 기반 Voice 타이머 시작
-	//StartProximityVoiceTimer();
+	StartProximityVoiceTimer();
 
 	ACHUDWidget = CreateWidget<UACHUDWidget>(this, ACHUDWidgetClass);
 	if (ACHUDWidget == nullptr)
@@ -958,9 +958,16 @@ void AACMainPlayerController::StopProximityVoiceTimer()
 
 void AACMainPlayerController::UpdateProximityVoice()
 {
+	// 월드 유효성 검사 (맵 이동 중 크래시 방지)
+	UWorld* World = GetWorld();
+	if (World == nullptr || World->bIsTearingDown)
+	{
+		return;
+	}
+
 	// 내 폰 가져오기
 	APawn* MyPawn = GetPawn();
-	if (MyPawn == nullptr)
+	if (MyPawn == nullptr || !IsValid(MyPawn))
 	{
 		return;
 	}
@@ -973,8 +980,8 @@ void AACMainPlayerController::UpdateProximityVoice()
 	}
 
 	// GameState 가져오기
-	AGameStateBase* GameState = GetWorld()->GetGameState();
-	if (GameState == nullptr)
+	AGameStateBase* GameState = World->GetGameState();
+	if (GameState == nullptr || !IsValid(GameState))
 	{
 		return;
 	}
@@ -992,7 +999,7 @@ void AACMainPlayerController::UpdateProximityVoice()
 
 		// 상대방 폰 가져오기
 		APawn* OtherPawn = PS->GetPawn();
-		if (OtherPawn == nullptr)
+		if (OtherPawn == nullptr || !IsValid(OtherPawn))
 		{
 			continue;
 		}
