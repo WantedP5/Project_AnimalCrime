@@ -17,7 +17,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Component/ACInteractableComponent.h"
-
+#include "ACCharacterAnimInstance.h"
 #include "AnimalCrime.h"
 
 #include "Component/ACShopComponent.h"
@@ -61,7 +61,7 @@ AACCharacter::AACCharacter()
 	MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	MeshComp->SetReceivesDecals(false);
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(
+	static ConstructorHelpers::FClassFinder<UACCharacterAnimInstance> AnimRef(
 		TEXT("/Script/Engine.AnimBlueprint'/Game/Project/Character/ABP_ACPlayer.ABP_ACPlayer_C'"));
 	if (AnimRef.Succeeded())
 	{
@@ -160,6 +160,7 @@ AACCharacter::AACCharacter()
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
+	// 애니메이션 몽타주
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageRef(
 		TEXT("/Game/Project/Character/AM_Melee.AM_Melee"));
 	if (MeleeMontageRef.Succeeded())
@@ -467,8 +468,8 @@ void AACCharacter::ServerSprintStart_Implementation()
 	TimerDelegate.BindUObject(this, &AACCharacter::GaugeDown);
 
 	GetWorld()->GetTimerManager().SetTimer(SprintGaugeDownTimerHandle,
-	                                       TimerDelegate,
-	                                       1, true);
+		TimerDelegate,
+		1, true);
 
 
 	bSprint = true;
@@ -489,8 +490,8 @@ void AACCharacter::ServerSprintEnd_Implementation()
 	TimerDelegate.BindUObject(this, &AACCharacter::GaugeUp);
 
 	GetWorld()->GetTimerManager().SetTimer(SprintGaugeUpTimerHandle,
-	                                       TimerDelegate,
-	                                       1, true);
+		TimerDelegate,
+		1, true);
 
 
 	bSprint = false;
@@ -693,6 +694,34 @@ void AACCharacter::AttackHitCheck()
 	// }
 }
 
+void AACCharacter::SetCarryState(bool bPlay)
+{
+	if (HasAuthority())
+	{
+		Multicast_SetCarryState(bPlay);
+	}
+	else
+	{
+		Server_SetCarryState(bPlay);
+	}
+}
+
+void AACCharacter::Server_SetCarryState_Implementation(bool bPlay)
+{
+	Multicast_SetCarryState(bPlay);
+}
+
+void AACCharacter::Multicast_SetCarryState_Implementation(bool bPlay)
+{
+	UACCharacterAnimInstance* Anim = Cast<UACCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Anim == nullptr)
+	{
+		return;
+	}
+
+	Anim->SetIsCarrying(bPlay);
+}
+
 bool AACCharacter::CanInteract(AACCharacter* ACPlayer)
 {
 	if (ACPlayer == nullptr)
@@ -747,11 +776,11 @@ bool AACCharacter::SortNearInteractables()
 
 	const FVector PlayerLocation = GetActorLocation();
 	NearInteractables.Sort([PlayerLocation](const AActor& A, const AActor& B)
-	{
-		float DistA = FVector::DistSquared(PlayerLocation, A.GetActorLocation());
-		float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
-		return DistA < DistB;
-	});
+		{
+			float DistA = FVector::DistSquared(PlayerLocation, A.GetActorLocation());
+			float DistB = FVector::DistSquared(PlayerLocation, B.GetActorLocation());
+			return DistA < DistB;
+		});
 
 	return true;
 }
@@ -781,35 +810,35 @@ void AACCharacter::OnRep_CharacterState()
 	switch (CharacterState)
 	{
 	case ECharacterState::Interact:
-		{
-			// MoveComp->SetMovementMode(MOVE_None);
-			break;
-		}
+	{
+		// MoveComp->SetMovementMode(MOVE_None);
+		break;
+	}
 	case ECharacterState::Stun:
-		{
-			MoveComp->MaxWalkSpeed = 10.f;
-			MoveComp->JumpZVelocity = 0.f;
-			break;
-		}
+	{
+		MoveComp->MaxWalkSpeed = 10.f;
+		MoveComp->JumpZVelocity = 0.f;
+		break;
+	}
 	case ECharacterState::Free:
+	{
+		// MoveComp->SetMovementMode(MOVE_Walking);
+		if (GetCharacterType() == EACCharacterType::Police)
 		{
-			// MoveComp->SetMovementMode(MOVE_Walking);
-			if (GetCharacterType() == EACCharacterType::Police)
-			{
-				MoveComp->MaxWalkSpeed = 500.0f; // 경찰
-			}
-			else
-			{
-				MoveComp->MaxWalkSpeed = 300.0f; // 마피아/시민
-			}
-			MoveComp->JumpZVelocity = 500.0f;
-			break;
+			MoveComp->MaxWalkSpeed = 500.0f; // 경찰
 		}
+		else
+		{
+			MoveComp->MaxWalkSpeed = 300.0f; // 마피아/시민
+		}
+		MoveComp->JumpZVelocity = 500.0f;
+		break;
+	}
 	case ECharacterState::OnDamage:
-		{
-			MoveComp->MaxWalkSpeed = 600.0f;
-			break;
-		}
+	{
+		MoveComp->MaxWalkSpeed = 600.0f;
+		break;
+	}
 	}
 }
 

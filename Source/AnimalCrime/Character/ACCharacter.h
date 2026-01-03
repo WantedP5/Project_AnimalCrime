@@ -15,10 +15,10 @@ class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterf
 
 public:
 	AACCharacter();
- /**
-     @brief  캐릭터 정보를 반환하는 함수. 캐릭터 베이스는 시민.
-     @retval  - 캐릭터 정보 Enum
- **/
+	/**
+		@brief  캐릭터 정보를 반환하는 함수. 캐릭터 베이스는 시민.
+		@retval  - 캐릭터 정보 Enum
+	**/
 	virtual EACCharacterType GetCharacterType();
 
 protected:
@@ -46,7 +46,7 @@ public:
 	//virtual void SettingsClose(const FInputActionValue& Value);
 	virtual void Jump() override;
 	virtual void SettingsClose();
-	
+
 
 	// 클라이언트 Input을 받는 함수
 	void Dash(const FInputActionValue& Value);
@@ -54,25 +54,25 @@ public:
 	// 서버에 Dash 요청 함수
 	UFUNCTION(Server, Reliable)
 	void ServerDash();
-	
+
 	// 쿨타임 시 Flag 되돌리는 함수.
 	void ResetDashFlag();
-	
-	
+
+
 	// 클라이언트 Input을 받는 함수
 	void Sprint(const FInputActionValue& Value);
 
 	// 서버에 Dash 요청 함수
 	UFUNCTION(Server, Reliable)
 	void ServerSprintStart();
-	
+
 	// 서버에 Dash 요청 함수
 	UFUNCTION(Server, Reliable)
 	void ServerSprintEnd();
-	
+
 	// 쿨타임 시 Flag 되돌리는 함수.
 	void ResetSprint();
-	
+
 protected:
 
 	UFUNCTION(Server, Reliable)
@@ -95,7 +95,7 @@ public:
 	void ChangeAttackTrue();
 	UFUNCTION(BlueprintCallable)
 	void ChangeAttackFalse();
-	
+
 
 public:
 	// TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
@@ -124,65 +124,65 @@ protected:
 	// TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	// TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> HeadMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> FaceMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> TopMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> BottomMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> ShoesMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class USkeletalMeshComponent> FaceAccMesh;
 
-	UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_HeadMesh)
 	TObjectPtr<class USkeletalMesh> HeadMeshReal;
 
-	UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_FaceMesh)
 	TObjectPtr<class USkeletalMesh> FaceMeshReal;
 
-	UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_TopMesh)
 	TObjectPtr<class USkeletalMesh> TopMeshReal;
 
-	UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_BottomMesh)
 	TObjectPtr<class USkeletalMesh> BottomMeshReal;
 
-	UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_ShoesMesh)
 	TObjectPtr<class USkeletalMesh> ShoesMeshReal;
 
-	UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
+	UPROPERTY(ReplicatedUsing = OnRep_FaceAccMesh)
 	TObjectPtr<class USkeletalMesh> FaceAccMeshReal;
 
-	#pragma region 매시 Get/Set
+#pragma region 매시 Get/Set
 public:
-	FORCEINLINE USkeletalMesh* GetHeadMeshT()		const { return HeadMeshReal;}
-	FORCEINLINE USkeletalMesh* GetFaceMeshT()		const {	return FaceMeshReal;}
-	FORCEINLINE USkeletalMesh* GetTopMeshT()			const {	return TopMeshReal;}
-	FORCEINLINE USkeletalMesh* GetBottomMeshT()		const {	return BottomMeshReal;}
-	FORCEINLINE USkeletalMesh* GetShoesMeshT()		const {	return ShoesMeshReal;}
-	FORCEINLINE USkeletalMesh* GetFaceAccMeshT()		const {	return FaceAccMeshReal;}
+	FORCEINLINE USkeletalMesh* GetHeadMeshT()		const { return HeadMeshReal; }
+	FORCEINLINE USkeletalMesh* GetFaceMeshT()		const { return FaceMeshReal; }
+	FORCEINLINE USkeletalMesh* GetTopMeshT()			const { return TopMeshReal; }
+	FORCEINLINE USkeletalMesh* GetBottomMeshT()		const { return BottomMeshReal; }
+	FORCEINLINE USkeletalMesh* GetShoesMeshT()		const { return ShoesMeshReal; }
+	FORCEINLINE USkeletalMesh* GetFaceAccMeshT()		const { return FaceAccMeshReal; }
 
-	FORCEINLINE void UpdateHeadMesh()		const {	HeadMesh->SetSkeletalMesh(HeadMeshReal);	}
-	FORCEINLINE void UpdateFaceMesh()		const {	FaceMesh->SetSkeletalMesh(FaceMeshReal);	}
-	FORCEINLINE void UpdateTopMesh()		const {	TopMesh->SetSkeletalMesh(TopMeshReal);	}
-	FORCEINLINE void UpdateBottomMesh()		const {	BottomMesh->SetSkeletalMesh(BottomMeshReal);	}
-	FORCEINLINE void UpdateShoesMesh()		const {	ShoesMesh->SetSkeletalMesh(ShoesMeshReal);	}
-	FORCEINLINE void UpdateFaceAccMesh()	const {	FaceAccMesh->SetSkeletalMesh(FaceAccMeshReal);	}
+	FORCEINLINE void UpdateHeadMesh()		const { HeadMesh->SetSkeletalMesh(HeadMeshReal); }
+	FORCEINLINE void UpdateFaceMesh()		const { FaceMesh->SetSkeletalMesh(FaceMeshReal); }
+	FORCEINLINE void UpdateTopMesh()		const { TopMesh->SetSkeletalMesh(TopMeshReal); }
+	FORCEINLINE void UpdateBottomMesh()		const { BottomMesh->SetSkeletalMesh(BottomMeshReal); }
+	FORCEINLINE void UpdateShoesMesh()		const { ShoesMesh->SetSkeletalMesh(ShoesMeshReal); }
+	FORCEINLINE void UpdateFaceAccMesh()	const { FaceAccMesh->SetSkeletalMesh(FaceAccMeshReal); }
 
-	FORCEINLINE void SetHeadMesh(USkeletalMesh* InMesh)			 {  HeadMeshReal = InMesh;}
-	FORCEINLINE void SetFaceMesh(USkeletalMesh* InMesh)			 {	FaceMeshReal = InMesh;}
-	FORCEINLINE void SetTopMesh(USkeletalMesh* InMesh)			 {	TopMeshReal = InMesh;}
-	FORCEINLINE void SetBottomMesh(USkeletalMesh* InMesh)		 {	BottomMeshReal = InMesh;}
-	FORCEINLINE void SetShoesMesh(USkeletalMesh* InMesh)		 {	ShoesMeshReal = InMesh;}
-	FORCEINLINE void SetFaceAccMesh(USkeletalMesh* InMesh)		 {	FaceAccMeshReal = InMesh;}
+	FORCEINLINE void SetHeadMesh(USkeletalMesh* InMesh) { HeadMeshReal = InMesh; }
+	FORCEINLINE void SetFaceMesh(USkeletalMesh* InMesh) { FaceMeshReal = InMesh; }
+	FORCEINLINE void SetTopMesh(USkeletalMesh* InMesh) { TopMeshReal = InMesh; }
+	FORCEINLINE void SetBottomMesh(USkeletalMesh* InMesh) { BottomMeshReal = InMesh; }
+	FORCEINLINE void SetShoesMesh(USkeletalMesh* InMesh) { ShoesMeshReal = InMesh; }
+	FORCEINLINE void SetFaceAccMesh(USkeletalMesh* InMesh) { FaceAccMeshReal = InMesh; }
 #pragma endregion
 public:
 	UFUNCTION()
@@ -202,7 +202,7 @@ public:
 
 	UFUNCTION()
 	void OnRep_FaceAccMesh() const;
-	
+
 protected:
 	//!< 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -228,8 +228,26 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
-	
-	
+
+ /**
+     @brief 캐릭터의 Carry 상태를 설정하는 진입 함수.
+		호출한 주체가 서버인지 클라이언트인지에 따라 내부적으로 Server RPC 또는 Multicast RPC를 호출하여 모든 플레이어에게 애니메이션이 동기화되도록 처리한다.
+ **/
+	UFUNCTION(BlueprintCallable)
+	void SetCarryState(bool bPlay);
+
+ /**
+     @brief 클라이언트가 서버에게 Carry 상태 변경을 요청하기 위한 RPC 함수.
+ **/
+	UFUNCTION(Server, Reliable)
+	void Server_SetCarryState(bool bPlay);
+
+ /**
+     @brief 서버에서 호출되어 모든 클라이언트에게 Carry 상태 변경을 전파하는 RPC 함수.
+ **/
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetCarryState(bool bPlay);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
 	TObjectPtr<class UACMoneyComponent> MoneyComp;
 
@@ -258,15 +276,15 @@ private:
 	**/
 	bool SortNearInteractables();
 
- /**
-     @brief 홀드 상호작용 관련 멤버변수를 모두 초기화
- **/
+	/**
+		@brief 홀드 상호작용 관련 멤버변수를 모두 초기화
+	**/
 	void ResetHoldInteract();
 
- /**
-     @brief  홀드 상호작용의 UI에 사용될 진행도
-     @retval  - 진행도를 0.0~1.0 사이의 값으로 반환
- **/
+	/**
+		@brief  홀드 상호작용의 UI에 사용될 진행도
+		@retval  - 진행도를 0.0~1.0 사이의 값으로 반환
+	**/
 	float GetHoldProgress() const;
 
 
@@ -286,57 +304,57 @@ private:
 
 
 	// ===== 상점 관련 =====
-  protected:
-	  // 상점 컴포넌트는 유지 (아이템 장착 로직이 있으므로)
-	  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
-	  TObjectPtr<class UACShopComponent> ShopComponent;
+protected:
+	// 상점 컴포넌트는 유지 (아이템 장착 로직이 있으므로)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
+	TObjectPtr<class UACShopComponent> ShopComponent;
 
 	UFUNCTION()
 	void OnRep_CharacterState();
 public:
 	void SetCharacterState(ECharacterState InCharacterState);
-  protected:
+protected:
 	ESettingMode SettingMode = ESettingMode::None;
-	
+
 	FTimerHandle TimerHandle;
-	
-	
+
+
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
-	
+
 
 protected: // Dash 전용 맴버 변수
 	FTimerHandle DashTimerHandle;
 
 	UPROPERTY(Replicated)
 	uint8 bDashCoolDown = true;
-	
-	
+
+
 protected: // Sprint 전용 맴버 변수
 	UPROPERTY(ReplicatedUsing = OnRep_Sprint)
 	uint8 bSprint : 1 = false;
-	
+
 	UFUNCTION()
 	void OnRep_Sprint();
-	
-	
+
+
 	UFUNCTION()
 	void GaugeUp();
-	
+
 	UFUNCTION()
 	void GaugeDown();
-	
+
 	FTimerHandle SprintGaugeDownTimerHandle;
 	FTimerHandle SprintGaugeUpTimerHandle;
-	
+
 	UPROPERTY(Replicated)
 	int32 SprintGauge = 10;
-	
+
 protected:
-	UPROPERTY(Replicated,EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	TObjectPtr<class UACDestroyableStatComponent> Stat;
 
-// 사운드 관련
+	// 사운드 관련
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> BatSwingSound;

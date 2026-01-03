@@ -265,11 +265,11 @@ void AACMafiaCharacter::ServerItemDrop_Implementation()
 {
 	if (HandBomb != nullptr)
 	{
-		//참조 해제
-		HandBomb->AttachedCharacter = nullptr;
-
 		//캐릭터에서 폭탄 분리
 		HandBomb->DetachFromCharacter();
+
+		//참조 해제
+		HandBomb->AttachedCharacter = nullptr;
 
 		// Impulse 적용은 서버가 직접 해야 하므로 여기서 처리
 		//UStaticMeshComponent* MeshComp = HandBomb->GetBombMeshComp();

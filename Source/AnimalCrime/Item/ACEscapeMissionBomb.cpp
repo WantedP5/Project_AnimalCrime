@@ -107,6 +107,9 @@ void AACEscapeMissionBomb::AttachToCharacter()
 			TEXT("CarryingSpine")
 		);
 
+		//캐릭터에게 CarryState 설정 요청
+		AttachedCharacter->SetCarryState(true);
+
 		AC_LOG(LogSY, Log, TEXT("Bomb Attach to Character"));
 	}
 }
@@ -120,6 +123,13 @@ void AACEscapeMissionBomb::DetachFromCharacter()
 	//BombMeshComp->SetSimulatePhysics(true);
 	SetReplicateMovement(true);
 	SetActorEnableCollision(true);
+
+	//캐릭터에게 CarryState 해제 요청
+	if (AttachedCharacter == nullptr)
+	{
+		return;
+	}
+	AttachedCharacter->SetCarryState(false);
 
 	AC_LOG(LogSY, Log, TEXT("Bomb Detach to Character"));
 }
