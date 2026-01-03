@@ -85,7 +85,7 @@ void AACMainGameState::RemoveSpectatablePawn(APawn* Pawn)
 	}
 }
 
-TArray<TObjectPtr<class AACPlayerState>> AACMainGameState::GetPlayersByState(ECharacterState CharacterState) const
+TArray<TObjectPtr<class AACPlayerState>> AACMainGameState::GetPlayersByLocation(ECharacterLocation CharacterLocation) const
 {
 	TArray<TObjectPtr<AACPlayerState>> Result;
 
@@ -97,8 +97,8 @@ TArray<TObjectPtr<class AACPlayerState>> AACMainGameState::GetPlayersByState(ECh
 			continue;
 		}
 
-		//찾는 State와 같으면 배열에 추가
-		if (ACPS->CharacterState == CharacterState)
+		//찾는 Location와 같으면 배열에 추가
+		if (ACPS->CharacterLocation == CharacterLocation)
 		{
 			Result.Add(ACPS);
 		}

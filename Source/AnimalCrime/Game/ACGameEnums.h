@@ -57,9 +57,17 @@ enum class ECharacterState : uint8
 	Free,		
 	OnDamage,
 	Interact,
-	Escape,
 	Angry,
 	Stun,
 	Prison,
 	MAX_COUNT
+};
+
+// 캐릭터 위치 상태
+UENUM(BlueprintType)
+enum class ECharacterLocation : uint8
+{
+	None,
+	Prison,
+	Escape
 };

@@ -55,11 +55,11 @@ public:
 
 public:
  /**
-     @brief  PlayerArray에서 지정한 CharacterState을 가진 플레이어들의 PlayerState 목록을 반환한다.
+     @brief  PlayerArray에서 지정한 CharacterLocation을 가진 플레이어들의 PlayerState 목록을 반환한다.
      @param  Role - 조회할 플레이어의 역할
-     @retval      - 지정한 CharacterState에 해당하는 AACPlayerState들의 배열
+     @retval      - 지정한 CharacterLocation에 해당하는 AACPlayerState들의 배열
  **/
-	TArray<TObjectPtr<class AACPlayerState>> GetPlayersByState(ECharacterState CharacterState) const;
+	TArray<TObjectPtr<class AACPlayerState>> GetPlayersByLocation(ECharacterLocation CharacterLocation) const;
 
 #pragma region GameRuleManager와 동기화 및 테스트 함수
 public:

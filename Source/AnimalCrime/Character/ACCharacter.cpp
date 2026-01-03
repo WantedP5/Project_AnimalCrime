@@ -805,17 +805,6 @@ void AACCharacter::OnRep_CharacterState()
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
 	CharacterState = InCharacterState;
-
-	// PlayerState도 동기화
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
-		if (PS)
-		{
-			PS->CharacterState = InCharacterState;
-		}
-	}
 }
 
 void AACCharacter::ResetHoldInteract()

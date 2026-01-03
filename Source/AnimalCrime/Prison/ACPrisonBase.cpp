@@ -9,6 +9,7 @@
 #include "Components/BoxComponent.h"
 #include "Game/ACMainGameMode.h"
 #include "Game/ACGameRuleManager.h"
+#include "Game/ACPlayerState.h"
 
 AACPrisonBase::AACPrisonBase()
 {
@@ -186,6 +187,21 @@ void AACPrisonBase::Imprison(AACCharacter* Character, bool bForced)
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("%s 투옥!"), *Character->GetName()));
 
 	Character->SetCharacterState(ECharacterState::Prison);
+
+	// PlayerState의 Location을 Prison으로 상태 변경
+	APlayerController* PC = Cast<APlayerController>(Character->GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+	PS->CharacterLocation = ECharacterLocation::Prison;
+
 	if (HasAuthority())
 	{
 		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
@@ -199,7 +215,7 @@ void AACPrisonBase::Imprison(AACCharacter* Character, bool bForced)
 		}
 
 		GM->GetGameRuleManager()->CheckGameEndCondition();
-		
+
 	}
 }
 
@@ -236,7 +252,7 @@ void AACPrisonBase::UpdatePrisoners()
 		{
 			continue;
 		}
-		
+
 		// 이미 수감자는 처리 안해줌
 		if (Prisoners.Contains(Character) == true)
 		{

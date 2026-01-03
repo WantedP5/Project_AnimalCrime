@@ -25,8 +25,7 @@ public:
 	UPROPERTY(Replicated)
 	EPlayerRole PlayerRole = EPlayerRole::Police;
 
-	//!< 플레이어 상태
+	//!< 플레이어 위치 상태
 	UPROPERTY(Replicated)
-	ECharacterState CharacterState = ECharacterState::Free;
-
+	ECharacterLocation CharacterLocation = ECharacterLocation::None;
 };

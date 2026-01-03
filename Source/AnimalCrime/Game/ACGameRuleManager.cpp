@@ -124,11 +124,11 @@ void UACGameRuleManager::CheckGameEndCondition()
 		{
 			++MafiaNum;
 		}
-		if (ACPS->CharacterState == ECharacterState::Prison)
+		if (ACPS->CharacterLocation == ECharacterLocation::Prison)
 		{
 			++PrisonNum;
 		}
-		else if (ACPS->CharacterState == ECharacterState::Escape)
+		else if (ACPS->CharacterLocation == ECharacterLocation::Escape)
 		{
 			++EscapeNum;
 		}

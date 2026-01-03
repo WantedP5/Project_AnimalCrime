@@ -9,7 +9,7 @@ void AACPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AACPlayerState, PlayerRole);
-	DOREPLIFETIME(AACPlayerState, CharacterState);
+	DOREPLIFETIME(AACPlayerState, CharacterLocation);
 }
 
 void AACPlayerState::EnterSpectatorState()
@@ -22,7 +22,7 @@ void AACPlayerState::EnterSpectatorState()
 	//관전 상태로 전환
 	SetIsSpectator(true); 
 
-	CharacterState = ECharacterState::Escape;
+	CharacterLocation = ECharacterLocation::Escape;
 
 	if (HasAuthority() == false)
 	{
