@@ -232,6 +232,20 @@ void AACPrisonBase::Release(AACCharacter* Character)
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan, FString::Printf(TEXT("%s 탈옥!"), *Character->GetName()));
 
 	Character->SetCharacterState(ECharacterState::Free);
+
+	// PlayerState의 Location을 None으로 상태 변경
+	APlayerController* PC = Cast<APlayerController>(Character->GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+	PS->CharacterLocation = ECharacterLocation::None;
 }
 
 void AACPrisonBase::UpdatePrisoners()
