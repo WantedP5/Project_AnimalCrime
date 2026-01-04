@@ -34,6 +34,7 @@
 #include "Game/ACPlayerState.h"
 
 #include "Sound/SoundBase.h"
+#include "Net/VoiceConfig.h"
 
 AACCharacter::AACCharacter()
 {
@@ -185,6 +186,15 @@ AACCharacter::AACCharacter()
 	{
 		BatSwingSound = BatSwingSoundRef.Object;
 	}
+
+	// VOIPTalker 생성
+	VOIPTalker = CreateDefaultSubobject<UVOIPTalker>(TEXT("VOIPTalker"));
+
+	static ConstructorHelpers::FObjectFinder<USoundAttenuation> AttenuationRef(TEXT("/Game/Project/Sound/SA_VOIP.SA_VOIP"));
+	if (AttenuationRef.Succeeded())
+	{
+		VoiceAttenuation = AttenuationRef.Object;
+	}
 }
 
 
@@ -199,6 +209,52 @@ void AACCharacter::BeginPlay()
 	// Police와 Mafia는 각자의 BeginPlay에서 초기화
 	// ※ 얘도 확인 했으면 지워주세요
 	//MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+
+	// VOIPTalker 초기화 (다른 플레이어 캐릭터에만 적용)
+	if (IsLocallyControlled())
+	{
+		return;
+	}
+
+	TryRegisterVOIPTalker();
+
+}
+
+void AACCharacter::TryRegisterVOIPTalker()
+{
+	if (VOIPTalker == nullptr)
+	{
+		AC_LOG(LogSY, Error, TEXT("VOIPTalker is nullptr in %s"), *GetName());
+		return;
+	}
+
+	APlayerState* PS = GetPlayerState();
+	if (PS == nullptr)
+	{
+		// PlayerState가 아직 없으면 타이머로 재시도
+		GetWorld()->GetTimerManager().SetTimer(
+			VOIPTalkerTimerHandle,
+			this,
+			&AACCharacter::TryRegisterVOIPTalker,
+			0.1f,
+			false
+		);
+		return;
+	}
+
+	// 타이머 정리
+	GetWorld()->GetTimerManager().ClearTimer(VOIPTalkerTimerHandle);
+
+	if (VoiceAttenuation == nullptr)
+	{
+		AC_LOG(LogSY, Warning, TEXT("VoiceAttenuation is nullptr in %s"), *GetName());
+	}
+
+	VOIPTalker->Settings.AttenuationSettings = VoiceAttenuation;
+	VOIPTalker->Settings.ComponentToAttachTo = GetRootComponent();
+	VOIPTalker->RegisterWithPlayerState(PS);
+
+	AC_LOG(LogSY, Log, TEXT("VOIPTalker registered for %s"), *GetName());
 }
 
 void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

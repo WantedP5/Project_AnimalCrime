@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Interface/ACInteractInterface.h"
+#include "Net/VoiceConfig.h"
 #include "ACCharacter.generated.h"
 
 UCLASS()
@@ -358,4 +359,16 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> BatSwingSound;
+
+	// VOIP 관련
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VOIP")
+	TObjectPtr<class UVOIPTalker> VOIPTalker;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VOIP")
+	TObjectPtr<class USoundAttenuation> VoiceAttenuation;
+
+	void TryRegisterVOIPTalker();
+
+	FTimerHandle VOIPTalkerTimerHandle;
 };
