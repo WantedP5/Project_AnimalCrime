@@ -10,7 +10,8 @@ AACLobbyCharacter::AACLobbyCharacter()
 	HeadMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Creative_Characters_FREE/Skeleton_Meshes/SK_Hat_057.SK_Hat_057")));
 
 	//로비에서는 라디오 모드
-	bHasRadio = true;
+	VoiceGroup = EVoiceGroup::Lobby;
+	//bHasRadio = true;
 }
 
 void AACLobbyCharacter::SetSteamFriendsList()

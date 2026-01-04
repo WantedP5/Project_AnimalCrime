@@ -40,13 +40,15 @@ enum class EPlayerRole : uint8
 	Observer		UMETA(DisplayName = "Observer"),	// 관전자
 };
 
-//보이스 모드
+//보이스 그룹
 UENUM(BlueprintType)
-enum class EVoiceMode : uint8
+enum class EVoiceGroup : uint8
 {
-	None			UMETA(DisplayName = "None"),		// None
-	Positional		UMETA(DisplayName = "Positional"),	// Positional
-	Radio			UMETA(DisplayName = "Radio"),		// Radio
+	None	UMETA(DisplayName = "None"),	// None
+	Lobby	UMETA(DisplayName = "Lobby"),	// Lobby
+	Police	UMETA(DisplayName = "Police"),	// Police
+	Mafia	UMETA(DisplayName = "Mafia"),	// Mafia
+	Escape	UMETA(DisplayName = "Escape"),	// Escape
 };
 
 // 캐릭터 상태

@@ -254,19 +254,34 @@ public:
 			로컬 플레이어의 무전기 상태가 변경되면 모든 캐릭터의 VOIP 설정을 업데이트하고,
 			다른 캐릭터의 무전기 상태가 변경되면 해당 캐릭터의 VOIP 설정만 업데이트한다.
 	**/
+	//UFUNCTION()
+	//void OnRep_HasRadio();
+
+ /**
+		@brief brief VoiceGroup이 리플리케이트될 때 호출되는 함수.
+			로컬 플레이어의 무전기 상태가 변경되면 모든 캐릭터의 VOIP 설정을 업데이트하고,
+			다른 캐릭터의 무전기 상태가 변경되면 해당 캐릭터의 VOIP 설정만 업데이트한다.
+ **/
 	UFUNCTION()
-	void OnRep_HasRadio();
+	void OnRep_VoiceGroup();
 
 public:
 	/**
 		@brief 무전기 보유 상태를 설정하는 함수.
 		@param bNewHasRadio - true면 무전기 보유, false면 미보유
 	**/
-	UFUNCTION(BlueprintCallable, Category = "VOIP")
-	void SetHasRadio(bool bNewHasRadio);
+	//UFUNCTION(BlueprintCallable, Category = "VOIP")
+	//void SetHasRadio(bool bNewHasRadio);
 
+	//UFUNCTION(BlueprintCallable, Category = "VOIP")
+	//bool GetHasRadio() const { return bHasRadio; }
+
+	/**
+		@brief 무전기 보유 상태를 설정하는 함수.
+		@param NewVoiceGroup - 새로운 무전기 그룹 Enum
+	**/
 	UFUNCTION(BlueprintCallable, Category = "VOIP")
-	bool GetHasRadio() const { return bHasRadio; }
+	void SetVoiceGroupp(EVoiceGroup NewVoiceGroup);
 
 	/**
 		@brief 로컬 플레이어의 무전기 상태에 따라 모든 다른 캐릭터들의 VOIPTalker Attenuation을 업데이트하는 함수.
@@ -320,9 +335,9 @@ private:
 	float GetHoldProgress() const;
 
 protected:
- /**
-	 @brief VOIPTalker 등록 시도 함수. 타이머로 주기적으로 호출되어 VOIPTalker가 생성될 때까지 시도함.
- **/
+	/**
+		@brief VOIPTalker 등록 시도 함수. 타이머로 주기적으로 호출되어 VOIPTalker가 생성될 때까지 시도함.
+	**/
 	void TryRegisterVOIPTalker();
 
 public:
@@ -408,8 +423,13 @@ protected:
 
 	FTimerHandle VOIPTalkerTimerHandle;
 
-protected:
-	//!< 무전기 보유 여부. 양쪽 다 무전기가 있으면 거리에 상관없이 음성이 들림.
-	UPROPERTY(ReplicatedUsing = OnRep_HasRadio, BlueprintReadWrite, Category = "VOIP")
-	uint8 bHasRadio : 1 = false;
+	//protected:
+	//	//!< 무전기 보유 여부. 양쪽 다 무전기가 있으면 거리에 상관없이 음성이 들림.
+	//	UPROPERTY(ReplicatedUsing = OnRep_HasRadio, BlueprintReadWrite, Category = "VOIP")
+	//	uint8 bHasRadio : 1 = false;
+
+public:
+	//!< 무전기 그룹, 양쪽 다 같은 무전기 그룹에 있으면 거리에 상관없이 음성이 들림.
+	UPROPERTY(ReplicatedUsing = OnRep_VoiceGroup, BlueprintReadWrite, Category = "VOIP")
+	EVoiceGroup VoiceGroup = EVoiceGroup::None;
 };

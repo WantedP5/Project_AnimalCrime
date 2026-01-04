@@ -256,15 +256,28 @@ void AACCharacter::TryRegisterVOIPTalker()
 	// Register 전에 무전기 상태에 따라 Attenuation 결정
 	bool bDisableAttenuation = false;
 	APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
-	if (LocalPC)
+	if (LocalPC != nullptr)
 	{
+		AC_LOG(LogSY, Warning, TEXT("Local PlayerController is nullptr"));
+
 		AACCharacter* LocalChar = Cast<AACCharacter>(LocalPC->GetPawn());
-		if (LocalChar && LocalChar->GetHasRadio() && bHasRadio)
+		if (LocalChar != nullptr)
 		{
-			// 양쪽 다 무전기 있으면 Attenuation 제거
-			bDisableAttenuation = true;
-			AC_LOG(LogSY, Log, TEXT("VOIPTalker Attenuation disabled for %s (Radio mode)"), *GetName());
+			if (VoiceGroup != EVoiceGroup::None && VoiceGroup == LocalChar->VoiceGroup)
+			{
+				// 양쪽 다 무전기 있으면서 같은 무전기 그룹이면 Attenuation 제거
+				bDisableAttenuation = true;
+				AC_LOG(LogSY, Log, TEXT("VOIPTalker Attenuation disabled for %s (Radio mode)"), *GetName());
+			}
 		}
+		else
+		{
+			AC_LOG(LogSY, Warning, TEXT("Local PlayerCharacter is nullptr"));
+		}
+	}
+	else
+	{
+		AC_LOG(LogSY, Warning, TEXT("Local PlayerController is nullptr"));
 	}
 
 	VOIPTalker->Settings.AttenuationSettings = bDisableAttenuation ? nullptr : VoiceAttenuation;
@@ -284,7 +297,8 @@ void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AACCharacter, BottomMeshReal);
 	DOREPLIFETIME(AACCharacter, ShoesMeshReal);
 	DOREPLIFETIME(AACCharacter, FaceAccMeshReal);
-	DOREPLIFETIME(AACCharacter, bHasRadio);
+	//DOREPLIFETIME(AACCharacter, bHasRadio);
+	DOREPLIFETIME(AACCharacter, VoiceGroup);
 }
 
 void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -307,7 +321,7 @@ void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	// VOIPTalker 정리 (fallback). 맵 이동시에는 미리 정리함. 이건 강제 종료 시 정리용.
 	CleanupVOIPTalker();
-	
+
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 	Super::EndPlay(EndPlayReason);
 }
@@ -1109,24 +1123,49 @@ void AACCharacter::OnRep_FaceAccMesh() const
 	}
 }
 
-void AACCharacter::SetHasRadio(bool bNewHasRadio)
-{
-	if (bHasRadio == bNewHasRadio)
-	{
-		return;
-	}
+//void AACCharacter::SetHasRadio(bool bNewHasRadio)
+//{
+//	if (bHasRadio == bNewHasRadio)
+//	{
+//		return;
+//	}
+//
+//	bHasRadio = bNewHasRadio;
+//
+//	// 클라이언트들 → 자동으로 OnRep 호출됨
+//	// 서버(Listen Server 호스트) → 수동 호출 필요
+//	if (HasAuthority() == true)
+//	{
+//		OnRep_HasRadio();
+//	}
+//}
 
-	bHasRadio = bNewHasRadio;
+//void AACCharacter::OnRep_HasRadio()
+//{
+//	// 로컬 플레이어 캐릭터가 무전기 상태 변경 시 모든 다른 캐릭터의 VOIP 설정 업데이트
+//	if (IsLocallyControlled() == true)
+//	{
+//		UpdateRadioVoiceSettings();
+//	}
+//	else
+//	{
+//		// 다른 캐릭터의 무전기 상태가 변경됨 → 로컬 플레이어가 무전기 있으면 해당 캐릭터 VOIP 업데이트
+//		APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
+//		if (LocalPC == nullptr)
+//		{
+//			return;
+//		}
+//
+//		AACCharacter* LocalChar = Cast<AACCharacter>(LocalPC->GetPawn());
+//		if (LocalChar != nullptr && LocalChar->GetHasRadio() == true)
+//		{
+//			// 나(로컬)도 무전기 있고, 상대도 무전기 있으면 Attenuation 제거
+//			SetVOIPAttenuation(!bHasRadio);
+//		}
+//	}
+//}
 
-	// 클라이언트들 → 자동으로 OnRep 호출됨
-	// 서버(Listen Server 호스트) → 수동 호출 필요
-	if (HasAuthority() == true)
-	{
-		OnRep_HasRadio();
-	}
-}
-
-void AACCharacter::OnRep_HasRadio()
+void AACCharacter::OnRep_VoiceGroup()
 {
 	// 로컬 플레이어 캐릭터가 무전기 상태 변경 시 모든 다른 캐릭터의 VOIP 설정 업데이트
 	if (IsLocallyControlled() == true)
@@ -1143,11 +1182,33 @@ void AACCharacter::OnRep_HasRadio()
 		}
 
 		AACCharacter* LocalChar = Cast<AACCharacter>(LocalPC->GetPawn());
-		if (LocalChar != nullptr && LocalChar->GetHasRadio() == true)
+		if (LocalChar == nullptr)
 		{
-			// 나(로컬)도 무전기 있고, 상대도 무전기 있으면 Attenuation 제거
-			SetVOIPAttenuation(!bHasRadio);
+			return;
 		}
+
+		if (VoiceGroup != EVoiceGroup::None && LocalChar->VoiceGroup == VoiceGroup)
+		{
+			// 나(로컬)도 무전기 있고, 상대도 무전기 있으면서 같은 무전기 그룹이면 Attenuation 제거
+			SetVOIPAttenuation(false);
+		}
+	}
+}
+
+void AACCharacter::SetVoiceGroupp(EVoiceGroup NewVoiceGroup)
+{
+	if (VoiceGroup == NewVoiceGroup)
+	{
+		return;
+	}
+
+	VoiceGroup = NewVoiceGroup;
+
+	// 클라이언트들 → 자동으로 OnRep 호출됨
+	// 서버(Listen Server 호스트) → 수동 호출 필요
+	if (HasAuthority() == true)
+	{
+		OnRep_VoiceGroup();
 	}
 }
 
@@ -1168,9 +1229,17 @@ void AACCharacter::UpdateRadioVoiceSettings()
 			continue;
 		}
 
-		// 나도 무전기 있고 상대도 무전기 있으면 → Attenuation 제거
-		bool bBothHaveRadio = bHasRadio && OtherChar->GetHasRadio();
-		OtherChar->SetVOIPAttenuation(!bBothHaveRadio);
+		// 나도 무전기 있고 상대도 무전기 있으면서 같은 그룹이면 → Attenuation 제거
+		if (VoiceGroup != EVoiceGroup::None && VoiceGroup == OtherChar->VoiceGroup)
+		{
+			OtherChar->SetVOIPAttenuation(false);
+		}
+		else
+		{
+			OtherChar->SetVOIPAttenuation(true);
+		}
+		//bool bBothHaveRadio = bHasRadio && OtherChar->GetHasRadio();
+		//OtherChar->SetVOIPAttenuation(!bBothHaveRadio);
 	}
 }
 
