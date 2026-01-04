@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+// todo: 액터 전용 로그라서 그 외 클래스에서는 사용 불가
 
 // Local Role.
 #define LOG_SUBLOCALROLEINFO \
