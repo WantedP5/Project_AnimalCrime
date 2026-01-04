@@ -35,6 +35,7 @@
 
 #include "Sound/SoundBase.h"
 #include "Net/VoiceConfig.h"
+#include "EngineUtils.h"
 
 AACCharacter::AACCharacter()
 {
@@ -250,11 +251,26 @@ void AACCharacter::TryRegisterVOIPTalker()
 		AC_LOG(LogSY, Warning, TEXT("VoiceAttenuation is nullptr in %s"), *GetName());
 	}
 
-	VOIPTalker->Settings.AttenuationSettings = VoiceAttenuation;
 	VOIPTalker->Settings.ComponentToAttachTo = GetRootComponent();
+
+	// Register 전에 무전기 상태에 따라 Attenuation 결정
+	bool bDisableAttenuation = false;
+	APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
+	if (LocalPC)
+	{
+		AACCharacter* LocalChar = Cast<AACCharacter>(LocalPC->GetPawn());
+		if (LocalChar && LocalChar->GetHasRadio() && bHasRadio)
+		{
+			// 양쪽 다 무전기 있으면 Attenuation 제거
+			bDisableAttenuation = true;
+			AC_LOG(LogSY, Log, TEXT("VOIPTalker Attenuation disabled for %s (Radio mode)"), *GetName());
+		}
+	}
+
+	VOIPTalker->Settings.AttenuationSettings = bDisableAttenuation ? nullptr : VoiceAttenuation;
 	VOIPTalker->RegisterWithPlayerState(PS);
 
-	AC_LOG(LogSY, Log, TEXT("VOIPTalker registered for %s"), *GetName());
+	AC_LOG(LogSY, Log, TEXT("VOIPTalker registered for %s, Attenuation: %s"), *GetName(), VOIPTalker->Settings.AttenuationSettings ? TEXT("Enabled") : TEXT("Disabled"));
 }
 
 void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -268,11 +284,30 @@ void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AACCharacter, BottomMeshReal);
 	DOREPLIFETIME(AACCharacter, ShoesMeshReal);
 	DOREPLIFETIME(AACCharacter, FaceAccMeshReal);
+	DOREPLIFETIME(AACCharacter, bHasRadio);
 }
 
 void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	AC_LOG(LogHY, Warning, TEXT("AACCharacter::EndPlay %s"), *GetName());
+
+	// VOIPTalker 정리 (맵 이동 시 VoipListenerSynthComponent 정리를 위해)
+	// DestroyComponent() 사용 금지 - 오디오 스레드가 비동기로 참조 중일 수 있음
+	//if (VOIPTalker != nullptr)
+	//{
+	//	APlayerState* PS = GetPlayerState();
+	//	if (PS != nullptr)
+	//	{
+	//		UVOIPStatics::ResetPlayerVoiceTalker(PS);
+	//	}
+	//	// DestroyComponent() 대신 Deactivate만 하고 GC에 맡김
+	//	VOIPTalker->Deactivate();
+	//	VOIPTalker = nullptr;
+	//}
+
+	// VOIPTalker 정리 (fallback). 맵 이동시에는 미리 정리함. 이건 강제 종료 시 정리용.
+	CleanupVOIPTalker();
+	
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 	Super::EndPlay(EndPlayReason);
 }
@@ -933,6 +968,32 @@ float AACCharacter::GetHoldProgress() const
 	return FMath::Clamp(CurrentHoldTime / RequiredHoldTime, 0.f, 1.f);
 }
 
+void AACCharacter::CleanupVOIPTalker()
+{
+	if (VOIPTalker == nullptr)
+	{
+		return;  // 이미 정리됨
+	}
+
+	AC_LOG(LogSY, Log, TEXT("CleanupVOIPTalker - Character: %s"), *GetName());
+
+	// PlayerState를 통해 VoiceTalker 리셋
+	APlayerState* PS = GetPlayerState();
+	if (PS == nullptr)
+	{
+		AC_LOG(LogSY, Warning, TEXT("PlayerState is nullptr"));
+		return;
+	}
+
+	UVOIPStatics::ResetPlayerVoiceTalker(PS);
+
+	// Deactivate만 하고 GC에 맡김 (오디오 스레드 안전)
+	VOIPTalker->Deactivate();
+	VOIPTalker = nullptr;
+
+	AC_LOG(LogSY, Log, TEXT("  - VOIPTalker deactivated"));
+}
+
 void AACCharacter::MulticastPlayAttackMontage_Implementation()
 {
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
@@ -1045,5 +1106,87 @@ void AACCharacter::OnRep_FaceAccMesh() const
 	if (FaceAccMesh)
 	{
 		UpdateFaceAccMesh();
+	}
+}
+
+void AACCharacter::SetHasRadio(bool bNewHasRadio)
+{
+	if (bHasRadio == bNewHasRadio)
+	{
+		return;
+	}
+
+	bHasRadio = bNewHasRadio;
+
+	// 클라이언트들 → 자동으로 OnRep 호출됨
+	// 서버(Listen Server 호스트) → 수동 호출 필요
+	if (HasAuthority() == true)
+	{
+		OnRep_HasRadio();
+	}
+}
+
+void AACCharacter::OnRep_HasRadio()
+{
+	// 로컬 플레이어 캐릭터가 무전기 상태 변경 시 모든 다른 캐릭터의 VOIP 설정 업데이트
+	if (IsLocallyControlled() == true)
+	{
+		UpdateRadioVoiceSettings();
+	}
+	else
+	{
+		// 다른 캐릭터의 무전기 상태가 변경됨 → 로컬 플레이어가 무전기 있으면 해당 캐릭터 VOIP 업데이트
+		APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
+		if (LocalPC == nullptr)
+		{
+			return;
+		}
+
+		AACCharacter* LocalChar = Cast<AACCharacter>(LocalPC->GetPawn());
+		if (LocalChar != nullptr && LocalChar->GetHasRadio() == true)
+		{
+			// 나(로컬)도 무전기 있고, 상대도 무전기 있으면 Attenuation 제거
+			SetVOIPAttenuation(!bHasRadio);
+		}
+	}
+}
+
+void AACCharacter::UpdateRadioVoiceSettings()
+{
+	// 로컬 플레이어만 호출
+	if (IsLocallyControlled() == false)
+	{
+		return;
+	}
+
+	// 모든 ACCharacter를 순회하며 VOIP 설정 업데이트
+	for (TActorIterator<AACCharacter> It(GetWorld()); It; ++It)
+	{
+		AACCharacter* OtherChar = *It;
+		if (OtherChar == this)
+		{
+			continue;
+		}
+
+		// 나도 무전기 있고 상대도 무전기 있으면 → Attenuation 제거
+		bool bBothHaveRadio = bHasRadio && OtherChar->GetHasRadio();
+		OtherChar->SetVOIPAttenuation(!bBothHaveRadio);
+	}
+}
+
+void AACCharacter::SetVOIPAttenuation(bool bUseAttenuation)
+{
+	if (VOIPTalker == nullptr)
+	{
+		return;
+	}
+
+	if (bUseAttenuation == true)
+	{
+		VOIPTalker->Settings.AttenuationSettings = VoiceAttenuation;
+	}
+	else
+	{
+		VOIPTalker->Settings.AttenuationSettings = nullptr;
 	}
 }

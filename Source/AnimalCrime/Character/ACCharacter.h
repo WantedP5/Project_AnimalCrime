@@ -230,24 +230,55 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
 
- /**
-     @brief 캐릭터의 Carry 상태를 설정하는 진입 함수.
-		호출한 주체가 서버인지 클라이언트인지에 따라 내부적으로 Server RPC 또는 Multicast RPC를 호출하여 모든 플레이어에게 애니메이션이 동기화되도록 처리한다.
- **/
+	/**
+		@brief 캐릭터의 Carry 상태를 설정하는 진입 함수.
+		   호출한 주체가 서버인지 클라이언트인지에 따라 내부적으로 Server RPC 또는 Multicast RPC를 호출하여 모든 플레이어에게 애니메이션이 동기화되도록 처리한다.
+	**/
 	UFUNCTION(BlueprintCallable)
 	void SetCarryState(bool bPlay);
 
- /**
-     @brief 클라이언트가 서버에게 Carry 상태 변경을 요청하기 위한 RPC 함수.
- **/
+	/**
+		@brief 클라이언트가 서버에게 Carry 상태 변경을 요청하기 위한 RPC 함수.
+	**/
 	UFUNCTION(Server, Reliable)
 	void Server_SetCarryState(bool bPlay);
 
- /**
-     @brief 서버에서 호출되어 모든 클라이언트에게 Carry 상태 변경을 전파하는 RPC 함수.
- **/
+	/**
+		@brief 서버에서 호출되어 모든 클라이언트에게 Carry 상태 변경을 전파하는 RPC 함수.
+	**/
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetCarryState(bool bPlay);
+
+	/**
+		@brief brief bHasRadio가 리플리케이트될 때 호출되는 함수.
+			로컬 플레이어의 무전기 상태가 변경되면 모든 캐릭터의 VOIP 설정을 업데이트하고,
+			다른 캐릭터의 무전기 상태가 변경되면 해당 캐릭터의 VOIP 설정만 업데이트한다.
+	**/
+	UFUNCTION()
+	void OnRep_HasRadio();
+
+public:
+	/**
+		@brief 무전기 보유 상태를 설정하는 함수.
+		@param bNewHasRadio - true면 무전기 보유, false면 미보유
+	**/
+	UFUNCTION(BlueprintCallable, Category = "VOIP")
+	void SetHasRadio(bool bNewHasRadio);
+
+	UFUNCTION(BlueprintCallable, Category = "VOIP")
+	bool GetHasRadio() const { return bHasRadio; }
+
+	/**
+		@brief 로컬 플레이어의 무전기 상태에 따라 모든 다른 캐릭터들의 VOIPTalker Attenuation을 업데이트하는 함수.
+			양쪽 다 무전기가 있으면 Attenuation을 제거하여 거리에 상관없이 음성이 들리게 한다.
+	**/
+	void UpdateRadioVoiceSettings();
+
+	/**
+		@brief 다른 캐릭터의 VOIPTalker Attenuation 설정 (로컬에서만 호출)
+		@param bUseAttenuation - true면 거리 감쇠 적용, false면 감쇠 없음 (거리 무관)
+	**/
+	void SetVOIPAttenuation(bool bUseAttenuation);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
 	TObjectPtr<class UACMoneyComponent> MoneyComp;
@@ -288,9 +319,16 @@ private:
 	**/
 	float GetHoldProgress() const;
 
+protected:
+ /**
+	 @brief VOIPTalker 등록 시도 함수. 타이머로 주기적으로 호출되어 VOIPTalker가 생성될 때까지 시도함.
+ **/
+	void TryRegisterVOIPTalker();
 
-	//!< 상호작용 멤버변수
 public:
+	// VOIPTalker 정리 함수
+	void CleanupVOIPTalker();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
@@ -361,14 +399,17 @@ protected:
 	TObjectPtr<USoundBase> BatSwingSound;
 
 	// VOIP 관련
-protected:
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VOIP")
 	TObjectPtr<class UVOIPTalker> VOIPTalker;
-
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VOIP")
 	TObjectPtr<class USoundAttenuation> VoiceAttenuation;
 
-	void TryRegisterVOIPTalker();
-
 	FTimerHandle VOIPTalkerTimerHandle;
+
+protected:
+	//!< 무전기 보유 여부. 양쪽 다 무전기가 있으면 거리에 상관없이 음성이 들림.
+	UPROPERTY(ReplicatedUsing = OnRep_HasRadio, BlueprintReadWrite, Category = "VOIP")
+	uint8 bHasRadio : 1 = false;
 };

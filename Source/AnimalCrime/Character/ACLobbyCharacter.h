@@ -14,6 +14,7 @@ class ANIMALCRIME_API AACLobbyCharacter : public AACCharacter
 public:
 	AACLobbyCharacter();
 
+public:
 	// ===== 입력 핸들러 (PlayerController가 호출) =====
 	virtual void SetSteamFriendsList();
 	virtual void SettingsClose() override;
