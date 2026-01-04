@@ -12,6 +12,7 @@
 #include "Character/ACCitizen.h"
 #include "Character/ACMafiaCharacter.h"
 #include "Character/ACPoliceCharacter.h"
+#include "Character/ACBlackMarketDealer.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "ACGameEnums.h"
@@ -330,7 +331,20 @@ void AACMainGameMode::SpawnAllAI()
 
 		FTransform Transform(Pos);
 		Transform.SetRotation(Rot.Quaternion());
-		AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform,nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+		AACCitizen* NewAI = nullptr;
+
+		// 첫 번째는 BlackMarketDealer로 스폰
+		if (i == 0 && BlackMarketDealerBPClass != nullptr)
+		{
+			NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(BlackMarketDealerBPClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		}
+		else
+		{
+			NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		}
+
+		//AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform,nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		
 		if (NewAI)
 		{
