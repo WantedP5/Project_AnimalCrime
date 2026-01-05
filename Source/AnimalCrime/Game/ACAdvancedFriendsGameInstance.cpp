@@ -16,6 +16,7 @@
 #include "MoviePlayer.h"
 #include "Blueprint/UserWidget.h"
 #include "VoipListenerSynthComponent.h"
+#include "RenderingThread.h"
 
 #pragma region 엔진 제공 함수
 void UACAdvancedFriendsGameInstance::Init()
@@ -106,6 +107,13 @@ void UACAdvancedFriendsGameInstance::UpdateMap(const EMapType InMapType)
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		UE_LOG(LogSY, Log, TEXT("=== Server Voice 먼저 중지 시작 ==="));
+		// ★ 1. 오디오 컨텍스트 중단 (가장 먼저 수행)
+		// 이 시점부터 새로운 사운드 컴포넌트가 등록되거나 재생되는 것이 차단됩니다.
+		if (FAudioDeviceHandle AudioDeviceHandle = GetWorld()->GetAudioDevice())
+		{
+			AudioDeviceHandle->SuspendContext();
+			UE_LOG(LogSY, Log, TEXT("Server Audio Device Suspended"));
+		}
 
 		IOnlineVoicePtr Voice = Online::GetVoiceInterface();
 		if (Voice.IsValid())

@@ -6,6 +6,7 @@
 #include "Character/ACCharacter.h"
 #include "VoipListenerSynthComponent.h"
 #include "GameFramework/GameStateBase.h"
+#include "RenderingThread.h"
 
 void AACPlayerControllerBase::Client_CleanupVoiceBeforeTravel_Implementation()
 {
@@ -24,6 +25,13 @@ void AACPlayerControllerBase::Client_CleanupVoiceBeforeTravel_Implementation()
 		AC_LOG(LogSY, Log, TEXT("PIE detected - skip voice cleanup"));
 		Server_NotifyVoiceCleaned();
 		return;
+	}
+
+	// ★ 클라이언트 자신의 오디오 장치 중단
+	if (FAudioDeviceHandle AudioDeviceHandle = World->GetAudioDevice())
+	{
+		AudioDeviceHandle->SuspendContext();
+		AC_LOG(LogSY, Log, TEXT("Client Audio Device Suspended"));
 	}
 
 	// 각 플레이어 캐릭터의 VOIPTalker 정리

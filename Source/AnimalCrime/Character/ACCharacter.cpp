@@ -269,6 +269,10 @@ void AACCharacter::TryRegisterVOIPTalker()
 				bDisableAttenuation = true;
 				AC_LOG(LogSY, Log, TEXT("VOIPTalker Attenuation disabled for %s (Radio mode)"), *GetName());
 			}
+			else
+			{
+				AC_LOG(LogSY, Log, TEXT("VOIPTalker Attenuation enabled for %s (Normal mode)"), *GetName());
+			}
 		}
 		else
 		{
