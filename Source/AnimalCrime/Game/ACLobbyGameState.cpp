@@ -3,6 +3,7 @@
 #include "Game/ACLobbyPlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/ACLobbyCharacter.h"
 
 #include "AnimalCrime.h"
 void AACLobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -12,6 +13,7 @@ void AACLobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AACLobbyGameState, ReadyPlayerCount);
 	DOREPLIFETIME(AACLobbyGameState, AllPlayerCount);
 	DOREPLIFETIME(AACLobbyGameState, ReadyPlayerArray);
+	DOREPLIFETIME(AACLobbyGameState, HostPlayerState);
 }
 
 void AACLobbyGameState::AddPlayerState(APlayerState* PlayerState)
@@ -26,6 +28,7 @@ void AACLobbyGameState::AddPlayerState(APlayerState* PlayerState)
 	if (HasAuthority() == true && IsHostPlayer(PlayerState) == true)
 	{
 		ReadyPlayerArray.AddUnique(PlayerState); //AddUnique는 중복없이 하나만 추가해주는 함수
+		HostPlayerState = PlayerState;
 	}
 
 	UpdateReadyPlayer();
@@ -64,6 +67,7 @@ void AACLobbyGameState::UpdateReadyPlayer()
 	if (HasAuthority())
 	{
 		OnRep_PlayerCount(); //리슨서버의 서버는 자동으로 OnRep_PlayerCount()이 호출안된다. 수동으로 호출
+		OnRep_ReadyPlayerArray();
 	}
 }
 
@@ -115,5 +119,30 @@ bool AACLobbyGameState::IsPlayerReady(const APlayerState* PlayerState) const
 void AACLobbyGameState::OnRep_PlayerCount()
 {
 	ReadyPlayerCount = ReadyPlayerArray.Num();
+	OnPlayerCountChanged.Broadcast(ReadyPlayerCount, AllPlayerCount);
+}
+
+void AACLobbyGameState::OnRep_ReadyPlayerArray()
+{
+	// ReadyPlayerCount 업데이트
+	ReadyPlayerCount = ReadyPlayerArray.Num();
+
+	// 모든 플레이어의 HeadInfo 아이콘 업데이트
+	for (APlayerState* PS : PlayerArray)
+	{
+		if (PS == nullptr)
+		{
+			continue;
+		}
+
+		AACLobbyCharacter* LobbyChar = Cast<AACLobbyCharacter>(PS->GetPawn());
+		if (LobbyChar == nullptr)
+		{
+			continue;
+		}
+		LobbyChar->UpdateHeadInfoIcon();
+	}
+
+	// UI 브로드캐스트
 	OnPlayerCountChanged.Broadcast(ReadyPlayerCount, AllPlayerCount);
 }

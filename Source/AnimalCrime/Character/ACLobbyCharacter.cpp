@@ -48,6 +48,7 @@ void AACLobbyCharacter::PossessedBy(AController* NewController)
 
 	UpdateHeadInfoName();
 
+	UpdateHeadInfoIcon();
 }
 
 void AACLobbyCharacter::OnRep_PlayerState()
@@ -56,6 +57,7 @@ void AACLobbyCharacter::OnRep_PlayerState()
 
 	UpdateHeadInfoName();
 
+	UpdateHeadInfoIcon();
 }
 
 void AACLobbyCharacter::SetSteamFriendsList()
@@ -153,7 +155,7 @@ void AACLobbyCharacter::UpdateHeadInfoIcon()
 	}
 
 	// 호스트 확인
-	if (GS->IsHostPlayer(PS) == true)
+	if (GS->GetHostPlayerState() == PS)
 	{
 		HeadInfoWidget->SetReadyIcon(ELobbyPlayerState::Host);
 	}

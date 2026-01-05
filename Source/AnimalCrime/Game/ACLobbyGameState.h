@@ -53,12 +53,15 @@ public:
 	UFUNCTION()
 	void OnRep_PlayerCount();
 
+	UFUNCTION()
+	void OnRep_ReadyPlayerArray();
+
 	UPROPERTY()
 	FOnPlayerCountChanged OnPlayerCountChanged;
 
 	FORCEINLINE int32 GetAllPlayerCount() { return AllPlayerCount; }
 	FORCEINLINE int32 GetReadyPlayerCount() { return ReadyPlayerCount; }
-
+	FORCEINLINE APlayerState* GetHostPlayerState() const { return HostPlayerState; }
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerCount)
 	int32 AllPlayerCount = 0;
@@ -66,6 +69,10 @@ protected:
 	int32 ReadyPlayerCount = 0;
 
 protected:
-	UPROPERTY(ReplicatedUsing = OnRep_PlayerCount)
+	UPROPERTY(ReplicatedUsing = OnRep_ReadyPlayerArray)
 	TArray<TObjectPtr<APlayerState>> ReadyPlayerArray;
+
+protected:
+	UPROPERTY(Replicated)
+	TObjectPtr<APlayerState> HostPlayerState;
 };
