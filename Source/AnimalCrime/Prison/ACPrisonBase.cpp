@@ -81,37 +81,8 @@ void AACPrisonBase::OnRep_DoorOpen()
 	BP_OnDoorStateChanged(bDoorOpen);
 }
 
-bool AACPrisonBase::CanInteract(AACCharacter* ACPlayer)
+void AACPrisonBase::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	if (ACPlayer == nullptr)
-	{
-		return false;
-	}
-
-	// 문이 이미 열려있으면 상호작용 불가
-	if (bDoorOpen == true)
-	{
-		return false;
-	}
-
-	if (ACPlayer->GetCharacterType() == EACCharacterType::Mafia)
-	{
-		return true;
-	}
-
-	// todo: 추후에 문 수리 로직
-	else if (ACPlayer->GetCharacterType() == EACCharacterType::Police)
-	{
-		return false;
-	}
-
-	return false;
-}
-
-void AACPrisonBase::OnInteract(AACCharacter* ACPlayer)
-{
-	//ShowInteractDebug(ACPlayer, GetName());
-
 	// 서버에서만 문 열기
 	if (HasAuthority() == true)
 	{
@@ -161,12 +132,6 @@ void AACPrisonBase::CloseDoor()
 
 	// 타이머 클리어
 	GetWorldTimerManager().ClearTimer(DoorTimerHandle);
-}
-
-// todo: 추후에 경찰은 문의 피통 한칸당 5초로 수리?
-float AACPrisonBase::GetRequiredHoldTime() const
-{
-	return 10.0f;
 }
 
 EACInteractorType AACPrisonBase::GetInteractorType() const

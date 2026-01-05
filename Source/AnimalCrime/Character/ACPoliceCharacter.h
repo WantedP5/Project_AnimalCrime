@@ -40,10 +40,8 @@ public:
 	 */
 	void ChangeSalary(float InTimeRate);
 
-public:
 protected:
-	virtual bool CanInteract(AACCharacter* ACPlayer) override;
-	virtual void OnInteract(AACCharacter* ACPlayer) override;
+	virtual void OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
 protected:

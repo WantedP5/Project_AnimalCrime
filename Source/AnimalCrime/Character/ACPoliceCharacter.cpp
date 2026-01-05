@@ -147,15 +147,8 @@ void AACPoliceCharacter::ChangeSalary(float InTimeRate)
 	GetWorld()->GetTimerManager().SetTimer(SalaryTimerHandle, TimerDelegate, TimeRate, true);
 }
 
-bool AACPoliceCharacter::CanInteract(AACCharacter* ACPlayer)
+void AACPoliceCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	// 경찰끼리도 소통 가능?
-	return true;
-}
-
-void AACPoliceCharacter::OnInteract(AACCharacter* ACPlayer)
-{
-	//ShowInteractDebug(ACPlayer, GetName());
 }
 
 EACInteractorType AACPoliceCharacter::GetInteractorType() const
