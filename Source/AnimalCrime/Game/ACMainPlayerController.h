@@ -46,6 +46,9 @@ protected:
 
 	// ===== 퀵슬롯 관련 (하나의 핸들러로 통합) =====
 	void HandleQuickSlot(const struct FInputActionValue& Value);
+
+	// ===== 핸드폰 관련 =====
+	void HandlePhone(const struct FInputActionValue& Value);
 public:
 	/**
 		@brief 입력 모드 변경 (기본 입력 ↔ 설정 메뉴 입력)
@@ -99,6 +102,20 @@ public:
 	void ShowInteractProgress(const FString& TargetName);
 	void UpdateInteractProgress(float Progress);
 	void HideInteractProgress();
+
+	// ===== 핸드폰 관련 =====
+public:
+	UFUNCTION()
+	void ClosePhone();
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Phone")
+	TSubclassOf<class UUserWidget> PhoneWidgetClass;
+
+private:
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> CurrentPhoneWidget;
+	
 
 
 	// ===== 게임 시작시 역할 UI=====
@@ -167,6 +184,10 @@ protected:
 	// ===== 퀵슬롯 관련 (하나만) =====
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> QuickSlotAction;
+
+	// ===== 핸드폰 관련 =====
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> PhoneAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputMappingContext> SettingsMappingContext;

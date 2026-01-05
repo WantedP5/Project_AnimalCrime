@@ -140,6 +140,18 @@ AACMainPlayerController::AACMainPlayerController()
 		SpectatorChangeAction = SpectatorChangeActionRef.Object;
 	}
 
+	// ===== 핸드폰 관련 로드 =====
+	static ConstructorHelpers::FObjectFinder<UInputAction> PhoneActionRef(TEXT("/Game/Project/Input/Actions/IA_Phone.IA_Phone"));
+	if (PhoneActionRef.Succeeded())
+	{
+		PhoneAction = PhoneActionRef.Object;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> PhoneWidgetRef(TEXT("/Game/Project/UI/Phone/WBP_Phone.WBP_Phone_C"));
+	if (PhoneWidgetRef.Succeeded())
+	{
+		PhoneWidgetClass = PhoneWidgetRef.Class;
+	}
 }
 
 void AACMainPlayerController::PostInitializeComponents()
@@ -301,6 +313,11 @@ void AACMainPlayerController::SetupInputComponent()
 	if (SpectatorChangeAction)
 	{
 		EnhancedInputComponent->BindAction(SpectatorChangeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSpectatorChange);
+	}
+
+	if (PhoneAction)
+	{
+		EnhancedInputComponent->BindAction(PhoneAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandlePhone);
 	}
 }
 
@@ -490,6 +507,48 @@ void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)
 	ACHUDWidget->WBP_QuickSlot->ToggleSlotEquip(SlotIndex);
 }
 
+void AACMainPlayerController::HandlePhone(const FInputActionValue& Value)
+{
+	// 경찰만 핸드폰 사용 가능
+	AACPlayerState* PS = GetPlayerState<AACPlayerState>();
+	if (PS == nullptr || PS->PlayerRole != EPlayerRole::Police)
+	{
+		return;
+	}
+
+	// 마우스 휠 값 가져오기 (1.0 = 위로, -1.0 = 아래로)
+	float WheelValue = Value.Get<float>();
+
+	if (WheelValue > 0.0f)
+	{
+		// 휠 위로 = 핸드폰 열기
+		if (CurrentPhoneWidget == nullptr || CurrentPhoneWidget->IsInViewport() == false)
+		{
+			if (PhoneWidgetClass != nullptr)
+			{
+				CurrentPhoneWidget = CreateWidget<UUserWidget>(this, PhoneWidgetClass);
+				if (CurrentPhoneWidget != nullptr)
+				{
+					CurrentPhoneWidget->AddToViewport();
+
+					// 입력 모드를 게임+UI로 변경
+					FInputModeGameAndUI InputMode;
+					InputMode.SetWidgetToFocus(CurrentPhoneWidget->TakeWidget());
+					InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+					SetInputMode(InputMode);
+
+					SetShowMouseCursor(true);
+				}
+			}
+		}
+	}
+	else if (WheelValue < 0.0f)
+	{
+		// 휠 아래로 = 핸드폰 닫기
+		ClosePhone();
+	}
+}
+
 void AACMainPlayerController::ChangeInputMode(EInputMode NewMode)
 {
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -538,6 +597,9 @@ void AACMainPlayerController::ClientToggleShopWidget_Implementation(TSubclassOf<
 		UE_LOG(LogHG, Error, TEXT("ClientToggleShopWidget: WidgetClass is null"));
 		return;
 	}
+
+	// ===== Phone이 열려있으면 먼저 닫기 =====
+	ClosePhone();
 
 	// 이미 위젯이 열려있으면 닫기
 	if (CurrentShopWidget != nullptr && CurrentShopWidget->IsInViewport())
@@ -845,6 +907,9 @@ void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<
 		return;
 	}
 
+	// ===== Phone이 열려있으면 먼저 닫기 =====
+	ClosePhone();
+
 	// 이미 위젯이 열려있으면 닫기
 	if (CurrentCCTVWidget != nullptr && CurrentCCTVWidget->IsInViewport())
 	{
@@ -918,6 +983,21 @@ void AACMainPlayerController::HideInteractProgress()
 	}
 
 	ACHUDWidget->WBP_InteractProgress->HideWidget();
+}
+
+void AACMainPlayerController::ClosePhone()
+{
+	if (CurrentPhoneWidget && CurrentPhoneWidget->IsInViewport())
+	{
+		CurrentPhoneWidget->RemoveFromParent();
+		CurrentPhoneWidget = nullptr;
+
+		// 입력 모드를 게임 모드로 복원
+		FInputModeGameOnly InputMode;
+		SetInputMode(InputMode);
+
+		SetShowMouseCursor(false);
+	}
 }
 
 #pragma region Proximity Voice (거리 기반 보이스)
