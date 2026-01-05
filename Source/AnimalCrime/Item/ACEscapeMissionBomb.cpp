@@ -23,6 +23,12 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 	
 	RootComp->SetBoxExtent(FVector(50.f, 50.f, 50.f));
 
+	// 커스텀 캐릭터 채널만 Block
+	RootComp->SetCollisionResponseToChannel(ECC_GameTraceChannel5, ECR_Block); // People
+	RootComp->SetCollisionResponseToChannel(ECC_GameTraceChannel6, ECR_Block); // Mafia
+	RootComp->SetCollisionResponseToChannel(ECC_GameTraceChannel7, ECR_Block); // Police
+	RootComp->SetCollisionResponseToChannel(ECC_GameTraceChannel8, ECR_Block); // Citizen
+
 	BombMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Bomb"));
 	BombMeshComp->SetRelativeScale3D(FVector(0.4f, 0.4f, 0.4f));
 	BombMeshComp->SetupAttachment(RootComponent);
@@ -190,6 +196,6 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 // 폭탄 - 5초 홀드
 float AACEscapeMissionBomb::GetRequiredHoldTime() const
 {
-	return 3.0f;
+	return 0.0f;
 }
 
