@@ -99,6 +99,7 @@ enum class EACInteractorType : uint8
 	ShopArea			UMETA(DisplayName = "ShopArea"),			// 상점
 	PrisonDoor			UMETA(DisplayName = "PrisonDoor"),			// 감옥문
 	Bomb				UMETA(DisplayName = "Bomb"),				// 탈출 임무 폭탄
+	Contraband			UMETA(DisplayName = "Contraband"),				// 탈출 임무 밀수품
 	//BombInstallArea		UMETA(DisplayName = "BombInstallArea"),		// 폭탄 설치 구역
 	//EscapeArea			UMETA(DisplayName = "EscapeArea"),			// 탈출 구역
 	Total
