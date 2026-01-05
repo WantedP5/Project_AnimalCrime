@@ -28,7 +28,7 @@ public:
     **/
     //todo:  추후에 임무 이름으로 변경 예정.
     UFUNCTION(BlueprintCallable)
-    void SetTargetName(const FString& Name);
+    void SetInteractionText(const FString& InteractionName);
 
     /**
         @brief 위젯 가시화
@@ -51,6 +51,6 @@ protected:
     TObjectPtr<class UTextBlock> ProgressPercentageText;
 
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<class UTextBlock> TargetNameText;
+    TObjectPtr<class UTextBlock> InteractionNameText;
 	
 };

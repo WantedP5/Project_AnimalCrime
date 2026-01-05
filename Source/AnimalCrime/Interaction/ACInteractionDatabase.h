@@ -86,7 +86,7 @@ struct FInteractionKey
  * 1. 에디터에서 DA_InteractionDatabase 생성
  * 2. InteractionMap에 조합 등록 (경찰+시민, 마피아+블랙마켓 등)
  * 3. 각 조합마다 임무 데이터 애셋들 할당
- * 4. GameInstance나 GameMode에서 이 DB를 참조
+ * 4. Interact Subsystem에서 이 DB를 참조
  * 5. 런타임에 GetInteractions()로 조회
  *
  * 장점:

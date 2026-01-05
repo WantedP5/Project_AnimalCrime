@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/Interaction/ACInteractionInfoWidget.h"
 #include "Components/TextBlock.h"
@@ -8,7 +8,6 @@
 
 void UACInteractionInfoWidget::UpdateInteractions(const TArray<UACInteractionData*>& Interactions)
 {
-	UE_LOG(LogSW, Log, TEXT("444444444"))
 	if (InteractionText == nullptr)
 	{
 		return;
@@ -33,7 +32,7 @@ void UACInteractionInfoWidget::UpdateInteractions(const TArray<UACInteractionDat
 		// "[E] 신분증 확인" 형식
 		FString Line = FString::Printf(TEXT("[%s] %s"),
 			*Data->AssignedKey,
-			*Data->MissionName.ToString());
+			*Data->InteractionName.ToString());
 
 		HintText += Line;
 
@@ -49,12 +48,12 @@ void UACInteractionInfoWidget::UpdateInteractions(const TArray<UACInteractionDat
 
 void UACInteractionInfoWidget::ShowWidget()
 {
-	UE_LOG(LogSW, Log, TEXT("SHOW UI"));
+	//UE_LOG(LogSW, Log, TEXT("SHOW UI"));
 	SetVisibility(ESlateVisibility::Visible);
 }
 
 void UACInteractionInfoWidget::HideWidget()
 {
-	UE_LOG(LogSW, Log, TEXT("HIDE UI"));
+	//UE_LOG(LogSW, Log, TEXT("HIDE UI"));
 	SetVisibility(ESlateVisibility::Hidden);
 }
