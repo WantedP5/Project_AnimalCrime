@@ -943,32 +943,25 @@ void AACCitizen::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-bool AACCitizen::CanInteract(AACCharacter* ACPlayer)
-{
-	// 경찰과 상호작용(신분증)
-	if (EACCharacterType::Police == ACPlayer->GetCharacterType())
-	{
-		return true;
-	}
-
-	return false;
-}
-
-void AACCitizen::OnInteract(AACCharacter* ACPlayer)
+void AACCitizen::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
 	if (ACPlayer == nullptr)
 	{
 		return;
 	}
 
-	//ShowInteractDebug(ACPlayer, GetName());
+	//todo: DB로 교체
+	switch (InKey)
+	{
+	case EInteractionKey::E:
+		AC_LOG(LogSW, Log, TEXT("시민 신분증!"))
+			break;
+	case EInteractionKey::R:
+		AC_LOG(LogSW, Log, TEXT("시민 사망!"))
+		break;
+	case EInteractionKey::T: break;
 
-	AC_LOG(LogSW, Log, TEXT("시민 신분증!"));
-}
-
-float AACCitizen::GetRequiredHoldTime() const
-{
-	return 5.0f;
+	}
 }
 
 EACInteractorType AACCitizen::GetInteractorType() const

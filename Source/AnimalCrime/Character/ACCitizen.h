@@ -71,9 +71,7 @@ public:
 #pragma region 인터랙션 인터페이스
 	//!< 상호작용 인터페이스
 protected:
-	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
-	virtual void OnInteract(class AACCharacter* ACPlayer) override;
-	virtual float GetRequiredHoldTime() const override;
+	virtual void OnInteract(class AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
 	//=== NEW: Widget interface overrides ===

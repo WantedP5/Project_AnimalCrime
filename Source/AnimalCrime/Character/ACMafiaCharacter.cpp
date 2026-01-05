@@ -205,43 +205,45 @@ void AACMafiaCharacter::BeginPlay()
 	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
-bool AACMafiaCharacter::CanInteract(AACCharacter* ACPlayer)
-{
-	if (ACPlayer->GetCharacterType() == EACCharacterType::Police)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer)
+void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
 	if (ACPlayer == nullptr)
 	{
 		return;
 	}
 
-	//ShowInteractDebug(ACPlayer, GetName());
+	//// 경찰과 상호작용(신분증)
+	//if (this->CharacterState == ECharacterState::Free)
+	//{
+	//	AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
+	//}
 
-	// 경찰과 상호작용(신분증)
-	if (this->CharacterState == ECharacterState::Free)
+		//todo: DB로 교체
+	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	switch (InKey)
 	{
-		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
-	}
-
-	// 경찰과 상호작용(투옥)
-	if (this->CharacterState == ECharacterState::Stun)
-	{
+	case EInteractionKey::E: 
+		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"))
+		break;
+	case EInteractionKey::R: 
 		// 경찰과 상호작용(투옥)
-		AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+		//if (this->CharacterState == ECharacterState::Stun)
+		//{
+		//	
+		//}
+		// 경찰과 상호작용(투옥)
+		//AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
 		if (GM == nullptr)
 		{
 			return;
 		}
-
 		GM->ImprisonCharacter(this);  // GameMode에 캡슐화 함수 사용
-	}
+
+		break;
+	case EInteractionKey::T: break;
+
+	}	
+
 }
 
 EACInteractorType AACMafiaCharacter::GetInteractorType() const
@@ -519,11 +521,6 @@ void AACMafiaCharacter::ChangeTax(float InTimeRate)
 	TimerDelegate.BindUObject(this, &AACMafiaCharacter::CalculateTax);
 	TaxTimeRate = InTimeRate;
 	GetWorld()->GetTimerManager().SetTimer(TaxTimerHandle, TimerDelegate, TaxTimeRate, true);
-}
-
-float AACMafiaCharacter::GetRequiredHoldTime() const
-{
-	return 5.0f;
 }
 
 float AACMafiaCharacter::GetCurrentHP() const
