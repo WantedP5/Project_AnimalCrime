@@ -328,8 +328,9 @@ public:
 
 	UFUNCTION()
 	void ReverseCrosshairSpread();
-	//!< 상호작용 멤버변수
-public:
+
+
+//!< 상호작용 멤버변수
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
@@ -408,14 +409,34 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere)
 	TObjectPtr<class UACDestroyableStatComponent> Stat;
 
-	// 사운드 관련
+// 사운드 관련
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> BatSwingSound;
 
-	
-	// 나중에 사라져야하는 코드들.
-	
+// 피격 효과 관련
+public:
+	/**
+		 @brief 피격 효과 (빨간색 Overlay 적용)
+		 @param Duration - 효과 지속 시간 (초)
+	 **/
+	UFUNCTION(BlueprintCallable, Category = "Damage")
+	void PlayHitEffect(float Duration = 0.2f);
+protected:
+	/**
+		@brief 피격 효과 종료 (Overlay 제거)
+	**/
+	void ResetHitEffect();
+
+	// ===== 피격 효과 Material =====
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	TObjectPtr<UMaterialInterface> DamageOverlayMaterial;
+private:
+	// 피격 효과 타이머
+	FTimerHandle HitEffectTimerHandle;
+
+
+// 나중에 사라져야하는 코드들.	
 public:
 	UFUNCTION(Server, Reliable)
 	void ServerShoot();

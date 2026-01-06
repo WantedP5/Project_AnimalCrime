@@ -334,7 +334,33 @@ protected:
 	float RegenRateMax = 60.0f;
 #pragma endregion
 
+#pragma region 사운드
 	// 사운드 추가
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> HitSound;
+#pragma endregion
+
+#pragma region 피격효과
+ public:
+	 /**
+		 @brief 피격 효과 (빨간색 Overlay 적용)
+		 @param Duration - 효과 지속 시간 (초)
+	 **/
+	 UFUNCTION(BlueprintCallable, Category = "Damage")
+	 void PlayHitEffect(float Duration = 0.2f);
+
+  protected:
+	  /**
+		  @brief 피격 효과 종료 (Overlay 제거)
+	  **/
+	  void ResetHitEffect();
+
+	  // ===== 피격 효과 Material =====
+	  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	  TObjectPtr<UMaterialInterface> DamageOverlayMaterial;
+
+  private:
+	  // 피격 효과 타이머
+	  FTimerHandle HitEffectTimerHandle;
+#pragma endregion
 };

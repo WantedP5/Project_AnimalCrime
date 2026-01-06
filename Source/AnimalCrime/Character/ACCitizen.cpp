@@ -1113,6 +1113,12 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 	}
+
+	// 피격 효과 
+	if (DamageAmount > 0.0f)
+	{
+		PlayHitEffect(0.2f);  // 0.2초 동안 빨간색
+	}
 	
 	AACCitizenAIController* AIControler = Cast<AACCitizenAIController>(GetController());
 	
@@ -1213,3 +1219,64 @@ void AACCitizen::HideInteractionHints()
 	InteractionWidgetComponent->SetVisibility(false);
 }
 
+void AACCitizen::PlayHitEffect(float Duration)
+{
+	// Overlay Material이 없으면 리턴
+	if (DamageOverlayMaterial == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AACCitizen: DamageOverlayMaterial is null! Please assign in Blueprint."));
+		return;
+	}
+
+	// 모든 메시 컴포넌트 리스트 (ACCitizen은 *Comp 형태)
+	TArray<USkeletalMeshComponent*> MeshComponents = {
+		HeadMeshComp,
+		FaceMeshComp,
+		TopMeshComp,
+		BottomMeshComp,
+		ShoesMeshComp,
+		FaceAccMeshComp,
+		GetMesh()
+	};
+
+	// 각 메시에 Overlay Material 적용
+	for (USkeletalMeshComponent* MeshComp : MeshComponents)
+	{
+		if (MeshComp != nullptr)
+		{
+			MeshComp->SetOverlayMaterial(DamageOverlayMaterial);
+		}
+	}
+
+	// 타이머로 Overlay 제거 예약
+	GetWorld()->GetTimerManager().SetTimer(
+		HitEffectTimerHandle,
+		this,
+		&AACCitizen::ResetHitEffect,
+		Duration,
+		false  // 한 번만 실행
+	);
+}
+
+void AACCitizen::ResetHitEffect()
+{
+	// 모든 메시 컴포넌트 리스트
+	TArray<USkeletalMeshComponent*> MeshComponents = {
+		HeadMeshComp,
+		FaceMeshComp,
+		TopMeshComp,
+		BottomMeshComp,
+		ShoesMeshComp,
+		FaceAccMeshComp,
+		GetMesh()
+	};
+
+	// 각 메시의 Overlay Material 제거
+	for (USkeletalMeshComponent* MeshComp : MeshComponents)
+	{
+		if (MeshComp != nullptr)
+		{
+			MeshComp->SetOverlayMaterial(nullptr);
+		}
+	}
+}

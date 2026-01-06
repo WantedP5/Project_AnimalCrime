@@ -40,6 +40,12 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 	}
 
+	// 피격 효과 
+	if (DamageAmount > 0.0f)
+	{
+		PlayHitEffect(0.2f);  // 0.2초 동안 빨간색
+	}
+
 	// 권한있는 APawn만 계산해야 함.
 	if (HasAuthority() == false)
 	{

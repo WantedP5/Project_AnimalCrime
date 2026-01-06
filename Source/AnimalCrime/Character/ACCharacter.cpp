@@ -43,6 +43,7 @@
 
 #include "Sound/SoundBase.h"
 #include "UI/ACHUDWidget.h"
+#include "Materials/MaterialInterface.h"
 
 AACCharacter::AACCharacter()
 {
@@ -1377,6 +1378,69 @@ void AACCharacter::ServerShoot_Implementation()
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
 	}
 	PlayCrosshairSpread();
+}
+
+void AACCharacter::PlayHitEffect(float Duration)
+{
+	// Overlay Material이 없으면 리턴
+	if (DamageOverlayMaterial == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DamageOverlayMaterial is null! Please assign in Blueprint."));
+		return;
+	}
+
+
+	// 모든 메시 컴포넌트 리스트
+	TArray<USkeletalMeshComponent*> MeshComponents = {
+		HeadMesh,
+		FaceMesh,
+		TopMesh,
+		BottomMesh,
+		ShoesMesh,
+		FaceAccMesh,
+		GetMesh()
+	};
+
+	// 각 메시에 Overlay Material 적용
+	for (USkeletalMeshComponent* MeshComp : MeshComponents)
+	{
+		if (MeshComp != nullptr)
+		{
+			MeshComp->SetOverlayMaterial(DamageOverlayMaterial);
+		}
+	}
+
+	// 타이머로 Overlay 제거 예약
+	GetWorld()->GetTimerManager().SetTimer(
+		HitEffectTimerHandle,
+		this,
+		&AACCharacter::ResetHitEffect,
+		Duration,
+		false  // 한 번만 실행
+	);
+}
+
+void AACCharacter::ResetHitEffect()
+{
+	// 모든 메시 컴포넌트 리스트
+	TArray<USkeletalMeshComponent*> MeshComponents = {
+		HeadMesh,
+		FaceMesh,
+		TopMesh,
+		BottomMesh,
+		ShoesMesh,
+		FaceAccMesh,
+		GetMesh()
+	};
+
+	// 각 메시의 Overlay Material 제거
+	for (USkeletalMeshComponent* MeshComp : MeshComponents)
+	{
+		if (MeshComp != nullptr)
+		{
+			MeshComp->SetOverlayMaterial(nullptr);
+		}
+	}
 }
 
 int32 AACCharacter::GetBulletCount() const
