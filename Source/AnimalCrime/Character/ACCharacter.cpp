@@ -406,6 +406,11 @@ void AACCharacter::ChangeInputMode(EInputMode NewMode)
 
 void AACCharacter::Move(const FInputActionValue& Value)
 {
+	if (CharacterState == ECharacterState::OnInteract)
+	{
+		return;
+	}
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -474,11 +479,11 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 		CurrentHoldTarget = FocusedInteractable;
 		CurrentHoldTime = 0.f;
 		CurrentHoldKey = Key;
-		SetCharacterState(ECharacterState::OnInteract);
 
-		ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
-		if (TargetChar)
-			ServerFreezeCharacter(TargetChar, true);
+		ServerFreezeCharacter(CurrentHoldTarget, true);
+
+		// 서버에 홀드 상호작용 시작 알림 (몽타주 + 회전)
+		ServerStartHoldInteraction(CurrentHoldTarget, InteractionData);
 
 		AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
 		if (PC)
@@ -488,31 +493,24 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 
 void AACCharacter::InteractHolding(const float DeltaTime)
 {
-	if (bIsHoldingInteract == false)
+	if (!bIsHoldingInteract)
 	{
-		//ResetHoldInteract();
-		return;
-	}
-	//todo: isvalid?
-	if (CurrentHoldTarget == nullptr)
-	{
-		InteractReleased();
-		return;
-	}
-	if (NearInteractables.Contains(CurrentHoldTarget) == false)
-	{
-		InteractReleased();
 		return;
 	}
 
+	// 유효성 체크
+	if (!CurrentHoldTarget || !NearInteractables.Contains(CurrentHoldTarget))
+	{
+		ResetHoldInteract();
+		return;
+	}
 
 	// 시간 누적
 	CurrentHoldTime += DeltaTime;
-	//AC_LOG(LogSW, Log, TEXT("%s Holding at %f"), *CurrentHoldTarget->GetName(), CurrentHoldTime);
 
 	// UI 업데이트
 	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
-	if (PC != nullptr)
+	if (PC)
 	{
 		PC->UpdateInteractProgress(GetHoldProgress());
 	}
@@ -521,25 +519,12 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	if (CurrentHoldTime >= RequiredHoldTime)
 	{
 		ServerInteract(CurrentHoldTarget, CurrentHoldKey);
-		InteractReleased();
+		ResetHoldInteract();
 	}
 }
 
 void AACCharacter::InteractReleased()
 {
-	if (bIsHoldingInteract == false)
-	{
-		return;
-	}
-
-	// UI 표시
-	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
-	if (PC != nullptr)
-	{
-		//UE_LOG(LogSW, Log, TEXT("Hide start"));
-		PC->HideInteractProgress();
-	}
-
 	ResetHoldInteract();
 }
 
@@ -753,6 +738,12 @@ void AACCharacter::Jump()
 		return;
 	}
 
+	// Case 감옥 상태일 경우 
+	if (CharacterState == ECharacterState::OnInteract)
+	{
+		return;
+	}
+
 	Super::Jump();
 }
 
@@ -790,7 +781,7 @@ void AACCharacter::ServerInteract_Implementation(AActor* Target, EInteractionKey
 	//        return;                                                                                       
 	//    }                                                                                                 
 	//}                                                                                                     
-
+		
 	//// DB에서 상호작용 가능 여부 체크                                                                         
 	//UACInteractionSubsystem* InteractionSys = GetGameInstance()->GetSubsystem<UACInteractionSubsystem>(); 
 	//UACInteractionDatabase* DB = InteractionSys ? InteractionSys->GetInteractionDatabase() : nullptr;     
@@ -1204,7 +1195,8 @@ void AACCharacter::OnRep_CharacterState()
 	{
 	case ECharacterState::OnInteract:
 	{
-		// MoveComp->SetMovementMode(MOVE_None);
+		MoveComp->MaxWalkSpeed = 0.f;
+		MoveComp->JumpZVelocity = 0.f;
 		break;
 	}
 	case ECharacterState::Stun:
@@ -1215,14 +1207,13 @@ void AACCharacter::OnRep_CharacterState()
 	}
 	case ECharacterState::Free:
 	{
-		// MoveComp->SetMovementMode(MOVE_Walking);
 		if (GetCharacterType() == EACCharacterType::Police)
 		{
 			MoveComp->MaxWalkSpeed = 500.0f; // 경찰
 		}
 		else
 		{
-			MoveComp->MaxWalkSpeed = 300.0f; // 마피아/시민
+			MoveComp->MaxWalkSpeed = 300.0f; // 마피아
 		}
 		MoveComp->JumpZVelocity = 500.0f;
 		break;
@@ -1257,31 +1248,40 @@ void AACCharacter::OnRep_CharacterState()
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
 	CharacterState = InCharacterState;
+
+	if (HasAuthority())
+	{
+		OnRep_CharacterState();
+	}
 }
 
 void AACCharacter::ResetHoldInteract()
 {
-	if (CurrentHoldTarget == nullptr)
+	if (!bIsHoldingInteract)
 	{
 		return;
 	}
 
-	// Server RPC로 대상 움직임 재개 (ACharacter 사용 - 시민도 포함)
-	ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
-	if (TargetChar != nullptr)
+	// 로컬 UI 정리
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC)
 	{
-		ServerFreezeCharacter(TargetChar, false);
+		PC->HideInteractProgress();
 	}
 
-	// todo: 임시로 홀드 상호작용 리셋 시 다시 콜리전 오버랩 시작해야함
-	RemoveInteractable(CurrentHoldTarget);
-	UpdateFocus();
+	// 타겟이 있으면 정리
+	if (CurrentHoldTarget)
+	{
+		ServerStopHoldInteraction(CurrentHoldTarget);
+		ServerFreezeCharacter(CurrentHoldTarget, false);
+		RemoveInteractable(CurrentHoldTarget);
+		UpdateFocus();
+	}
 
 	bIsHoldingInteract = false;
 	CurrentHoldTarget = nullptr;
 	CurrentHoldTime = 0.f;
 	RequiredHoldTime = 0.f;
-	SetCharacterState(ECharacterState::Free);
 }
 
 float AACCharacter::GetHoldProgress() const
@@ -1365,41 +1365,185 @@ void AACCharacter::ServerItemDrop_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
 }
 
-void AACCharacter::ServerSetTargetState_Implementation(AACCharacter* Target, ECharacterState NewState)
+void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFreeze)
 {
-	if (Target == nullptr)
+	if (bFreeze == true)
 	{
-		return;
-	}
-	Target->SetCharacterState(NewState);
-}
+		SetCharacterState(ECharacterState::OnInteract);
 
-void AACCharacter::ServerFreezeCharacter_Implementation(ACharacter* Target, bool bFreeze)
-{
-	if (Target == nullptr)
-	{
-		return;
-	}
+		if (Target == nullptr)
+		{
+			return;
+		}
+		// 2. 거리 검사 (가장 강력한 보안 장치)
+		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+		// todo: 거리 다시 확인하기
+		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
 
-	UCharacterMovementComponent* MoveComp = Target->GetCharacterMovement();
-	if (MoveComp == nullptr)
-	{
-		return;
-	}
+		if (DistSq > MaxDistSq)
+		{
+			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+			return;
+		}
 
-	if (bFreeze)
-	{
-		MoveComp->SetMovementMode(MOVE_None);
+		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+		if (Interactable == nullptr)
+		{
+			return;
+		}
+
+		if (Interactable->GetInteractorType() == EACInteractorType::Citizen)
+		{
+			ACharacter* Char = Cast<ACharacter>(Target);
+			if (Char == nullptr)
+			{
+				return;
+			}
+
+			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_None);
+		}
+		else
+		{
+			AACCharacter* ACChar = Cast<AACCharacter>(Target);
+			if (ACChar == nullptr)
+			{
+				return;
+			}
+
+			ACChar->SetCharacterState(ECharacterState::OnInteract);
+		}
 	}
 	else
 	{
-		MoveComp->SetMovementMode(MOVE_Walking);
+		SetCharacterState(ECharacterState::Free);
+
+		if (Target == nullptr)
+		{
+			return;
+		}
+
+		// 2. 거리 검사 (가장 강력한 보안 장치)
+		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+		// todo: 거리 다시 확인하기
+		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
+
+		if (DistSq > MaxDistSq)
+		{
+			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+			return;
+		}
+
+		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+		if (Interactable == nullptr)
+		{
+			return;
+		}
+
+		if (Interactable->GetInteractorType() == EACInteractorType::Citizen)
+		{
+			ACharacter* Char = Cast<ACharacter>(Target);
+			if (Char == nullptr)
+			{
+				return;
+			}
+
+			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		}
+		else
+		{
+			AACCharacter* ACChar = Cast<AACCharacter>(Target);
+			if (ACChar == nullptr)
+			{
+				return;
+			}
+
+			ACChar->SetCharacterState(ECharacterState::Free);
+		}
+	}
+}
+
+// === 홀드 상호작용 RPC 구현 ===
+void AACCharacter::ServerStartHoldInteraction_Implementation(AActor* TargetActor, UACInteractionData* InteractionData)
+{
+	if (!TargetActor || !InteractionData)
+		return;
+
+	// Multicast로 몽타주 재생
+	MulticastStartHoldInteraction(
+		TargetActor,
+		InteractionData->InitiatorMontage,
+		InteractionData->TargetMontage,
+		false,
+		0.f
+	);
+}
+
+void AACCharacter::ServerStopHoldInteraction_Implementation(AActor* TargetActor)
+{
+	MulticastStopHoldInteraction(TargetActor);
+}
+
+void AACCharacter::MulticastStartHoldInteraction_Implementation(
+	AActor* TargetActor,
+	UAnimMontage* InitiatorMontage,
+	UAnimMontage* TargetMontage,
+	bool bFaceToFace,
+	float RotationSpeed)
+{
+	// 1. Initiator 몽타주 재생
+	if (InitiatorMontage)
+	{
+		if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+		{
+			AnimInst->Montage_Play(InitiatorMontage);
+			CurrentInteractionMontage = InitiatorMontage;
+		}
+	}
+
+	// 2. Target 몽타주 재생 (ACharacter* 공통 - 시민도 플레이어도)
+	ACharacter* TargetChar = Cast<ACharacter>(TargetActor);
+	if (TargetMontage && TargetChar)
+	{
+		if (UAnimInstance* TargetAnimInst = TargetChar->GetMesh()->GetAnimInstance())
+		{
+			TargetAnimInst->Montage_Play(TargetMontage);
+			TargetInteractionMontage = TargetMontage;
+		}
+	}
+}
+
+void AACCharacter::MulticastStopHoldInteraction_Implementation(AActor* TargetActor)
+{
+	// 1. Initiator 몽타주 정지
+	if (CurrentInteractionMontage)
+	{
+		if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+		{
+			AnimInst->Montage_Stop(0.25f, CurrentInteractionMontage);
+		}
+		CurrentInteractionMontage = nullptr;
+	}
+
+	// 2. Target 몽타주 정지
+	ACharacter* TargetChar = Cast<ACharacter>(TargetActor);
+	if (TargetInteractionMontage && TargetChar)
+	{
+		if (UAnimInstance* TargetAnimInst = TargetChar->GetMesh()->GetAnimInstance())
+		{
+			TargetAnimInst->Montage_Stop(0.25f, TargetInteractionMontage);
+		}
+		TargetInteractionMontage = nullptr;
 	}
 }
 
 EACCharacterType AACCharacter::GetCharacterType()
 {
-	return EACCharacterType::Citizen;
+	// todo: 우리 게임에 이 캐릭터 그대로 사용할 일이 있나?
+	return EACCharacterType::Total;
 }
 
 void AACCharacter::OnRep_HeadMesh() const
