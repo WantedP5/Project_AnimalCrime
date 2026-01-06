@@ -4,6 +4,7 @@
 #include "UI/ACHUDWidget.h"
 
 #include "AnimalCrime.h"
+#include "Ammo/ACAmmoWidget.h"
 #include "UI/Score/ACScoreWidget.h"
 #include "UI/QuickSlot/ACQuickSlotWidget.h"
 #include "Game/ACMainGameState.h"
@@ -12,6 +13,7 @@
 #include "Objects/MoneyData.h"
 #include "Component/ACMoneyComponent.h"
 #include "Character/ACCharacter.h"
+#include "CrossHair/ACCrossHairWidget.h"
 
 void UACHUDWidget::BindGameState()
 {
@@ -78,6 +80,16 @@ void UACHUDWidget::HandleMoneyChanged(int32 NewMoney)
 	WBP_Money->UpdateMoney(NewMoney);
 }
 
+void UACHUDWidget::HandleAmmoChanged(int32 InAmmo)
+{
+	if (WBP_Ammo == nullptr)
+	{
+		return;
+	}
+	
+	WBP_Ammo->UpdateAmmo(InAmmo);
+}
+
 void UACHUDWidget::BindMoneyComponent()
 {
 	if (APlayerController* PC = GetOwningPlayer())
@@ -120,4 +132,27 @@ void UACHUDWidget::BindMoneyComponent()
 			UE_LOG(LogHG, Error, TEXT("MoneyComponent를 찾을 수 없음"));
 		}
 	}
+}
+
+void UACHUDWidget::ZoomInState()
+{
+	if (WBP_CrossHair == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WBP_CrossHair nullptr"));
+		return;
+	}
+	
+	WBP_Ammo->SetVisibility(ESlateVisibility::Visible);
+	WBP_CrossHair->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UACHUDWidget::ZoomOutState()
+{
+	if (WBP_CrossHair == nullptr)
+	{
+		return;
+	}
+
+	WBP_Ammo->SetVisibility(ESlateVisibility::Hidden);
+	WBP_CrossHair->SetVisibility(ESlateVisibility::Hidden);
 }

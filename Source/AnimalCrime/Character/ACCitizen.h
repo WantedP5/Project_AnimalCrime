@@ -153,19 +153,27 @@ public:
 #pragma endregion
 
 #pragma region 매시 Get/Set
-	FORCEINLINE USkeletalMesh* GetHeadMesh()		const { return HeadMesh;}
-	FORCEINLINE USkeletalMesh* GetFaceMesh()		const {	return FaceMesh;}
-	FORCEINLINE USkeletalMesh* GetTopMesh()			const {	return TopMesh;}
-	FORCEINLINE USkeletalMesh* GetBottomMesh()		const {	return BottomMesh;}
-	FORCEINLINE USkeletalMesh* GetShoesMesh()		const {	return ShoesMesh;}
-	FORCEINLINE USkeletalMesh* GetFaceAccMesh()		const {	return FaceAccMesh;}
+	FORCEINLINE USkeletalMesh* GetHeadMesh()		const { return HeadMesh.Get();}
+	FORCEINLINE USkeletalMesh* GetFaceMesh()		const {	return FaceMesh.Get();}
+	FORCEINLINE USkeletalMesh* GetTopMesh()			const {	return TopMesh.Get();}
+	FORCEINLINE USkeletalMesh* GetBottomMesh()		const {	return BottomMesh.Get();}
+	FORCEINLINE USkeletalMesh* GetShoesMesh()		const {	return ShoesMesh.Get();}
+	FORCEINLINE USkeletalMesh* GetFaceAccMesh()		const {	return FaceAccMesh.Get();}
 
-	FORCEINLINE void UpdateHeadMesh()		const {	HeadMeshComp->SetSkeletalMesh(HeadMesh);	}
-	FORCEINLINE void UpdateFaceMesh()		const {	FaceMeshComp->SetSkeletalMesh(FaceMesh);	}
-	FORCEINLINE void UpdateTopMesh()		const {	TopMeshComp->SetSkeletalMesh(TopMesh);	}
-	FORCEINLINE void UpdateBottomMesh()		const {	BottomMeshComp->SetSkeletalMesh(BottomMesh);	}
-	FORCEINLINE void UpdateShoesMesh()		const {	ShoesMeshComp->SetSkeletalMesh(ShoesMesh);	}
-	FORCEINLINE void UpdateFaceAccMesh()	const {	FaceAccMeshComp->SetSkeletalMesh(FaceAccMesh);	}
+	// FORCEINLINE void UpdateHeadMesh()		const {	HeadMeshComp->SetSkeletalMesh(HeadMesh);	}
+	// FORCEINLINE void UpdateFaceMesh()		const {	FaceMeshComp->SetSkeletalMesh(FaceMesh);	}
+	// FORCEINLINE void UpdateTopMesh()		const {	TopMeshComp->SetSkeletalMesh(TopMesh);	}
+	// FORCEINLINE void UpdateBottomMesh()		const {	BottomMeshComp->SetSkeletalMesh(BottomMesh);	}
+	// FORCEINLINE void UpdateShoesMesh()		const {	ShoesMeshComp->SetSkeletalMesh(ShoesMesh);	}
+	// FORCEINLINE void UpdateFaceAccMesh()	const {	FaceAccMeshComp->SetSkeletalMesh(FaceAccMesh);	}
+	
+	
+	void ApplyHeadMesh();
+	void ApplyFaceMesh();
+	void ApplyTopMesh();
+	void ApplyBottomMesh();
+	void ApplyShoesMesh();
+	void ApplyFaceAccMesh();
 
 	FORCEINLINE void SetHeadMesh(USkeletalMesh* InMesh)			 {  HeadMesh = InMesh;}
 	FORCEINLINE void SetFaceMesh(USkeletalMesh* InMesh)			 {	FaceMesh = InMesh;}
@@ -178,22 +186,22 @@ public:
 #pragma region 매시 변경 시 호출되는 함수
 public:
 	UFUNCTION()
-	void OnRep_HeadMesh() const;
+	void OnRep_HeadMesh();
 
 	UFUNCTION()
-	void OnRep_FaceMesh() const;
+	void OnRep_FaceMesh();
 
 	UFUNCTION()
-	void OnRep_TopMesh() const;
+	void OnRep_TopMesh();
 
 	UFUNCTION()
-	void OnRep_BottomMesh() const;
+	void OnRep_BottomMesh();
 
 	UFUNCTION()
-	void OnRep_ShoesMesh() const;
+	void OnRep_ShoesMesh();
 
 	UFUNCTION()
-	void OnRep_FaceAccMesh() const;
+	void OnRep_FaceAccMesh();
 #pragma endregion
 
 #pragma region 맴버 변수
@@ -272,23 +280,41 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> FaceAccMeshComp;
 
+	// UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
+	// TObjectPtr<class USkeletalMesh> HeadMesh;
+	//
+	// UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
+	// TObjectPtr<class USkeletalMesh> FaceMesh;
+	//
+	// UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
+	// TObjectPtr<class USkeletalMesh> TopMesh;
+	//
+	// UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
+	// TObjectPtr<class USkeletalMesh> BottomMesh;
+	//
+	// UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
+	// TObjectPtr<class USkeletalMesh> ShoesMesh;
+	//
+	// UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
+	// TObjectPtr<class USkeletalMesh> FaceAccMesh;
+	
 	UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
-	TObjectPtr<class USkeletalMesh> HeadMesh;
+	TSoftObjectPtr<class USkeletalMesh> HeadMesh;
 
 	UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
-	TObjectPtr<class USkeletalMesh> FaceMesh;
+	TSoftObjectPtr<class USkeletalMesh> FaceMesh;
 
 	UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
-	TObjectPtr<class USkeletalMesh> TopMesh;
+	TSoftObjectPtr<class USkeletalMesh> TopMesh;
 
 	UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
-	TObjectPtr<class USkeletalMesh> BottomMesh;
+	TSoftObjectPtr<class USkeletalMesh> BottomMesh;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
-	TObjectPtr<class USkeletalMesh> ShoesMesh;
+	TSoftObjectPtr<class USkeletalMesh> ShoesMesh;
 
 	UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
-	TObjectPtr<class USkeletalMesh> FaceAccMesh;
+	TSoftObjectPtr<class USkeletalMesh> FaceAccMesh;
 
 	UPROPERTY()
 	TObjectPtr<class AACPoliceCharacter> PoliceCharacter;

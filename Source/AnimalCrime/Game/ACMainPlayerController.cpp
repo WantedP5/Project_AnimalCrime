@@ -24,6 +24,7 @@
 #include "EngineUtils.h"
 #include "OnlineSubsystem.h"
 #include "GameFramework/GameStateBase.h"
+#include "UI/Ammo/ACAmmoWidget.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -139,6 +140,14 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		SpectatorChangeAction = SpectatorChangeActionRef.Object;
 	}
+	
+	
+	// ===== Zoom ====
+	static ConstructorHelpers::FObjectFinder<UInputAction> ZoomActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Project/Input/Actions/IA_Zoom.IA_Zoom'"));
+	if (ZoomActionRef.Succeeded())
+	{
+		ZoomAction = ZoomActionRef.Object;
+	}
 
 	// ===== 핸드폰 관련 로드 =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> PhoneActionRef(TEXT("/Game/Project/Input/Actions/IA_Phone.IA_Phone"));
@@ -212,6 +221,9 @@ void AACMainPlayerController::BeginPlay()
 		// 서버와 클라이언트 모두 바인딩 필요
 	ACHUDWidget->BindPlayerState();
 	//}
+	
+	ZoomOut();
+	ACHUDWidget->WBP_Ammo->UpdateAmmo(0);
 
 	RoleScreen = CreateWidget<UACRoleScreen>(this, RoleScreenClass);
 	if (RoleScreen == nullptr)
@@ -226,7 +238,6 @@ void AACMainPlayerController::BeginPlay()
 		ScreenSetRole();
 	}
 	AC_LOG(LogHY, Warning, TEXT("End"));
-
 }
 
 void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -313,6 +324,12 @@ void AACMainPlayerController::SetupInputComponent()
 	if (SpectatorChangeAction)
 	{
 		EnhancedInputComponent->BindAction(SpectatorChangeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSpectatorChange);
+	}
+	
+	if (ZoomAction)
+	{
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &AACMainPlayerController::ZoomIn);
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Completed, this, &AACMainPlayerController::ZoomOut);
 	}
 
 	if (PhoneAction)
@@ -435,7 +452,15 @@ void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
 		return;
 	}
 
-	ControlledCharacter->Attack();
+	if (bZoomFlag == false)
+	{
+		ControlledCharacter->Attack();
+	}
+	else
+	{
+		AC_LOG(LogHY, Error, TEXT("빵야빵야"));
+		ControlledCharacter->FireHitscan();
+	}
 }
 
 void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value)
@@ -803,6 +828,62 @@ void AACMainPlayerController::ScreenSetRole()
 	AC_LOG(LogSY, Log, TEXT("Set Role!"));
 }
 
+void AACMainPlayerController::ZoomIn()
+{
+	bZoomFlag = true;
+	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
+	
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+	
+	UCameraComponent* FollowCamera = ControlledCharacter->GetFollowCamera();
+	UCameraComponent* GunCamera = ControlledCharacter->GetGunCamera();
+
+	if (FollowCamera && GunCamera)
+	{
+		FollowCamera->Deactivate();
+		GunCamera->Activate();
+		USkeletalMeshComponent* Mesh = ControlledCharacter->GetMesh();
+		if (Mesh)
+		{
+			Mesh->SetOwnerNoSee(true);
+		}
+	}
+	ACHUDWidget->ZoomInState();
+}
+
+void AACMainPlayerController::ZoomOut()
+{
+	bZoomFlag = false;
+	AC_LOG(LogHY, Error, TEXT("ZoomOut %d"), bZoomFlag);
+	
+	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
+	if (ControlledCharacter == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+
+	UCameraComponent* FollowCamera = ControlledCharacter->GetFollowCamera();
+	UCameraComponent* GunCamera = ControlledCharacter->GetGunCamera();
+
+	if (FollowCamera && GunCamera)
+	{
+		FollowCamera->Activate();
+		GunCamera->Deactivate();
+		USkeletalMeshComponent* Mesh = ControlledCharacter->GetMesh();
+		if (Mesh)
+		{
+			Mesh->SetOwnerNoSee(false);
+		}
+	}
+	ACHUDWidget->ZoomOutState();
+}
+
 void AACMainPlayerController::ClientNotifySpectateTargetRemoved_Implementation(APawn* RemovedPawn)
 {
 	if (IsLocalController() == false)
@@ -1042,6 +1123,11 @@ void AACMainPlayerController::StopProximityVoiceTimer()
 
 	// 음소거 목록 초기화
 	MutedPlayers.Empty();
+}
+
+void AACMainPlayerController::UpdateAmmoUI(int32 Ammo)
+{
+	ACHUDWidget->HandleAmmoChanged(Ammo);
 }
 
 void AACMainPlayerController::UpdateProximityVoice()

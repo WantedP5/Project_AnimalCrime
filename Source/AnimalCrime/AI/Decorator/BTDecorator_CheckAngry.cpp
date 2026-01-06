@@ -33,7 +33,7 @@ bool UBTDecorator_CheckAngry::CalculateRawConditionValue(UBehaviorTreeComponent&
 	}
 	ECharacterState State = CitizenPawn->CharacterState;
 	
-	UE_LOG(LogHY, Error, TEXT("AI State: %s"),*StaticEnum<ECharacterState>()->GetValueAsString(State));
+	// UE_LOG(LogHY, Error, TEXT("AI State: %s"),*StaticEnum<ECharacterState>()->GetValueAsString(State));
 	
 	return State == ECharacterState::Angry;
 }

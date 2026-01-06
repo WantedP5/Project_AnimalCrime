@@ -26,6 +26,7 @@
 #include "Prison/ACPrisonBase.h"
 
 #include "AnimalCrime.h"
+#include "NetworkMessage.h"
 
 #include "Component/ACShopComponent.h"
 #include "UI/Shop/ACShopWidget.h"
@@ -41,6 +42,7 @@
 #include "Game/ACPlayerState.h"
 
 #include "Sound/SoundBase.h"
+#include "UI/ACHUDWidget.h"
 
 AACCharacter::AACCharacter()
 {
@@ -163,7 +165,18 @@ AACCharacter::AACCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
+	
+	
+	GunSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("GunSpringArm"));
+	GunSpringArm->SetupAttachment(RootComponent);
+	GunSpringArm->TargetArmLength = 0.0;
+	GunSpringArm->bUsePawnControlRotation = true;
+	GunSpringArm->SetRelativeLocation(FVector(0.f, 20.f, 40.f));
+	
+	GunCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GunCamera"));
+	GunCamera->SetupAttachment(GunSpringArm, USpringArmComponent::SocketName);
+	GunCamera->bUsePawnControlRotation = false;
+	
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 
@@ -210,7 +223,6 @@ AACCharacter::AACCharacter()
 	}
 }
 
-
 void AACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -222,6 +234,22 @@ void AACCharacter::BeginPlay()
 	// Police와 Mafia는 각자의 BeginPlay에서 초기화
 	// ※ 얘도 확인 했으면 지워주세요
 	//MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
+	
+	if (CrosshairTimelineClass)
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.SpawnCollisionHandlingOverride =
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		CrosshairTimelineActor = GetWorld()->SpawnActor<AActor>(CrosshairTimelineClass, FTransform::Identity, Params);
+
+		if (CrosshairTimelineActor)
+		{
+			CrosshairTimelineActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+	
 }
 
 void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -235,6 +263,9 @@ void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AACCharacter, BottomMeshReal);
 	DOREPLIFETIME(AACCharacter, ShoesMeshReal);
 	DOREPLIFETIME(AACCharacter, FaceAccMeshReal);
+	
+	// 삭제되어야함.
+	DOREPLIFETIME(AACCharacter, BulletCount);
 }
 
 void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -729,6 +760,36 @@ void AACCharacter::AttackHitCheck()
 	// }
 }
 
+void AACCharacter::FireHitscan()
+{
+	UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+	if (EquippedWeapon == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("EquippedWeapon is nullptr"));
+		return;
+	}
+	if (EquippedWeapon->ItemType != EItemType::Weapon)
+	{
+		AC_LOG(LogTemp, Log, TEXT(">>> Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
+		return;
+	}
+	if (EquippedWeapon->ItemName.ToString() != TEXT("Pistol_001"))
+    {
+		AC_LOG(LogTemp, Log, TEXT(">>>	 Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
+		return;
+	}
+	
+	if (GetBulletCount() <= 0)
+	{
+		AC_LOG(LogTemp, Log, TEXT("총알 갯수 %d"), GetBulletCount());
+		return;
+	}
+	
+	ServerShoot();
+	//
+	
+}
+
 void AACCharacter::SetCarryState(bool bPlay)
 {
 	if (HasAuthority())
@@ -1113,6 +1174,22 @@ float AACCharacter::GetHoldProgress() const
 	return FMath::Clamp(CurrentHoldTime / RequiredHoldTime, 0.f, 1.f);
 }
 
+void AACCharacter::PlayCrosshairSpread()
+{
+	if (CrosshairTimelineActor)
+	{
+		CrosshairTimelineActor->CallFunctionByNameWithArguments(TEXT("Timeline"),*GLog, nullptr, true);
+	}
+}
+
+void AACCharacter::ReverseCrosshairSpread()
+{
+	if (CrosshairTimelineActor)
+	{
+		CrosshairTimelineActor->CallFunctionByNameWithArguments(TEXT("Timeline"), *GLog, nullptr, true);
+	}
+}
+
 void AACCharacter::MulticastPlayAttackMontage_Implementation()
 {
 	if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
@@ -1184,7 +1261,9 @@ void AACCharacter::OnRep_HeadMesh() const
 {
 	if (HeadMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMesh->GetSkeletalMeshAsset()->GetName(), *HeadMeshReal.GetName());
 		UpdateHeadMesh();
+		AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), HeadMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMesh->GetSkeletalMeshAsset()->GetName(), *HeadMeshReal.GetName());
 	}
 }
 
@@ -1192,7 +1271,9 @@ void AACCharacter::OnRep_FaceMesh() const
 {
 	if (FaceMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMesh->GetSkeletalMeshAsset()->GetName(), *FaceMeshReal.GetName());
 		UpdateFaceMesh();
+		AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), FaceMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMesh->GetSkeletalMeshAsset()->GetName(), *FaceMeshReal.GetName());
 	}
 }
 
@@ -1200,7 +1281,9 @@ void AACCharacter::OnRep_TopMesh() const
 {
 	if (TopMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMesh->GetSkeletalMeshAsset()->GetName(), *TopMeshReal.GetName());
 		UpdateTopMesh();
+		AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), TopMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMesh->GetSkeletalMeshAsset()->GetName(), *TopMeshReal.GetName());
 	}
 }
 
@@ -1208,7 +1291,9 @@ void AACCharacter::OnRep_BottomMesh() const
 {
 	if (BottomMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMesh->GetSkeletalMeshAsset()->GetName(), *BottomMeshReal.GetName());
 		UpdateBottomMesh();
+		AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), BottomMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMesh->GetSkeletalMeshAsset()->GetName(), *BottomMeshReal.GetName());
 	}
 }
 
@@ -1216,7 +1301,9 @@ void AACCharacter::OnRep_ShoesMesh() const
 {
 	if (ShoesMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMesh->GetSkeletalMeshAsset()->GetName(), *ShoesMeshReal.GetName());
 		UpdateShoesMesh();
+		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), ShoesMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMesh->GetSkeletalMeshAsset()->GetName(), *ShoesMeshReal.GetName());
 	}
 }
 
@@ -1224,6 +1311,138 @@ void AACCharacter::OnRep_FaceAccMesh() const
 {
 	if (FaceAccMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), FaceAccMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMesh->GetSkeletalMeshAsset()->GetName(), *FaceAccMeshReal.GetName());
 		UpdateFaceAccMesh();
+		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), FaceAccMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMesh->GetSkeletalMeshAsset()->GetName(), *FaceAccMeshReal.GetName());
+	}
+}
+
+
+
+// #####################################################################################
+// ########################## 나중에 사라져야할 코드 ######################################
+// #####################################################################################
+
+void AACCharacter::ServerShoot_Implementation()
+{
+	SpendBullets(1);
+	
+	UCameraComponent* ActiveCamera = GunCamera;
+	
+	
+	FVector CameraLoc;
+	FRotator CameraRot;
+	float MaxDistance = 2000;
+	GetOwner()->GetActorEyesViewPoint(CameraLoc, CameraRot);
+	AC_LOG(LogHY, Log, TEXT("Firing Hitscan!! Who:%s %s"), *CameraLoc.ToString(), *CameraRot.ToString());
+	CameraLoc = ActiveCamera->GetComponentLocation();
+	CameraRot = ActiveCamera->GetComponentRotation();
+	
+	AC_LOG(LogHY, Log, TEXT("Firing Hitscan!! Gun:%s %s"), *CameraLoc.ToString(), *CameraRot.ToString());
+	AC_LOG(LogHY, Log, TEXT("Firing Hitscan!! Follow:%s %s"), *FollowCamera->GetComponentLocation().ToString(), *FollowCamera->GetComponentRotation().ToString());
+	
+	FVector TraceEnd = CameraLoc + (CameraRot.Vector() * MaxDistance);
+
+	// 총구 위치
+	// 방안 [소켓으로부터 출발] [SkeletalMesh의 경우 거기서]
+	//FVector MuzzleLoc = GetMesh()->GetSocketLocation("RightHandSocket");
+
+	FVector MuzzleLoc = CameraLoc;
+	FVector ShootDir = (TraceEnd - MuzzleLoc).GetSafeNormal();
+	FVector End = MuzzleLoc + (ShootDir * MaxDistance);
+
+	FHitResult Hit;
+
+	FCollisionObjectQueryParams ObjectParams;
+	
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
+	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredActor(GetOwner());
+	QueryParams.bReturnPhysicalMaterial = true;
+	
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, MuzzleLoc, End, ObjectParams, QueryParams);
+	
+	FColor LineColor = bHit ? FColor::Red : FColor::Green;
+	DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
+		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
+	}
+	PlayCrosshairSpread();
+}
+
+int32 AACCharacter::GetBulletCount() const
+{
+	return BulletCount;
+}
+
+void AACCharacter::AddBullets(int32 InBulletCount)
+{
+	AC_LOG(LogHY, Error, TEXT("Current Bullet Count: %d Input BulletCount: %d"), BulletCount, InBulletCount);
+	BulletCount += InBulletCount;
+	OnRep_BulletCount();
+	// AACMainPlayerController* MainPlayerController = Cast<AACMainPlayerController>(GetController());
+	// if (MainPlayerController == nullptr)
+	// {
+	// 	return;
+	// }
+	// if (MainPlayerController->ACHUDWidget == nullptr)
+	// {
+	// 	AC_LOG(LogHY, Log, TEXT("ACHUDWidget is nullptr"));
+	// 	return;
+	// }
+	// MainPlayerController->ACHUDWidget->HandleAmmoChanged(BulletCount);
+}
+
+void AACCharacter::ClearBullets()
+{
+	BulletCount = 0;
+	OnRep_BulletCount();
+	// AACMainPlayerController* MainPlayerController = Cast<AACMainPlayerController>(GetController());
+	// if (MainPlayerController == nullptr)
+	// {
+	// 	return;
+	// }
+	// MainPlayerController->ACHUDWidget->HandleAmmoChanged(BulletCount);
+}
+
+void AACCharacter::SpendBullets(int32 InBulletCount)
+{
+	if (InBulletCount <= 0)
+	{
+		AC_LOG(LogHY, Error, TEXT("Input BulletCount is Zero"));
+		return;
+	}
+	
+	if (BulletCount < InBulletCount)
+	{
+		AC_LOG(LogHY, Error, TEXT("Current Bullet Count: %d Input BulletCount: %d"), BulletCount, InBulletCount);
+		return;
+	}
+	BulletCount -= InBulletCount;
+	OnRep_BulletCount();
+	
+	// AACMainPlayerController* MainPlayerController = Cast<AACMainPlayerController>(GetController());
+	// if (MainPlayerController == nullptr)
+	// {
+	// 	return;
+	// }
+	// MainPlayerController->ACHUDWidget->HandleAmmoChanged(BulletCount);
+}
+
+void AACCharacter::OnRep_BulletCount()
+{
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		PC->UpdateAmmoUI(BulletCount);
 	}
 }

@@ -76,6 +76,7 @@ void AACMainGameMode::PostLogin(APlayerController* NewPlayer)
 
 void AACMainGameMode::PostInitializeComponents()
 {
+	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::PostInitializeComponents();
 	
 	TArray<AActor*> FoundStarts;
@@ -110,6 +111,7 @@ void AACMainGameMode::PostInitializeComponents()
 			}
 		}
 	}
+	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 void AACMainGameMode::StartPlay()
@@ -344,6 +346,7 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetHeadMesh(LoadedHair);
 				NewAI->OnRep_HeadMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:Hair %s"), i, *LoadedHair->GetName())
 			}
 			
 			USkeletalMesh* LoadedFace = OutfitCombo.FaceAsset.LoadSynchronous();
@@ -351,6 +354,7 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetFaceMesh(LoadedFace);
 				NewAI->OnRep_FaceMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:Face %s"), i, *LoadedHair->GetName())
 			}
 
 			USkeletalMesh* LoadedTop = OutfitCombo.TopAsset.LoadSynchronous();
@@ -358,6 +362,7 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetTopMesh(LoadedTop);
 				NewAI->OnRep_TopMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:Top %s"), i, *LoadedTop->GetName())
 			}
 
 			USkeletalMesh* LoadedBottom = OutfitCombo.BottomAsset.LoadSynchronous();
@@ -365,6 +370,7 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetBottomMesh(LoadedBottom);
 				NewAI->OnRep_BottomMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:Bottom %s"), i, *LoadedBottom->GetName())
 			}
 			
 			USkeletalMesh* LoadedShoes = OutfitCombo.ShoesAsset.LoadSynchronous();
@@ -372,6 +378,7 @@ void AACMainGameMode::SpawnAllAI()
 			{
 				NewAI->SetShoesMesh(LoadedShoes);
 				NewAI->OnRep_ShoesMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:Shoes %s"), i, *LoadedShoes->GetName())
 			}
 			
 			USkeletalMesh* LoadedFaceAcc = OutfitCombo.FaceAccAsset.LoadSynchronous();
@@ -379,6 +386,7 @@ void AACMainGameMode::SpawnAllAI()
             {
             	NewAI->SetFaceAccMesh(LoadedFaceAcc);
             	NewAI->OnRep_FaceAccMesh();
+            	AC_LOG(LogHY, Error, TEXT("%d:FaceAcc %s"), i, *LoadedFaceAcc->GetName())
             }
 			UE_LOG(LogTemp, Log, TEXT("Spawn Success %d"), i);
 		}

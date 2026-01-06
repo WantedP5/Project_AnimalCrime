@@ -24,9 +24,15 @@ public:
 	
 	UFUNCTION()
 	void HandleMoneyChanged(int32 NewMoney);
+	
+	UFUNCTION()
+	void HandleAmmoChanged(int32 InAmmo);
 
 	// 새 함수 추가 - MoneyComponent 바인딩
 	void BindMoneyComponent();
+	
+	void ZoomInState();
+	void ZoomOutState();
 	
 public:
 	UPROPERTY(meta = (BindWidget))
@@ -40,4 +46,10 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACInteractProgressWidget> WBP_InteractProgress;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACAmmoWidget> WBP_Ammo;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACCrossHairWidget> WBP_CrossHair;
 };

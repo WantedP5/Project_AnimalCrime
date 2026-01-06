@@ -79,6 +79,7 @@ float AACDestroyableObject::TakeDamage(float DamageAmount, const FDamageEvent& D
 		AC_LOG(LogTemp, Log, TEXT(">>> Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
 		return 0.0f;
 	}
+	AC_LOG(LogTemp, Log, TEXT(">>> Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
 	
 	// 데미지 누적
 	DestroyComp->OnDamaged(DamageAmount);

@@ -347,6 +347,19 @@ void UACShopComponent::ServerPurchaseAndAddToQuickSlot_Implementation(UACItemDat
         UE_LOG(LogHG, Warning, TEXT("Server: Failed to purchase item %s"), *ItemData->ItemName.ToString());
         return;
     }
+    
+    // 나중에 사라져야할 코드
+    if (ItemData->ItemName.ToString() == TEXT("Pistol_001"))
+    {
+        UE_LOG(LogHY, Error, TEXT("Test Name:%s"), *GetOwner()->GetName());
+        AACCharacter* CharacterPawn = Cast<AACCharacter>(GetOwner());
+        if (CharacterPawn == nullptr)
+        {
+            UE_LOG(LogHY, Error, TEXT("None Test Name:%s"), *GetOwner()->GetName());
+            return;
+        }
+        CharacterPawn->AddBullets(10);
+    }
 
     // 구매 성공 - 클라이언트에게 퀵슬롯 추가 명령
     ClientAddToQuickSlot(ItemData);

@@ -24,8 +24,10 @@
 #include "Net/UnrealNetwork.h"
 
 #include "AnimalCrime.h"
+#include "Engine/AssetManager.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/OverlapResult.h"
+#include "Engine/StreamableManager.h"
 #include "Game/ACGameRuleManager.h"
 #include "Game/ACMainGameMode.h"
 
@@ -720,52 +722,248 @@ void AACCitizen::JumpInPlace()
 
 #pragma region 매쉬 변경 시 호출되는 함수
 
-void AACCitizen::OnRep_HeadMesh() const
+void AACCitizen::ApplyHeadMesh()
 {
-	if (HeadMeshComp)
+	if (USkeletalMesh* SKMesh = HeadMesh.Get())
 	{
-		UpdateHeadMesh();
+		AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
+		HeadMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
 	}
 }
 
-void AACCitizen::OnRep_FaceMesh() const
+void AACCitizen::ApplyFaceMesh()
 {
-	if (FaceMeshComp)
+	if (USkeletalMesh* SKMesh = FaceMesh.Get())
 	{
-		UpdateFaceMesh();
+		AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
+		FaceMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
 	}
 }
 
-void AACCitizen::OnRep_TopMesh() const
+void AACCitizen::ApplyTopMesh()
 {
-	if (TopMeshComp)
+	if (USkeletalMesh* SKMesh = TopMesh.Get())
 	{
-		UpdateTopMesh();
+		AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
+		TopMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
 	}
 }
 
-void AACCitizen::OnRep_BottomMesh() const
+void AACCitizen::ApplyBottomMesh()
 {
-	if (BottomMeshComp)
+	if (USkeletalMesh* SKMesh = BottomMesh.Get())
 	{
-		UpdateBottomMesh();
+		AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
+		BottomMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
 	}
 }
 
-void AACCitizen::OnRep_ShoesMesh() const
+void AACCitizen::ApplyShoesMesh()
 {
-	if (ShoesMeshComp)
+	if (USkeletalMesh* SKMesh = ShoesMesh.Get())
 	{
-		UpdateShoesMesh();
+		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
+		ShoesMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
 	}
 }
 
-void AACCitizen::OnRep_FaceAccMesh() const
+void AACCitizen::ApplyFaceAccMesh()
 {
-	if (FaceAccMeshComp)
+	if (USkeletalMesh* SKMesh = FaceAccMesh.Get())
 	{
-		UpdateFaceAccMesh();
+		AC_LOG(LogHY, Error, TEXT("Before FaceAccMeshComp OK | prev:%s next:%s"), FaceAccMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
+		FaceAccMeshComp->SetSkeletalMesh(SKMesh);
+		AC_LOG(LogHY, Error, TEXT("After FaceAccMeshComp OK | prev:%s next:%s"), *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
 	}
+}
+
+void AACCitizen::OnRep_HeadMesh()
+{
+	if (HeadMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_HeadMesh: HeadMeshComp is NULL"));
+		return; 
+	}
+	
+	if (HeadMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_HeadMesh: HeadMesh is NULL"));
+		return;
+	}
+
+	if (HeadMesh.IsValid())
+	{
+		ApplyHeadMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다1"));	
+	}
+	
+	//AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh.GetName());
+	//UpdateHeadMesh();
+	//AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(HeadMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyHeadMesh));
+}
+
+void AACCitizen::OnRep_FaceMesh()
+{
+	if (FaceMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_FaceMesh: FaceMeshComp is NULL"));
+		return;
+	}
+
+	if (FaceMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_FaceMesh: FaceMesh is NULL"));
+		return;
+	}
+
+	if (FaceMesh.IsValid())
+	{
+		ApplyFaceMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다2"));	
+	}
+	
+	// AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh.GetName());
+	// UpdateFaceMesh();
+	// AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(FaceMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyFaceMesh));
+}
+
+void AACCitizen::OnRep_TopMesh()
+{
+	if (TopMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_TopMesh: TopMeshComp is NULL"));
+		return;
+	}
+	
+	if (TopMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_TopMesh: TopMesh is NULL"));
+		return;
+	}
+
+	if (TopMesh.IsValid())
+	{
+		ApplyTopMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다3"));	
+	}
+	
+	// AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh.GetName());
+	// UpdateTopMesh();
+	// AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(TopMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyTopMesh));
+}
+
+void AACCitizen::OnRep_BottomMesh()
+{
+	if (BottomMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_BottomMesh: BottomMeshComp is NULL"));
+		return; 
+	}
+	
+	if (BottomMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_BottomMesh: BottomMesh is NULL"));
+		return;
+	}
+
+	if (BottomMesh.IsValid())
+	{
+		ApplyBottomMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다4"));	
+	}
+	// AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh.GetName());
+	// UpdateBottomMesh();
+	// AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(BottomMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyBottomMesh));
+}
+
+void AACCitizen::OnRep_ShoesMesh()
+{
+	if (ShoesMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_ShoesMesh: ShoesMeshComp is NULL"));
+		return;
+		
+	}
+	if (ShoesMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_ShoesMesh: ShoesMesh is NULL"));
+		return;
+	}
+
+	if (ShoesMesh.IsValid())
+	{
+		ApplyShoesMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다5"));	
+	}
+	// AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh.GetName());
+	// UpdateShoesMesh();
+	// AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(ShoesMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyShoesMesh));
+}
+
+void AACCitizen::OnRep_FaceAccMesh()
+{
+	if (FaceAccMeshComp == nullptr)
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_FaceAccMesh: FaceAccMeshComp is NULL"));
+		return;
+	}
+	
+	if (FaceAccMesh.IsNull())
+	{
+		AC_LOG(LogHY, Warning, TEXT("OnRep_FaceAccMesh: FaceAccMesh is NULL"));
+		return;
+	}
+
+	if (FaceAccMesh.IsValid())
+	{
+		ApplyFaceAccMesh();
+		return;
+	}
+	else
+	{
+		AC_LOG(LogHY, Warning, TEXT("이거다6"));	
+	}
+	
+	// AC_LOG(LogHY, Error, TEXT("Before FaceAccMeshComp OK | prev:%s next:%s"), FaceAccMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh.GetName());
+	// UpdateFaceAccMesh();
+	// AC_LOG(LogHY, Error, TEXT("After FaceAccMeshComp OK | prev:%s next:%s"), *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh.GetName());
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	Streamable.RequestAsyncLoad(FaceAccMesh.ToSoftObjectPath(),FStreamableDelegate::CreateUObject(this, &AACCitizen::ApplyFaceAccMesh));
 }
 
 void AACCitizen::OnRep_CharacterState()
