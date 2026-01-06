@@ -152,6 +152,8 @@ public:
 	 */
 	void JumpInPlace();
 	
+	void CheckMafiaStat(class AActor* InActor);
+	
 #pragma endregion
 
 #pragma region 매시 Get/Set
@@ -263,7 +265,7 @@ public:
 	UFUNCTION()
 	void OnRep_CharacterState();
 
-private:
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> HeadMeshComp;
 
@@ -281,24 +283,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta=(AllowPrivateAccess=true))
 	TObjectPtr<class USkeletalMeshComponent> FaceAccMeshComp;
-
-	// UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
-	// TObjectPtr<class USkeletalMesh> HeadMesh;
-	//
-	// UPROPERTY(ReplicatedUsing=OnRep_FaceMesh)
-	// TObjectPtr<class USkeletalMesh> FaceMesh;
-	//
-	// UPROPERTY(ReplicatedUsing=OnRep_TopMesh)
-	// TObjectPtr<class USkeletalMesh> TopMesh;
-	//
-	// UPROPERTY(ReplicatedUsing=OnRep_BottomMesh)
-	// TObjectPtr<class USkeletalMesh> BottomMesh;
-	//
-	// UPROPERTY(ReplicatedUsing=OnRep_ShoesMesh)
-	// TObjectPtr<class USkeletalMesh> ShoesMesh;
-	//
-	// UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
-	// TObjectPtr<class USkeletalMesh> FaceAccMesh;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_HeadMesh)
 	TSoftObjectPtr<class USkeletalMesh> HeadMesh;
@@ -318,6 +302,7 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_FaceAccMesh)
 	TSoftObjectPtr<class USkeletalMesh> FaceAccMesh;
 
+protected:
 	UPROPERTY()
 	TObjectPtr<class AACPoliceCharacter> PoliceCharacter;
 	
@@ -332,7 +317,61 @@ public:
 	
 protected:
 	FTimerHandle RegenMoneyTimerHandle;
-	float RegenRateMin = 20.0f;
-	float RegenRateMax = 60.0f;
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DataAsset")
+	TObjectPtr<class UACCitizenData> CitizenDataAsset;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DataAsset")
+	float DebugDeltaData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DataAsset")
+	float DebugDrawLifeTimeData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RegenRateMinData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RegenRateMaxData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DropMoneyMinData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DropMoneyMaxData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DropTimeData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackCapsuleRadiusData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackCapsuleHalfHeightData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackTraceDistanceData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackDamageData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DetectRadiusData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DefaultWalkSpeedData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RunWalkSpeedData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AngryWalkSpeedData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MafiaScoreData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float PoliceScoreData;
+	
 #pragma endregion
 };
