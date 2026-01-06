@@ -309,4 +309,8 @@ protected:
 	float RegenRateMin = 20.0f;
 	float RegenRateMax = 60.0f;
 #pragma endregion
+
+	// 사운드 추가
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	TObjectPtr<USoundBase> HitSound;
 };

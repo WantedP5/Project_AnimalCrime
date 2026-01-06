@@ -15,6 +15,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Component/ACDestroyableStatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Sound/SoundBase.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
 {
@@ -33,6 +34,12 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
+	// 피격 사운드 재생
+	if (HitSound && DamageAmount > 0.0f)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+	}
+
 	// 권한있는 APawn만 계산해야 함.
 	if (HasAuthority() == false)
 	{

@@ -88,4 +88,8 @@ public:
 protected:
 	FTimerHandle TaxTimerHandle;
 	float TaxTimeRate = 60.0f;
+
+	// ===== 사운드 추가 =====
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	TObjectPtr<USoundBase> HitSound;
 };
