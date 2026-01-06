@@ -6,6 +6,7 @@
 #include "Character/ACMafiaCharacter.h"
 #include "ACAdvancedFriendsGameInstance.h"
 #include "ACPlayerState.h"
+#include "Algo/RandomShuffle.h"
 #include "AnimalCrime.h"
 
 AACLobbyGameMode::AACLobbyGameMode()
@@ -56,7 +57,23 @@ void AACLobbyGameMode::StartGamePlay()
 	GI->SavedPlayerRoles.Empty();
 	
 	const int32 PlayerCount = GameState->PlayerArray.Num();
-	const int32 PoliceIndex = FMath::RandRange(0, PlayerCount - 1);
+	// 경찰 수 결정 (플레이어 수가 3명 이상일 경우 2명, 그렇지 않으면 1명)
+	const int32 NumPolice = (PlayerCount >= 3) ? 2 : 1;
+	// 0 ~ PlayerCount-1 인덱스 셔플
+	TArray<int32> Indices;
+	Indices.Reserve(PlayerCount);
+	for (int32 i = 0; i < PlayerCount; ++i)
+	{
+		Indices.Add(i);
+	}
+	Algo::RandomShuffle(Indices);
+
+	// 앞에서 NumPolice 만큼 경찰로 지정
+	TSet<int32> PoliceIndices;
+	for (int32 i = 0; i < NumPolice; ++i)
+	{
+		PoliceIndices.Add(Indices[i]);
+	}
 
 	for (int32 i = 0; i < PlayerCount; ++i)
 	{
@@ -67,20 +84,18 @@ void AACLobbyGameMode::StartGamePlay()
 			continue;
 		}
 
-		const EPlayerRole AssignedRole = (i == PoliceIndex) ? EPlayerRole::Police : EPlayerRole::Mafia;
+		const EPlayerRole AssignedRole = PoliceIndices.Contains(i) ? EPlayerRole::Police : EPlayerRole::Mafia;
 
 		// 플레이어 역할 지정
 		PS->PlayerRole = AssignedRole;
-
 		// 플레이어 스테이트 백업
 		GI->SavedPlayerRoles.Add(PS->GetUniqueId(), AssignedRole);
 
-		AC_LOG(LogSY, Log, TEXT("%s : %s"), *PS->GetPlayerName(), *PS->GetUniqueId()->ToString());
+		AC_LOG(LogSY, Log, TEXT("%s : %s -> %s"), *PS->GetPlayerName(), *PS->GetUniqueId()->ToString(),
+			AssignedRole == EPlayerRole::Police ? TEXT("Police") : TEXT("Mafia"));
 	}
 
+	AC_LOG(LogSY, Log, TEXT("맵이동"));
 
 	GI->LoadGameMap();
-
-
-	AC_LOG(LogSY, Log, TEXT("맵이동"));	
 }

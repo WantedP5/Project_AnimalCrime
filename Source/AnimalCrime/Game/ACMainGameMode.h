@@ -129,6 +129,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	TSubclassOf<AACCitizen> CitizenBPClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	TSubclassOf<class AACBlackMarketDealer> BlackMarketDealerBPClass;
 	
 	UPROPERTY(EditAnywhere, meta=(AllowedClasses=Actor))
 	int32 AINums = 5;

@@ -194,16 +194,6 @@ void AACMainPlayerController::BeginPlay()
 		return;
 	}
 
-	// 보이스 연결
-	UACAdvancedFriendsGameInstance* GI = GetGameInstance<UACAdvancedFriendsGameInstance>();
-	if (GI)
-	{
-		GI->TryStartVoice();
-	}
-
-	// 거리 기반 Voice 타이머 시작
-	StartProximityVoiceTimer();
-
 	ACHUDWidget = CreateWidget<UACHUDWidget>(this, ACHUDWidgetClass);
 	if (ACHUDWidget == nullptr)
 	{
@@ -242,9 +232,6 @@ void AACMainPlayerController::BeginPlay()
 
 void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 거리 기반 Voice 타이머 정지
-	StopProximityVoiceTimer();
-
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -1088,140 +1075,3 @@ void AACMainPlayerController::ClosePhone()
 		SetShowMouseCursor(false);
 	}
 }
-
-#pragma region Proximity Voice (거리 기반 보이스)
-void AACMainPlayerController::StartProximityVoiceTimer()
-{
-	if (IsLocalController() == false)
-	{
-		return;
-	}
-
-	// 기존 타이머가 있으면 정지
-	StopProximityVoiceTimer();
-
-	// 타이머 시작
-	GetWorldTimerManager().SetTimer(
-		VoiceUpdateTimerHandle,
-		this,
-		&AACMainPlayerController::UpdateProximityVoice,
-		VoiceUpdateInterval,
-		true  // 반복 실행
-	);
-
-	AC_LOG(LogSY, Log, TEXT("Proximity Voice Timer Started (Interval: %.2f sec, MaxDistance: %.0f cm)"),
-		VoiceUpdateInterval, VoiceMaxDistance);
-}
-
-void AACMainPlayerController::StopProximityVoiceTimer()
-{
-	if (VoiceUpdateTimerHandle.IsValid())
-	{
-		GetWorldTimerManager().ClearTimer(VoiceUpdateTimerHandle);
-		VoiceUpdateTimerHandle.Invalidate();
-	}
-
-	// 음소거 목록 초기화
-	MutedPlayers.Empty();
-}
-
-void AACMainPlayerController::UpdateAmmoUI(int32 Ammo)
-{
-	ACHUDWidget->HandleAmmoChanged(Ammo);
-}
-
-void AACMainPlayerController::UpdateProximityVoice()
-{
-	// 월드 유효성 검사 (맵 이동 중 크래시 방지)
-	UWorld* World = GetWorld();
-	if (World == nullptr || World->bIsTearingDown)
-	{
-		return;
-	}
-
-	// 내 폰 가져오기
-	APawn* MyPawn = GetPawn();
-	if (MyPawn == nullptr || !IsValid(MyPawn))
-	{
-		return;
-	}
-
-	// Voice 인터페이스 가져오기
-	IOnlineVoicePtr Voice = Online::GetVoiceInterface();
-	if (Voice.IsValid() == false)
-	{
-		return;
-	}
-
-	// GameState 가져오기
-	AGameStateBase* GameState = World->GetGameState();
-	if (GameState == nullptr || !IsValid(GameState))
-	{
-		return;
-	}
-
-	FVector MyLocation = MyPawn->GetActorLocation();
-
-	// 모든 PlayerState 순회
-	for (APlayerState* PS : GameState->PlayerArray)
-	{
-		// 자기 자신 스킵
-		if (PS == nullptr || PS == PlayerState)
-		{
-			continue;
-		}
-
-		// 상대방 폰 가져오기
-		APawn* OtherPawn = PS->GetPawn();
-		if (OtherPawn == nullptr || !IsValid(OtherPawn))
-		{
-			continue;
-		}
-
-		// 상대방 NetId 가져오기
-		FUniqueNetIdRepl OtherNetId = PS->GetUniqueId();
-		if (OtherNetId.IsValid() == false)
-		{
-			continue;
-		}
-
-		// 거리 계산
-		float Distance = FVector::Dist(MyLocation, OtherPawn->GetActorLocation());
-
-		// TODO: 무전기 로직 추가 예정
-		// bool bBothHaveWalkieTalkie = CheckBothHaveWalkieTalkie(PS);
-		bool bBothHaveWalkieTalkie = false;
-
-		if (bBothHaveWalkieTalkie)
-		{
-			// 무전기 보유 시: 거리 상관없이 음소거 해제
-			if (MutedPlayers.Contains(OtherNetId))
-			{
-				Voice->UnmuteRemoteTalker(0, *OtherNetId, false);
-				MutedPlayers.Remove(OtherNetId);
-				AC_LOG(LogSY, Verbose, TEXT("Voice Unmuted (WalkieTalkie): %s"), *PS->GetPlayerName());
-			}
-		}
-		else if (Distance > VoiceMaxDistance)
-		{
-			// 거리가 멀면: 음소거
-			if (MutedPlayers.Contains(OtherNetId) == false)
-			{
-				Voice->MuteRemoteTalker(0, *OtherNetId, false);
-				MutedPlayers.Add(OtherNetId);
-				AC_LOG(LogSY, Verbose, TEXT("Voice Muted: %s (Distance: %.0f cm)"), *PS->GetPlayerName(), Distance);
-			}
-		}
-		else
-		{
-			// 거리가 가까우면: 음소거 해제
-			if (MutedPlayers.Contains(OtherNetId))
-			{
-				Voice->UnmuteRemoteTalker(0, *OtherNetId, false);
-				MutedPlayers.Remove(OtherNetId);
-				AC_LOG(LogSY, Verbose, TEXT("Voice Unmuted: %s (Distance: %.0f cm)"), *PS->GetPlayerName(), Distance);
-			}
-		}
-	}
-}
-#pragma endregion

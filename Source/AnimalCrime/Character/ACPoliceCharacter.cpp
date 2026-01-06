@@ -45,6 +45,9 @@ AACPoliceCharacter::AACPoliceCharacter()
 	ShoesMesh->SetSkeletalMesh(nullptr);
 	
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;  // 경찰
+
+	//경찰은 시작부터 무전기 소유
+	VoiceGroup = EVoiceGroup::Police;
 }
 
 void AACPoliceCharacter::PostInitializeComponents()

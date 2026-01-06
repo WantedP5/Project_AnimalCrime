@@ -71,6 +71,15 @@ protected:
 	 * @param InTimeRate 
 	 */
 	void ChangeTax(float InTimeRate);
+	
+	// 밀수품 미션 관련 함수
+public:
+	int32 GetContraband() const { return constrband; }
+	void AddContraband() { ++constrband; }
+	void SubtractContraband() { --constrband; }
+
+protected:
+	virtual float GetRequiredHoldTime() const override;
 
 public:
 	//!<아이템
@@ -85,7 +94,7 @@ protected:
 	FTimerHandle TaxTimerHandle;
 	float TaxTimeRate = 60.0f;
 
-	// ===== 사운드 추가 =====
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-	TObjectPtr<USoundBase> HitSound;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
+	int32 constrband = 0;
 };
