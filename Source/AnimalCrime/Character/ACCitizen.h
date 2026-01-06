@@ -94,6 +94,8 @@ public: // 임시
 
 	void AttackHitCheck();
 	
+	void ExcuteMoneyCoolTime();
+	
 public:
 	void UpdateAISkillFlag();
 	void UpdateCharacterStatusFree();

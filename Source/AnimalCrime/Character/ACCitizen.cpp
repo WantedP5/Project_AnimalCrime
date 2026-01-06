@@ -499,15 +499,11 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 			}
 			else
 			{
-				GetWorldTimerManager().SetTimer(MoneyCoolTimerHandle, FTimerDelegate::CreateLambda([this]
-				{
-					if (IsValid(this) == false)
-					{
-						UE_LOG(LogHY, Error, TEXT("[MoneyCoolTimerHandle] this is Invalid"));	
-						return;
-					}
-					AC_LOG(LogHY, Error, TEXT("끝"));
-				}), 10, false);
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUObject(this, &AACCitizen::ExcuteMoneyCoolTime);
+				
+				// AC_Log 출력 시 발생하는 타이머 버그 수정
+				GetWorldTimerManager().SetTimer(MoneyCoolTimerHandle, TimerDelegate, 10, false);
 				ACCharacter->MoneyComp->EarnMoney(Result);
 			}
 			AC_LOG(LogHY, Warning, TEXT("Mafia Earn Money: %d Cur Money: %d"), Result, ACCharacter->MoneyComp->GetMoney());
@@ -585,6 +581,16 @@ void AACCitizen::AttackHitCheck()
 			BB->SetValueAsObject(TEXT("Target"), nullptr);
 		}
 	}
+}
+
+void AACCitizen::ExcuteMoneyCoolTime()
+{
+	if (IsValid(this) == false)
+	{
+		UE_LOG(LogHY, Error, TEXT("[MoneyCoolTimerHandle] this is Invalid"));	
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("끝"));
 }
 
 void AACCitizen::UpdateAISkillFlag()
