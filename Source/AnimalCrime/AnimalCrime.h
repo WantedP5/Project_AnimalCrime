@@ -44,3 +44,21 @@ DECLARE_LOG_CATEGORY_EXTERN(LogSW, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogSY, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogHG, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogHY, Log, All);
+
+#define DESTROYABLE_COL     TEXT("DestroyableCollision") 
+#define INTERACTABLE_COL    TEXT("InteractableCollision")
+#define PEOPLE_COL          TEXT("PeopleCollision")
+#define MAFIA_COL           TEXT("MafiaCollision") 
+#define POLICE_COL          TEXT("PoliceCollision")
+#define CITIZEN_COL         TEXT("CitizenCollision")
+
+
+#define BREAK               ECC_GameTraceChannel2
+#define ATTACK_TARGET       ECC_GameTraceChannel4
+
+#define DESTROYABLE_OBJ     ECC_GameTraceChannel1
+#define INTERACTABLE_OBJ    ECC_GameTraceChannel3
+#define PEOPLE_OBJ          ECC_GameTraceChannel5
+#define MAFIA_OBJ           ECC_GameTraceChannel6
+#define POLICE_OBJ          ECC_GameTraceChannel7
+#define CITIZEN_OBJ         ECC_GameTraceChannel8
