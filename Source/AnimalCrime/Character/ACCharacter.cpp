@@ -959,7 +959,9 @@ void AACCharacter::OnRep_HeadMesh() const
 {
 	if (HeadMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMesh->GetSkeletalMeshAsset()->GetName(), *HeadMeshReal.GetName());
 		UpdateHeadMesh();
+		AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), HeadMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMesh->GetSkeletalMeshAsset()->GetName(), *HeadMeshReal.GetName());
 	}
 }
 
@@ -967,7 +969,9 @@ void AACCharacter::OnRep_FaceMesh() const
 {
 	if (FaceMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMesh->GetSkeletalMeshAsset()->GetName(), *FaceMeshReal.GetName());
 		UpdateFaceMesh();
+		AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), FaceMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMesh->GetSkeletalMeshAsset()->GetName(), *FaceMeshReal.GetName());
 	}
 }
 
@@ -975,7 +979,9 @@ void AACCharacter::OnRep_TopMesh() const
 {
 	if (TopMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMesh->GetSkeletalMeshAsset()->GetName(), *TopMeshReal.GetName());
 		UpdateTopMesh();
+		AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), TopMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMesh->GetSkeletalMeshAsset()->GetName(), *TopMeshReal.GetName());
 	}
 }
 
@@ -983,7 +989,9 @@ void AACCharacter::OnRep_BottomMesh() const
 {
 	if (BottomMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMesh->GetSkeletalMeshAsset()->GetName(), *BottomMeshReal.GetName());
 		UpdateBottomMesh();
+		AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), BottomMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMesh->GetSkeletalMeshAsset()->GetName(), *BottomMeshReal.GetName());
 	}
 }
 
@@ -991,7 +999,9 @@ void AACCharacter::OnRep_ShoesMesh() const
 {
 	if (ShoesMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMesh->GetSkeletalMeshAsset()->GetName(), *ShoesMeshReal.GetName());
 		UpdateShoesMesh();
+		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), ShoesMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMesh->GetSkeletalMeshAsset()->GetName(), *ShoesMeshReal.GetName());
 	}
 }
 
@@ -999,6 +1009,10 @@ void AACCharacter::OnRep_FaceAccMesh() const
 {
 	if (FaceAccMesh)
 	{
+		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), FaceAccMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMesh->GetSkeletalMeshAsset()->GetName(), *FaceAccMeshReal.GetName());
 		UpdateFaceAccMesh();
+		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), FaceAccMesh->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMesh->GetSkeletalMeshAsset()->GetName(), *FaceAccMeshReal.GetName());
+	}
+}
 	}
 }
