@@ -13,4 +13,26 @@ UCLASS()
 class ANIMALCRIME_API UACSkillData : public UDataAsset
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SprintMoveSpeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float OriginMafiaMoveSpeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float OriginPoliceMoveSpeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SprintGauge;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DashForwardImpulse;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DashUpwardImpulse;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DashCoolTime;
 };
