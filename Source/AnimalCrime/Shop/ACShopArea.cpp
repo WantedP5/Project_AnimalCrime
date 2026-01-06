@@ -53,19 +53,8 @@ void AACShopArea::BeginPlay()
     }
 }
 
-bool AACShopArea::CanInteract(AACCharacter* ACPlayer)
+void AACShopArea::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	// 모든 플레이어가 상호작용 가능
-	return true;
-
-	// 특정 타입만 허용하려면:
-	// return ACPlayer->GetCharacterType() == EACCharacterType::Mafia;
-}
-
-void AACShopArea::OnInteract(AACCharacter* ACPlayer)
-{
-    //ShowInteractDebug(ACPlayer, GetName());
-
     if (ACPlayer == nullptr)
     {
         UE_LOG(LogHG, Warning, TEXT("OnInteract: ACPlayer is null"));

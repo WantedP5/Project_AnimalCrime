@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -8,21 +8,20 @@
 #include "ACInteractionData.generated.h"
 
 /**
- * @brief 상호작용 데이터 애셋 (UPrimaryDataAsset 기반)
+ * @brief 상호작용 데이터 애셋 (UDataAsset 기반)
  * Asset Manager를 통한 중앙 관리 및 비동기 로딩 지원
  *
  * 향후 확장: 한 캐릭터에 여러 임무를 할당하여 다중 선택 UI 지원 가능
  */
 UCLASS(BlueprintType)
-class ANIMALCRIME_API UACInteractionData : public UPrimaryDataAsset
+class ANIMALCRIME_API UACInteractionData : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	// === 임무 정보 ===
-	//todo: InteractionName
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
-	FText MissionName;  // "시민 신분증 검사", "블랙마켓 거래"
+	FText InteractionName;  // "시민 신분증 검사", "블랙마켓 거래"
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
 	FString AssignedKey = TEXT("E");  // 'E', 'R', 'T' (다중 임무 시 사용)
@@ -65,13 +64,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	FVector ParticleOffset = FVector::ZeroVector;
-
-	// === UPrimaryDataAsset 오버라이드 ===
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override
-	{
-		// Asset Manager가 이 데이터 애셋을 식별하기 위한 고유 ID
-		return FPrimaryAssetId(FPrimaryAssetType("InteractionData"), GetFName());
-	}
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override

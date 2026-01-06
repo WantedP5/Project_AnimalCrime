@@ -20,26 +20,8 @@ EACCharacterType AACBlackMarketDealer::GetCharacterType()
 	return EACCharacterType::BlackMarketDealer;
 }
 
-bool AACBlackMarketDealer::CanInteract(AACCharacter* ACPlayer)
+void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	if (ACPlayer == nullptr)
-	{
-		return false;
-	}
-	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
-	{
-		AC_LOG(LogSW, Log, TEXT("Sorry Only For MAFIA!!!!!"));
-		return false;
-	}
-
-	AC_LOG(LogSW, Log, TEXT("Bomb - Mafia Contacted!!"));
-	return true;
-}
-
-void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer)
-{
-	//ShowInteractDebug(ACPlayer, GetName());
-
 	if (BlackMarketComponent)
 	{
 		BlackMarketComponent->OpenBlackMarket(ACPlayer);

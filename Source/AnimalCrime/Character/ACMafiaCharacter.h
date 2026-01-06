@@ -26,8 +26,7 @@ public:
 	
 	//!< 상호작용 인터페이스
 protected:
-	virtual bool CanInteract(AACCharacter* ACPlayer) override;
-	virtual void OnInteract(AACCharacter* ACPlayer) override;
+	virtual void OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
 	UFUNCTION(Server, Reliable)
@@ -72,9 +71,6 @@ protected:
 	 * @param InTimeRate 
 	 */
 	void ChangeTax(float InTimeRate);
-	
-protected:
-	virtual float GetRequiredHoldTime() const override;
 
 public:
 	//!<아이템

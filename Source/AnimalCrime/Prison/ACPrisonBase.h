@@ -29,9 +29,7 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected: //!< 상호작용 인터페이스 구현
-	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
-	virtual void OnInteract(class AACCharacter* ACPlayer) override;
-	virtual float GetRequiredHoldTime() const override;
+	virtual void OnInteract(class AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
 	//=== 위젯 인터페이스 ===
@@ -53,6 +51,8 @@ public:
 	void CloseDoor();
 
 	bool IsEmpty() const;
+
+	FORCEINLINE bool IsDoorOpen() const { return bDoorOpen; }
 
 	/**
 	@brief 투옥(배열에 추가).

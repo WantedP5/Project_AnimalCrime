@@ -56,7 +56,7 @@ enum class ECharacterState : uint8
 	None,
 	Free,
 	OnDamage,
-	Interact,
+	OnInteract,
 	Angry,
 	Stun,
 	Prison,
@@ -99,5 +99,14 @@ enum class EACInteractorType : uint8
 	Bomb				UMETA(DisplayName = "Bomb"),				// 탈출 임무 폭탄
 	//BombInstallArea		UMETA(DisplayName = "BombInstallArea"),		// 폭탄 설치 구역
 	//EscapeArea			UMETA(DisplayName = "EscapeArea"),			// 탈출 구역
+	Total
+};
+
+UENUM(BlueprintType)
+enum class EInteractionKey : uint8
+{
+	E,	// 0
+	R,	// 1
+	T,	// 2
 	Total
 };

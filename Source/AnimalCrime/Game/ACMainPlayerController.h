@@ -99,7 +99,7 @@ public:
 	void ClientToggleCCTVWidget(TSubclassOf<class UACCCTVWidget> WidgetClass);
 
 public:
-	void ShowInteractProgress(const FString& TargetName);
+	void ShowInteractProgress(const FString& InteractionName);
 	void UpdateInteractProgress(float Progress);
 	void HideInteractProgress();
 

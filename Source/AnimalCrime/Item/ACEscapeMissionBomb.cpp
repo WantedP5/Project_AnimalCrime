@@ -158,24 +158,8 @@ void AACEscapeMissionBomb::DetachFromCharacter()
 	@param  Interactor - 겹친 대상
 	@retval            - 상호작용 가능 여부
 **/
-bool AACEscapeMissionBomb::CanInteract(AACCharacter* ACPlayer)
+void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	if (ACPlayer == nullptr)
-	{
-		return false;
-	}
-	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
-{
-	//ShowInteractDebug(ACPlayer, GetName());
-
 	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 
 	if (ACPlayerMafia == nullptr)
@@ -204,12 +188,6 @@ void AACEscapeMissionBomb::OnInteract(AACCharacter* ACPlayer)
 	AC_LOG(LogSY, Log, TEXT("Bomb Interact Success"));
 
 	AttachToCharacter();
-}
-
-// 폭탄 - 5초 홀드
-float AACEscapeMissionBomb::GetRequiredHoldTime() const
-{
-	return 3.0f;
 }
 
 EACInteractorType AACEscapeMissionBomb::GetInteractorType() const

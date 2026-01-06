@@ -22,16 +22,15 @@ void UACInteractProgressWidget::SetProgress(float Progress)
 	ProgressPercentageText->SetText(FText::FromString(FString::Printf(TEXT("%d%%"), Percentage)));
 }
 
-void UACInteractProgressWidget::SetTargetName(const FString& Name)
+void UACInteractProgressWidget::SetInteractionText(const FString& InteractionName)
 {
-	if (TargetNameText == nullptr)
+	if (InteractionNameText == nullptr)
 	{
 		return;
 	}
 
 	// todo: 마피아 시민 구분못하도록 임시로 삭제
-	//TargetNameText->SetText(FText::FromString(FString::Printf(TEXT("%s 상호작용 중..."), *Name)));
-	TargetNameText->SetText(FText::FromString(FString::Printf(TEXT("상호작용 중..."))));
+	InteractionNameText->SetText(FText::FromString(FString::Printf(TEXT("%s 중..."), *InteractionName)));
 }
 
 void UACInteractProgressWidget::ShowWidget()

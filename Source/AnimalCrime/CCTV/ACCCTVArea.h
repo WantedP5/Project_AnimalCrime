@@ -28,17 +28,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	/**
-		 @brief  누가 상호작용 가능한지
-		 @param  ACPlayer - 타입 체크를 위한 캐릭터 가져오기
-		 @retval          - 마피아 또는 경찰(현재는 모두 가능하도록 바로 return true)
-	 **/
-	virtual bool CanInteract(class AACCharacter* ACPlayer) override;
-
-	/**
 		@brief 실제 상호작용 로직(서버에서 실행)
 		@param ACPlayer - 타입 체크를 위한 캐릭터 가져오기
 	**/
-	virtual void OnInteract(class AACCharacter* ACPlayer) override;
+	virtual void OnInteract(class AACCharacter* ACPlayer, EInteractionKey InKey) override;
 
 	virtual EACInteractorType GetInteractorType() const override;
 

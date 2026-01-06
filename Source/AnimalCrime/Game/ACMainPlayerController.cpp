@@ -947,7 +947,7 @@ void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<
 	}
 }
 
-void AACMainPlayerController::ShowInteractProgress(const FString& TargetName)
+void AACMainPlayerController::ShowInteractProgress(const FString& InteractionName)
 {
 	//UE_LOG(LogSW, Log, TEXT("Showing"));
 	if (ACHUDWidget == nullptr)
@@ -959,7 +959,7 @@ void AACMainPlayerController::ShowInteractProgress(const FString& TargetName)
 		return;
 	}
 
-	ACHUDWidget->WBP_InteractProgress->SetTargetName(TargetName);
+	ACHUDWidget->WBP_InteractProgress->SetInteractionText(InteractionName);
 	ACHUDWidget->WBP_InteractProgress->SetProgress(0.f);
 	ACHUDWidget->WBP_InteractProgress->ShowWidget();
 }

@@ -76,7 +76,7 @@ public:
 protected:
 
 	UFUNCTION(Server, Reliable)
-	void ServerInteract(AActor* Target);
+	void ServerInteract(AActor* Target, EInteractionKey InKey);
 
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
@@ -266,8 +266,7 @@ public:
 
 	//!< 상호작용 인터페이스 구현
 protected:
-	virtual bool CanInteract(AACCharacter* ACPlayer) override;
-	virtual void OnInteract(AACCharacter* ACPlayer) override;
+	virtual void OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
 	//=== NEW: Widget interface overrides ===
@@ -328,6 +327,7 @@ private:
 
 	TArray<class UACInteractionData*> FocusedInteractions;
 
+	EInteractionKey CurrentHoldKey;
 	AActor* CurrentHoldTarget;
 	float CurrentHoldTime = 0.f;
 	float RequiredHoldTime = 0.f;
