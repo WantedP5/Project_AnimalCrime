@@ -255,6 +255,11 @@ void AACCharacter::ChangeInputMode(EInputMode NewMode)
 
 void AACCharacter::Move(const FInputActionValue& Value)
 {
+	if (CharacterState == ECharacterState::OnInteract)
+	{
+		return;
+	}
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	const FRotator Rotation = GetControlRotation();
@@ -323,11 +328,8 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 		CurrentHoldTarget = FocusedInteractable;
 		CurrentHoldTime = 0.f;
 		CurrentHoldKey = Key;
-		SetCharacterState(ECharacterState::OnInteract);
 
-		ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
-		if (TargetChar)
-			ServerFreezeCharacter(TargetChar, true);
+		ServerFreezeCharacter(CurrentHoldTarget, true);
 
 		AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
 		if (PC)
@@ -598,6 +600,12 @@ void AACCharacter::Jump()
 
 	// Case 감옥 상태일 경우 
 	if (CharacterState == ECharacterState::Prison)
+	{
+		return;
+	}
+
+	// Case 감옥 상태일 경우 
+	if (CharacterState == ECharacterState::OnInteract)
 	{
 		return;
 	}
@@ -1023,7 +1031,8 @@ void AACCharacter::OnRep_CharacterState()
 	{
 	case ECharacterState::OnInteract:
 	{
-		// MoveComp->SetMovementMode(MOVE_None);
+		MoveComp->MaxWalkSpeed = 0.f;
+		MoveComp->JumpZVelocity = 0.f;
 		break;
 	}
 	case ECharacterState::Stun:
@@ -1034,14 +1043,13 @@ void AACCharacter::OnRep_CharacterState()
 	}
 	case ECharacterState::Free:
 	{
-		// MoveComp->SetMovementMode(MOVE_Walking);
 		if (GetCharacterType() == EACCharacterType::Police)
 		{
 			MoveComp->MaxWalkSpeed = 500.0f; // 경찰
 		}
 		else
 		{
-			MoveComp->MaxWalkSpeed = 300.0f; // 마피아/시민
+			MoveComp->MaxWalkSpeed = 300.0f; // 마피아
 		}
 		MoveComp->JumpZVelocity = 500.0f;
 		break;
@@ -1076,6 +1084,11 @@ void AACCharacter::OnRep_CharacterState()
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
 	CharacterState = InCharacterState;
+
+	if (HasAuthority())
+	{
+		OnRep_CharacterState();
+	}
 }
 
 void AACCharacter::ResetHoldInteract()
@@ -1086,11 +1099,7 @@ void AACCharacter::ResetHoldInteract()
 	}
 
 	// Server RPC로 대상 움직임 재개 (ACharacter 사용 - 시민도 포함)
-	ACharacter* TargetChar = Cast<ACharacter>(CurrentHoldTarget);
-	if (TargetChar != nullptr)
-	{
-		ServerFreezeCharacter(TargetChar, false);
-	}
+	ServerFreezeCharacter(CurrentHoldTarget, false);
 
 	// todo: 임시로 홀드 상호작용 리셋 시 다시 콜리전 오버랩 시작해야함
 	RemoveInteractable(CurrentHoldTarget);
@@ -1100,7 +1109,6 @@ void AACCharacter::ResetHoldInteract()
 	CurrentHoldTarget = nullptr;
 	CurrentHoldTime = 0.f;
 	RequiredHoldTime = 0.f;
-	SetCharacterState(ECharacterState::Free);
 }
 
 float AACCharacter::GetHoldProgress() const
@@ -1143,41 +1151,180 @@ void AACCharacter::ServerItemDrop_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
 }
 
-void AACCharacter::ServerSetTargetState_Implementation(AACCharacter* Target, ECharacterState NewState)
+void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFreeze)
 {
-	if (Target == nullptr)
+	if (bFreeze == true)
 	{
-		return;
-	}
-	Target->SetCharacterState(NewState);
-}
+		SetCharacterState(ECharacterState::OnInteract);
 
-void AACCharacter::ServerFreezeCharacter_Implementation(ACharacter* Target, bool bFreeze)
-{
-	if (Target == nullptr)
-	{
-		return;
-	}
+		if (Target == nullptr)
+		{
+			return;
+		}
+		// 2. 거리 검사 (가장 강력한 보안 장치)
+		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+		// todo: 거리 다시 확인하기
+		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
 
-	UCharacterMovementComponent* MoveComp = Target->GetCharacterMovement();
-	if (MoveComp == nullptr)
-	{
-		return;
-	}
+		if (DistSq > MaxDistSq)
+		{
+			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+			return;
+		}
 
-	if (bFreeze)
-	{
-		MoveComp->SetMovementMode(MOVE_None);
+		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+		if (Interactable == nullptr)
+		{
+			return;
+		}
+
+		if (Interactable->GetInteractorType() == EACInteractorType::Citizen)
+		{
+			ACharacter* Char = Cast<ACharacter>(Target);
+			if (Char == nullptr)
+			{
+				return;
+			}
+
+			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_None);
+		}
+		else
+		{
+			AACCharacter* ACChar = Cast<AACCharacter>(Target);
+			if (ACChar == nullptr)
+			{
+				return;
+			}
+
+			ACChar->SetCharacterState(ECharacterState::OnInteract);
+		}
 	}
 	else
 	{
-		MoveComp->SetMovementMode(MOVE_Walking);
+		SetCharacterState(ECharacterState::Free);
+
+		if (Target == nullptr)
+		{
+			return;
+		}
+
+		// 2. 거리 검사 (가장 강력한 보안 장치)
+		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+		// todo: 거리 다시 확인하기
+		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
+
+		if (DistSq > MaxDistSq)
+		{
+			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+			return;
+		}
+
+		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+		if (Interactable == nullptr)
+		{
+			return;
+		}
+
+		if (Interactable->GetInteractorType() == EACInteractorType::Citizen)
+		{
+			ACharacter* Char = Cast<ACharacter>(Target);
+			if (Char == nullptr)
+			{
+				return;
+			}
+
+			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		}
+		else
+		{
+			AACCharacter* ACChar = Cast<AACCharacter>(Target);
+			if (ACChar == nullptr)
+			{
+				return;
+			}
+
+			ACChar->SetCharacterState(ECharacterState::Free);
+		}
+	}
+}
+
+// === 상호작용 회전/몽타주 RPC ===
+void AACCharacter::StartFaceToFace(AActor* TargetActor)
+{
+	if (!TargetActor) return;
+
+	// 1. 목표 회전값 계산 (위치가 고정되어 있으므로 한 번만 계산하면 됨)
+	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	DesiredLookAtRotation = Direction.Rotation();
+	DesiredLookAtRotation.Pitch = 0.f;
+
+	// 2. 원래 상태 저장
+	bPrevUseControllerRotationYaw = bUseControllerRotationYaw;
+	bUseControllerRotationYaw = false;
+
+	if (UCharacterMovementComponent* CMC = GetCharacterMovement())
+	{
+		bPrevUseControllerDesiredRotation = CMC->bUseControllerDesiredRotation;
+		CMC->bUseControllerDesiredRotation = true;
+	}
+
+	// 3. 타이머 시작 (0.015초마다 갱신 = 약 60프레임)
+	GetWorld()->GetTimerManager().SetTimer(
+		RotateTimerHandle,
+		this,
+		&AACCharacter::UpdateFaceToFace,
+		0.015f,
+		true // 반복 실행
+	);
+}
+
+void AACCharacter::StopFaceToFace()
+{
+	// 타이머 종료
+	GetWorld()->GetTimerManager().ClearTimer(RotateTimerHandle);
+
+	// 원래 상태 복원
+	bUseControllerRotationYaw = bPrevUseControllerRotationYaw;
+	if (UCharacterMovementComponent* CMC = GetCharacterMovement())
+	{
+		CMC->bUseControllerDesiredRotation = bPrevUseControllerDesiredRotation;
+	}
+}
+
+void AACCharacter::UpdateFaceToFace()
+{
+	// 목표 각도에 도달했는지 확인 (오차범위 1도)
+	FRotator CurrentRot = Controller ? Controller->GetControlRotation() : GetActorRotation();
+	if (CurrentRot.Equals(DesiredLookAtRotation, 1.0f))
+	{
+		return;
+	}
+
+	// 부드럽게 보간 (Interp)
+	float InterpSpeed = 5.0f; // 회전 속도 조절
+
+	if (Controller)
+	{
+		// 플레이어: 컨트롤러 회전
+		FRotator NewRot = FMath::RInterpTo(Controller->GetControlRotation(), DesiredLookAtRotation, 0.015f, InterpSpeed);
+		Controller->SetControlRotation(NewRot);
+	}
+	else
+	{
+		// NPC: 액터 자체 회전
+		FRotator NewRot = FMath::RInterpTo(GetActorRotation(), DesiredLookAtRotation, 0.015f, InterpSpeed);
+		SetActorRotation(NewRot);
 	}
 }
 
 EACCharacterType AACCharacter::GetCharacterType()
 {
-	return EACCharacterType::Citizen;
+	// todo: 우리 게임에 이 캐릭터 그대로 사용할 일이 있나?
+	return EACCharacterType::Total;
 }
 
 void AACCharacter::OnRep_HeadMesh() const

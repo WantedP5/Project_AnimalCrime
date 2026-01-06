@@ -82,10 +82,7 @@ protected:
 	virtual void ServerItemDrop();
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetTargetState(AACCharacter* Target, ECharacterState NewState);
-
-	UFUNCTION(Server, Reliable)
-	void ServerFreezeCharacter(ACharacter* Target, bool bFreeze);
+	void ServerFreezeCharacter(AActor* Target, bool bFreeze);
 
 public:
 
@@ -333,6 +330,21 @@ private:
 	float RequiredHoldTime = 0.f;
 	bool bIsHoldingInteract = false;
 
+	// === 상호작용 시 타겟 회전 (Timer 방식) ===
+	FTimerHandle RotateTimerHandle;
+	FRotator DesiredLookAtRotation;
+
+	void StartFaceToFace(AActor* TargetActor);
+	void StopFaceToFace();
+	void UpdateFaceToFace();
+
+	// 기존 회전 설정 저장용
+	bool bPrevUseControllerRotationYaw = false;
+	bool bPrevUseControllerDesiredRotation = false;
+
+	// 현재 상호작용 몽타주 저장
+	UPROPERTY()
+	TObjectPtr<UAnimMontage> CurrentInteractionMontage;
 
 	// ===== 상점 관련 =====
 protected:
