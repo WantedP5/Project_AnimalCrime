@@ -157,6 +157,17 @@ AACCharacter::AACCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
+	
+	GunSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("GunSpringArm"));
+	GunSpringArm->SetupAttachment(RootComponent);
+	GunSpringArm->TargetArmLength = 0.0;
+	GunSpringArm->bUsePawnControlRotation = true;
+	GunSpringArm->SetRelativeLocation(FVector(0.f, 20.f, 40.f));
+	
+	GunCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GunCamera"));
+	GunCamera->SetupAttachment(GunSpringArm, USpringArmComponent::SocketName);
+	GunCamera->bUsePawnControlRotation = false;
+	
 	InteractBoxComponent = CreateDefaultSubobject<UACInteractableComponent>(TEXT("InteractBoxComponent"));
 	InteractBoxComponent->SetupAttachment(RootComponent);
 

@@ -4,6 +4,7 @@
 #include "Game/ACGameEnums.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Interface/ACInteractInterface.h"
 #include "ACCharacter.generated.h"
@@ -203,12 +204,21 @@ public:
 	UFUNCTION()
 	void OnRep_FaceAccMesh() const;
 
+public:
+	UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	UCameraComponent* GetGunCamera() const { return GunCamera; }
+	
 protected:
 	//!< 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USpringArmComponent> GunSpringArm;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UCameraComponent> GunCamera;
 
 protected:
 	/** 몽타주: 기본 공격  */
