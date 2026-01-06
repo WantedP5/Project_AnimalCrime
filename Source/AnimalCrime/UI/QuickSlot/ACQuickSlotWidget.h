@@ -68,6 +68,14 @@ public:
     bool IsFull() const { return MainSlotItem != nullptr && SubSlotItem != nullptr; }
 
     /**
+         @brief  퀵슬롯에 같은 아이템이 이미 있는지 확인
+         @param  ItemData - 확인할 아이템 정보
+         @retval true: 이미 있음, false: 없음
+     **/
+    UFUNCTION(BlueprintCallable, Category = "QuickSlot")
+    bool HasSameItem(class UACItemData* ItemData) const;
+
+    /**
         @brief  퀵슬롯 아이템 가져오기
         @retval  - 슬롯별 아이템 정보
     **/

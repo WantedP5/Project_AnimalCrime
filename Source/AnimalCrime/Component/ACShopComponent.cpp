@@ -91,6 +91,37 @@ void UACShopComponent::PurchaseAndAddToQuickSlot(UACItemData* ItemData)
         return;
     }
 
+    // 퀵슬롯 위젯 가져오기
+    AACCharacter* Character = Cast<AACCharacter>(GetOwner());
+    if (Character == nullptr)
+    {
+        UE_LOG(LogHG, Error, TEXT("PurchaseAndAddToQuickSlot: Owner is not AACCharacter"));
+        return;
+    }
+
+    AACMainPlayerController* PC = Character->GetController<AACMainPlayerController>();
+    if (PC == nullptr || PC->ACHUDWidget == nullptr || PC->ACHUDWidget->WBP_QuickSlot == nullptr)
+    {
+        UE_LOG(LogHG, Error, TEXT("PurchaseAndAddToQuickSlot: QuickSlot widget is null"));
+        return;
+    }
+
+    UACQuickSlotWidget* QuickSlot = PC->ACHUDWidget->WBP_QuickSlot;
+
+    // 1. 퀵슬롯이 가득 찼는지 체크
+    if (QuickSlot->IsFull() == true)
+    {
+        UE_LOG(LogHG, Warning, TEXT("QuickSlot is full! Cannot purchase."));
+        return;
+    }
+
+    // 2. 같은 아이템이 이미 있는지 체크
+    if (QuickSlot->HasSameItem(ItemData) == true)
+    {
+        UE_LOG(LogHG, Warning, TEXT("Same item already exists in QuickSlot! Cannot purchase."));
+        return;
+    }
+
     // 서버 RPC 호출
     ServerPurchaseAndAddToQuickSlot(ItemData);
 }
@@ -284,6 +315,30 @@ void UACShopComponent::ServerPurchaseAndAddToQuickSlot_Implementation(UACItemDat
     {
         UE_LOG(LogHG, Warning, TEXT("ServerPurchaseAndAddToQuickSlot: ItemData is null"));
         return;
+    }
+
+    // 서버에서도 한번 더 체크
+    AACCharacter* Character = Cast<AACCharacter>(GetOwner());
+    if (Character == nullptr) return;
+
+    AACMainPlayerController* PC = Character->GetController<AACMainPlayerController>();
+    if (PC && PC->ACHUDWidget && PC->ACHUDWidget->WBP_QuickSlot)
+    {
+        UACQuickSlotWidget* QuickSlot = PC->ACHUDWidget->WBP_QuickSlot;
+
+        // 1. 퀵슬롯이 가득 찼는지 체크
+        if (QuickSlot->IsFull())
+        {
+            UE_LOG(LogHG, Warning, TEXT("Server: QuickSlot is full! Purchase blocked."));
+            return;
+        }
+
+        // 2. 중복 아이템 체크
+        if (QuickSlot->HasSameItem(ItemData))
+        {
+            UE_LOG(LogHG, Warning, TEXT("Server: Same item already exists! Purchase blocked."));
+            return;
+        }
     }
 
     // 서버에서 구매 시도

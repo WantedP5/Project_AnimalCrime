@@ -79,6 +79,13 @@ bool UACQuickSlotWidget::TryAddItem(UACItemData* ItemData)
         return false;
     }
 
+    // 중복 체크 
+    if (HasSameItem(ItemData) == true)
+    {
+        UE_LOG(LogHG, Warning, TEXT("TryAddItem: Item '%s' already exists in QuickSlot!"), *ItemData->ItemName.ToString());
+        return false;
+    }
+
     // 메인 슬롯이 비어있으면 메인 슬롯에 추가
     if (IsMainSlotEmpty() == true)
     {
@@ -149,6 +156,28 @@ void UACQuickSlotWidget::ToggleSlotEquip(int32 SlotIndex)
 
     // 무기 장착/해제 토글 (RPC)
     ShopComponent->ToggleWeaponEquip(TargetItem);
+}
+
+bool UACQuickSlotWidget::HasSameItem(UACItemData* ItemData) const
+{
+    if (ItemData == nullptr)
+    {
+        return false;
+    }
+
+    // 메인 슬롯에 같은 아이템이 있는지 확인
+    if (MainSlotItem != nullptr && MainSlotItem->ItemName.EqualTo(ItemData->ItemName) == true)
+    {
+        return true;
+    }
+
+    // 서브 슬롯에 같은 아이템이 있는지 확인
+    if (SubSlotItem != nullptr && SubSlotItem->ItemName.EqualTo(ItemData->ItemName) == true)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void UACQuickSlotWidget::BindShopComponent()
