@@ -1198,56 +1198,7 @@ void AACCitizen::MulticastOnPlayMontage_Implementation(const FVector& Attack)
 	}
 }
 
-float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	float SuperDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-
-	// 피격 사운드 재생 
-	if (HitSound && DamageAmount > 0.0f)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
-	}
-
-	// 피격 효과 
-	if (DamageAmount > 0.0f)
-	{
-		PlayHitEffect(0.2f);  // 0.2초 동안 빨간색
-	}
-	
-	AACCitizenAIController* AIControler = Cast<AACCitizenAIController>(GetController());
-	
-	// AIControler 여부 확인
-	if (AIControler == nullptr)
-	{
-		return 0.0f;
-	}
-	
-	// BlackBoard 여부 확인
-	UBlackboardComponent* BBComp = AIControler->GetBlackboardComponent();
-	if (BBComp == nullptr)
-	{
-		return 0.0f;
-	}
-	
-	FVector RunPosition = GetRunPosition(DamageCauser->GetActorLocation());
-	BBComp->SetValueAsVector("RunPosition", RunPosition);
-	LastHitTime = GetWorld()->GetTimeSeconds();
-	BBComp->SetValueAsFloat("LastHitTime", LastHitTime);
-	OnDamaged();
-	OnUpdateScore(DamageCauser);
-	OnUpdateMoney(DamageCauser);
-	OnChangeState();
-
-	return SuperDamage;
-}
-
-void AACCitizen::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	AC_LOG(LogHY, Warning, TEXT("AACCitizen::EndPlay"));
-	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-	Super::EndPlay(EndPlayReason);
-}
 
 void AACCitizen::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {

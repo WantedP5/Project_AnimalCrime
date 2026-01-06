@@ -296,8 +296,6 @@ void AACCharacter::BeginPlay()
 	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
-}
-
 void AACCharacter::TryRegisterVOIPTalker()
 {
 	if (VOIPTalker == nullptr)
