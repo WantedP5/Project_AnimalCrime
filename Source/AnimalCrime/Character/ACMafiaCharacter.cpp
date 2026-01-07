@@ -547,16 +547,6 @@ void AACMafiaCharacter::ChangeTax(float InTimeRate)
 	GetWorld()->GetTimerManager().SetTimer(TaxTimerHandle, TimerDelegate, TaxTimeRate, true);
 }
 
-void AACMafiaCharacter::Client_ShowGetContraband_Implementation()
-{
-	AACMainPlayerController* PC = GetController< AACMainPlayerController>();
-	if (PC == nullptr)
-	{
-		return;
-	}
-	PC->ShowNotification(FText::FromString(TEXT("밀수품을 획득했다")));
-}
-
 float AACMafiaCharacter::GetCurrentHP() const
 {
 	return Stat->GetCurrentHp();

@@ -68,15 +68,6 @@ void AACBlackMarketDealer::UpdateHighlightForLocalPlayer()
 
 void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
-	//if (ACPlayer->GetCharacterType() == EACCharacterType::Police)
-	//{
-	//	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("시민 신분증!"));
-	//}
-	//else if (ACPlayer->GetCharacterType() == EACCharacterType::Mafia)
-	//{
-	//	
-	//}
-
 	if (BlackMarketComponent == nullptr)
 	{
 		return;
@@ -96,10 +87,13 @@ void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer, EInteractionKey In
 
 	if (MafiaChar->GetContraband() <= 0)
 	{
-		PC->ShowNotification(FText::FromString(TEXT("거래할 밀수품이 없습니다.")));
+		PC->Client_ShowNotification(FText::FromString(TEXT("거래할 밀수품이 없습니다.")));
 		return;
 	}
-	PC->ShowNotification(FText::FromString(TEXT("폭탄을 획득했습니다.\n 은행에 폭탄을 설치하세요.")));
+	PC->Client_ShowNotification(FText::FromString(TEXT("폭탄을 획득했습니다.\n 은행에 폭탄을 설치하세요.")));
+
+	// 밀수품 개수 차감
+	MafiaChar->SubtractContraband();
 	BlackMarketComponent->OpenBlackMarket(ACPlayer);
 }
 

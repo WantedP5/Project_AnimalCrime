@@ -77,8 +77,6 @@ public:
 	int32 GetContraband() const { return Constrband; }
 	void AddContraband() { ++Constrband; }
 	void SubtractContraband() { --Constrband; }
-	UFUNCTION(Client, Reliable)
-	void Client_ShowGetContraband();
 
 //protected:
 //	virtual float GetRequiredHoldTime() const override;

@@ -72,23 +72,6 @@ void AACEscapeMissionContraband::BeginPlay()
 void AACEscapeMissionContraband::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
 	AC_LOG(LogSY, Log, TEXT("get item"));
-
-	if (HasAuthority() == false)
-	{
-		Server_OnInteract(ACPlayer, InKey);
-		return;
-	}
-
-	HandleInteract(ACPlayer);
-}
-
-void AACEscapeMissionContraband::Server_OnInteract_Implementation(AACCharacter* ACPlayer, EInteractionKey InKey)
-{
-	HandleInteract(ACPlayer);
-}
-
-void AACEscapeMissionContraband::HandleInteract(AACCharacter* ACPlayer)
-{
 	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 	if (ACPlayerMafia == nullptr)
 	{
@@ -103,7 +86,7 @@ void AACEscapeMissionContraband::HandleInteract(AACCharacter* ACPlayer)
 
 	ACPlayerMafia->AddContraband();
 
-	ACPlayerMafia->Client_ShowGetContraband();
+	PC->Client_ShowNotification(FText::FromString(TEXT("밀수품을 획득했다")));
 
 	AC_LOG(LogSY, Log, TEXT("item Destroy"));
 	Destroy();

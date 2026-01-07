@@ -1139,3 +1139,8 @@ void AACMainPlayerController::ShowNotification(const FText& Text)
 	}
 	UIManager->ShowNotification(Text);
 }
+
+void AACMainPlayerController::Client_ShowNotification_Implementation(const FText& Message)
+{
+	ShowNotification(Message);
+}

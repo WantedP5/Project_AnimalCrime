@@ -166,6 +166,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShowNotification(const FText& Text);
 
+	UFUNCTION(Client, Reliable)
+	void Client_ShowNotification(const FText& Message);
+
 	UFUNCTION()
 	void ZoomIn();
 
