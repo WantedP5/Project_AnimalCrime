@@ -41,16 +41,16 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 	}
 
-	// 피격 효과 
-	if (DamageAmount > 0.0f)
-	{
-		PlayHitEffect(10.f);  // 0.2초 동안 빨간색
-	}
-
 	// 권한있는 APawn만 계산해야 함.
 	if (HasAuthority() == false)
 	{
 		return 0.0f;
+	}
+
+	// 서버에서만 실행되는 영역에 Multicast 호출 
+	if (DamageAmount > 0.0f)
+	{
+		MulticastPlayHitEffect(10.f);  // 모든 클라이언트에 전파
 	}
 
 	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
@@ -273,6 +273,11 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey
 EACInteractorType AACMafiaCharacter::GetInteractorType() const
 {
 	return EACInteractorType::Mafia;
+}
+
+void AACMafiaCharacter::MulticastPlayHitEffect_Implementation(float Duration)
+{
+	PlayHitEffect(Duration);
 }
 
 void AACMafiaCharacter::ServerFireHitscan_Implementation()

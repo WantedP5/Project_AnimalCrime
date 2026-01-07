@@ -284,10 +284,10 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 	}
 
-	// 피격 효과 
+	// Multicast로 모든 클라이언트에 피격 이펙트 전파
 	if (DamageAmount > 0.0f)
 	{
-		PlayHitEffect(10.0f);  // 0.2초 동안 빨간색
+		MulticastPlayHitEffect(10.0f);
 	}
 
 	AACCitizenAIController* AIControler = Cast<AACCitizenAIController>(GetController());
@@ -1311,6 +1311,11 @@ void AACCitizen::PlayHitEffect(float Duration)
 		Duration,
 		false  // 한 번만 실행
 	);
+}
+
+void AACCitizen::MulticastPlayHitEffect_Implementation(float Duration)
+{
+	PlayHitEffect(Duration);
 }
 
 void AACCitizen::ResetHitEffect()

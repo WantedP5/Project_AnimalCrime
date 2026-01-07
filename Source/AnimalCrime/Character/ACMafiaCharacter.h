@@ -32,6 +32,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerFireHitscan();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayHitEffect(float Duration);
+
 public:
 /**
 	@brief 클라이언트에서 폭탄 설치 가능 영역 표시 여부를 갱신함.

@@ -390,6 +390,9 @@ protected:
 	 UFUNCTION(BlueprintCallable, Category = "Damage")
 	 void PlayHitEffect(float Duration = 0.2f);
 
+	 UFUNCTION(NetMulticast, Reliable)
+	 void MulticastPlayHitEffect(float Duration);
+
   protected:
 	  /**
 		  @brief 피격 효과 종료 (Overlay 제거)
