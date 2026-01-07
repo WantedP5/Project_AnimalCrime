@@ -15,6 +15,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Component/ACDestroyableStatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Game/ACMainPlayerController.h"
 #include "Sound/SoundBase.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
@@ -33,7 +34,7 @@ void AACMafiaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
+
 	// 피격 사운드 재생
 	if (HitSound && DamageAmount > 0.0f)
 	{
@@ -66,7 +67,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	CurrentHp -= 1.0f;
 	Stat->SetCurrentHp(CurrentHp);
 	//AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
-	
+
 	FTimerDelegate TimerDelegate;
 	if (CurrentHp <= 0)
 	{
@@ -105,7 +106,7 @@ void AACMafiaCharacter::PostNetInit()
 void AACMafiaCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
+
 	/*TickDeltaTime -=DeltaSeconds;
 	if (TickDeltaTime <= 0.0f)
 	{
@@ -118,7 +119,7 @@ void AACMafiaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	AC_LOG(LogHY, Warning, TEXT("AACMafiaCharacter::EndPlay"));
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-	
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -129,7 +130,7 @@ void AACMafiaCharacter::UpdateCharacterStatusFree()
 		AC_LOG(LogHY, Error, TEXT("this가 올바르지 않습니다."));
 		return;
 	}
-	
+
 	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
 	CharacterState = ECharacterState::Free;
 	OnRep_CharacterState();
@@ -157,12 +158,12 @@ void AACMafiaCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// 서버만 GameState에 등록
-	if (HasAuthority() == false) 
+	if (HasAuthority() == false)
 	{
 		AC_LOG(LogHY, Error, TEXT("HasAuthority is false"));
 		return;
 	}
-	
+
 	AACMainGameMode* ACGameMode = GetWorld()->GetAuthGameMode<AACMainGameMode>();
 	// 게임 모드 확인
 	if (ACGameMode == nullptr)
@@ -170,15 +171,15 @@ void AACMafiaCharacter::BeginPlay()
 		AC_LOG(LogHY, Warning, TEXT("ACGameMode is null"));
 		return;
 	}
-	
+
 	/*
 	*	랜덤 옷 입히기 로직
 	*/
 	FOutfitCombo OutFit = ACGameMode->GetClothesFromPool();
-	
+
 	HeadMeshReal = OutFit.HairAsset.LoadSynchronous();
 	OnRep_HeadMesh();
-	
+
 	FaceMeshReal = OutFit.FaceAsset.LoadSynchronous();
 	OnRep_FaceMesh();
 	TopMeshReal = OutFit.TopAsset.LoadSynchronous();
@@ -189,7 +190,7 @@ void AACMafiaCharacter::BeginPlay()
 	OnRep_ShoesMesh();
 	FaceAccMeshReal = OutFit.FaceAccAsset.LoadSynchronous();
 	OnRep_FaceAccMesh();
-	
+
 	// Mafia는 100원으로 시작
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 
@@ -201,22 +202,22 @@ void AACMafiaCharacter::BeginPlay()
 	}
 	ACGameState->MafiaPlayers.Add(this);
 	AC_LOG(LogSY, Warning, TEXT("Mafia:: %d"), ACGameState->MafiaPlayers.Num());
-	
+
 	// 마피아가 처음에 가지고 있는 돈 설정
 	MoneyComp->InitMoneyComponent(EMoneyType::MoneyMafiaType);
 	AC_LOG(LogHY, Warning, TEXT("Before HP=%f | Authority=%d"),
 		Stat->GetCurrentHp(),
 		HasAuthority());
-	
+
 	// 체력 설정.
 	Stat->SetMaxHp(6);
 	Stat->SetCurrentHp(6);
 	Stat->SetArmor(0);
 	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"), Stat->GetCurrentHp(), HasAuthority());
-	
+
 	// Tax 설정
 	ChangeTax(60);
-	
+
 	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
@@ -237,10 +238,10 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey
 	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
 	switch (InKey)
 	{
-	case EInteractionKey::E: 
+	case EInteractionKey::E:
 		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"))
-		break;
-	case EInteractionKey::R: 
+			break;
+	case EInteractionKey::R:
 		// 경찰과 상호작용(투옥)
 		//if (this->CharacterState == ECharacterState::Stun)
 		//{
@@ -257,7 +258,7 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey
 		break;
 	case EInteractionKey::T: break;
 
-	}	
+	}
 
 }
 
@@ -302,7 +303,7 @@ void AACMafiaCharacter::ServerItemDrop_Implementation()
 		HandBomb = nullptr;
 
 		//폭탄 설치 가능 구역 숨기기
-		
+
 		ClientSetBombAreaVisible(false);
 		AC_LOG(LogSY, Log, TEXT("Bomb dropped"));
 	}
@@ -320,9 +321,9 @@ void AACMafiaCharacter::ClientSetBombAreaVisible_Implementation(bool bVisible)
 		return;
 	}
 	AC_LOG(LogSY, Log, TEXT("%d"), GS->BombAreas.Num());
-	for (AACBombInstallArea* Area : GS->BombAreas) 
+	for (AACBombInstallArea* Area : GS->BombAreas)
 	{
-		if (Area==nullptr) 
+		if (Area == nullptr)
 		{
 			continue;
 		}
@@ -343,7 +344,7 @@ void AACMafiaCharacter::ClientSetEscapeAreaVisible_Implementation(bool bVisible)
 	AC_LOG(LogSY, Log, TEXT("%d"), GS->EscapeAreas.Num());
 	for (AACEscapeArea* Area : GS->EscapeAreas)
 	{
-		if (Area==nullptr)
+		if (Area == nullptr)
 		{
 			continue;
 		}
@@ -369,38 +370,38 @@ void AACMafiaCharacter::AttackHitCheck()
 {
 	// AACCharacter 클래스(Empty)
 	Super::AttackHitCheck();
-	
+
 	// FireHitscan();
 	// 캡슐 크기
 	float CapsuleRadius = 30.0f;
 	float CapsuleHalfHeight = 60.0f;
-	
+
 	// 트레이스 길이
 	float TraceDistance = 200.0f;
-	
+
 	// 시작 위치 = 캐릭터 위치
 	FVector Start = GetActorLocation();
-	               
+
 	// 끝 위치 = 캐릭터 앞 방향 * 거리
 	FVector Forward = GetActorForwardVector();
 	FVector End = Start + Forward * TraceDistance;
-	
+
 	// 충돌 파라미터 설정
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);   // 자기 자신 무시
 	Params.bTraceComplex = false;
 	Params.bReturnPhysicalMaterial = false;
-	
+
 	FHitResult Hit;
-	
+
 	// bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2 | ECC_GameTraceChannel4, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
-	
+
 	FCollisionObjectQueryParams ObjectParams;
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
-	
+
 	bool bHit = GetWorld()->SweepSingleByObjectType(
 		Hit,
 		Start,
@@ -410,14 +411,14 @@ void AACMafiaCharacter::AttackHitCheck()
 		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
 		Params
 	);
-	
+
 	// 디버그: 캡슐 그리기
 	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
-	
+
 	if (bHit)
 	{
 		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
+		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
 	}
 }
 
@@ -488,7 +489,7 @@ void AACMafiaCharacter::FireHitscan()
 	FHitResult Hit;
 
 	FCollisionObjectQueryParams ObjectParams;
-	
+
 	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
 	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
@@ -500,11 +501,11 @@ void AACMafiaCharacter::FireHitscan()
 	QueryParams.AddIgnoredActor(this);
 	QueryParams.AddIgnoredActor(GetOwner());
 	QueryParams.bReturnPhysicalMaterial = true;
-	
+
 	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, MuzzleLoc, End, ObjectParams, QueryParams);
-	
+
 	FColor LineColor = bHit ? FColor::Red : FColor::Green;
-	DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
+	DrawDebugLine(GetWorld(), MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
 	if (bHit)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
@@ -523,7 +524,7 @@ void AACMafiaCharacter::CalculateTax()
 		AC_LOG(LogHY, Error, TEXT("this is not Valid"));
 		return;
 	}
-	
+
 	// 돈 추가 로직
 	MoneyComp->LoseMoney(5);
 }
@@ -531,11 +532,21 @@ void AACMafiaCharacter::CalculateTax()
 void AACMafiaCharacter::ChangeTax(float InTimeRate)
 {
 	GetWorldTimerManager().ClearTimer(TaxTimerHandle);
-	
+
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(this, &AACMafiaCharacter::CalculateTax);
 	TaxTimeRate = InTimeRate;
 	GetWorld()->GetTimerManager().SetTimer(TaxTimerHandle, TimerDelegate, TaxTimeRate, true);
+}
+
+void AACMafiaCharacter::Client_ShowGetContraband_Implementation()
+{
+	AACMainPlayerController* PC = GetController< AACMainPlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+	PC->ShowNotification(FText::FromString(TEXT("밀수품을 획득했다")));
 }
 
 float AACMafiaCharacter::GetCurrentHP() const

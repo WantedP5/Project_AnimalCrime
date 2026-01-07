@@ -74,9 +74,11 @@ protected:
 	
 	// 밀수품 미션 관련 함수
 public:
-	int32 GetContraband() const { return constrband; }
-	void AddContraband() { ++constrband; }
-	void SubtractContraband() { --constrband; }
+	int32 GetContraband() const { return Constrband; }
+	void AddContraband() { ++Constrband; }
+	void SubtractContraband() { --Constrband; }
+	UFUNCTION(Client, Reliable)
+	void Client_ShowGetContraband();
 
 //protected:
 //	virtual float GetRequiredHoldTime() const override;
@@ -100,5 +102,5 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
-	int32 constrband = 0;
+	int32 Constrband = 0;
 };

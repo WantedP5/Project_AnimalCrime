@@ -54,6 +54,8 @@ AACEscapeMissionContraband::AACEscapeMissionContraband()
 	{
 		InteractionInfoWidgetClass = InteractionWidgetRef.Class;
 	}
+
+	bReplicates = true;
 }
 
 void AACEscapeMissionContraband::BeginPlay()
@@ -67,53 +69,45 @@ void AACEscapeMissionContraband::BeginPlay()
 	InteractBoxComponent->SetMargin(FVector(50.f));
 }
 
-//bool AACEscapeMissionContraband::CanInteract(AACCharacter* ACPlayer)
-//{
-//	if (ACPlayer == nullptr)
-//	{
-//		return false;
-//	}
-//	if (ACPlayer->GetCharacterType() != EACCharacterType::Mafia)
-//	{
-//		return false;
-//	}
-//
-//	return true;
-//}
-
 void AACEscapeMissionContraband::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
 	AC_LOG(LogSY, Log, TEXT("get item"));
 
-	UE_LOG(LogTemp, Warning, TEXT("HasAuthority: %d, NetMode: %d"), HasAuthority(), (int32)GetNetMode());
+	if (HasAuthority() == false)
+	{
+		Server_OnInteract(ACPlayer, InKey);
+		return;
+	}
+
+	HandleInteract(ACPlayer);
+}
+
+void AACEscapeMissionContraband::Server_OnInteract_Implementation(AACCharacter* ACPlayer, EInteractionKey InKey)
+{
+	HandleInteract(ACPlayer);
+}
+
+void AACEscapeMissionContraband::HandleInteract(AACCharacter* ACPlayer)
+{
 	AACMafiaCharacter* ACPlayerMafia = Cast<AACMafiaCharacter>(ACPlayer);
 	if (ACPlayerMafia == nullptr)
 	{
 		return;
 	}
 
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(ACPlayer->GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+
 	ACPlayerMafia->AddContraband();
 
-	if (ACPlayerMafia->IsLocallyControlled())
-	{
-		AACMainPlayerController* PC = Cast<AACMainPlayerController>(ACPlayer->GetController());
-
-		if(PC == nullptr)
-		{
-			AC_LOG(LogSY, Log, TEXT("PC is nullptr"));
-			return;
-		}
-		PC->ShowNotification(FText::FromString(TEXT("밀수품을 획득했다")));
-	}
+	ACPlayerMafia->Client_ShowGetContraband();
 
 	AC_LOG(LogSY, Log, TEXT("item Destroy"));
 	Destroy();
 }
-
-//float AACEscapeMissionContraband::GetRequiredHoldTime() const
-//{
-//	return 0.0f;
-//}
 
 EACInteractorType AACEscapeMissionContraband::GetInteractorType() const
 {

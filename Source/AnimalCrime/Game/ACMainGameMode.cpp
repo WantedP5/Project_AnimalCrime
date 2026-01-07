@@ -42,7 +42,7 @@ AACMainGameMode::AACMainGameMode()
 		MafiaPawnClass = MafiaPawnBP.Class;
 	}
 	PolicePawnClass = AACPoliceCharacter::StaticClass();
-	
+
 	static ConstructorHelpers::FClassFinder<AACCitizen> CitizenBP(TEXT("/Script/Engine.Blueprint'/Game/Project/AI/BP_Citizen.BP_Citizen_C'"));
 	if (CitizenBP.Succeeded())
 	{
@@ -79,7 +79,7 @@ void AACMainGameMode::PostInitializeComponents()
 {
 	AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::PostInitializeComponents();
-	
+
 	TArray<AActor*> FoundStarts;
 	UGameplayStatics::GetAllActorsOfClass(
 		GetWorld(),
@@ -98,18 +98,18 @@ void AACMainGameMode::PostInitializeComponents()
 		switch (Start->GetSpawnType())
 		{
 		case ESpawnTypeState::POLICE:
-			{
-				AC_LOG(LogHY, Error, TEXT("Police 언제"));
-				PoliceStartArray.Add(Start);
-				break;
-			}
+		{
+			AC_LOG(LogHY, Error, TEXT("Police 언제"));
+			PoliceStartArray.Add(Start);
+			break;
+		}
 
 		case ESpawnTypeState::MAFIA:
-			{
-				AC_LOG(LogHY, Error, TEXT("Mafia 언제"));
-				MafiaStartArray.Add(Start);
-				break;
-			}
+		{
+			AC_LOG(LogHY, Error, TEXT("Mafia 언제"));
+			MafiaStartArray.Add(Start);
+			break;
+		}
 		}
 	}
 	AC_LOG(LogHY, Warning, TEXT("End"));
@@ -162,17 +162,17 @@ void AACMainGameMode::BeginPlay()
 
 	GenerateOutfitPool();
 	SpawnAllAI();
-	
+
 	AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	Super::ChoosePlayerStart_Implementation(Player);
-	
-	
-	
-	
+
+
+
+
 	AACPlayerState* ACPlayerState = Cast<AACPlayerState>(Player->PlayerState);
 	if (ACPlayerState == nullptr)
 	{
@@ -187,13 +187,13 @@ AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	{
 		++PoliceCount;
 		int32 PlayerIndex = PoliceCount - 1;
-			
+
 		// FVector Location = PoliceStartArray[PlayerIndex % PoliceStartArray.Num()]->GetActorLocation();	
 		// AC_LOG(LogHY, Error, TEXT("Police 들어옴 %s"), *Location.ToString());
 		return PoliceStartArray.Num() > 0 ? PoliceStartArray[PlayerIndex % PoliceStartArray.Num()] : nullptr;
 		break;
 	}
-		
+
 	case EPlayerRole::Mafia:
 	{
 		++MafiaCount;
@@ -206,7 +206,7 @@ AActor* AACMainGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	}
 
 	return nullptr;
-	
+
 }
 
 void AACMainGameMode::RestartPlayer(AController* NewPlayer)
@@ -266,7 +266,7 @@ UClass* AACMainGameMode::GetDefaultPawnClassForController_Implementation(AContro
 		const EPlayerRole PlayerRole = GI->SavedPlayerRoles[NetId];
 
 		PS->PlayerRole = PlayerRole;
-		
+
 		return (PlayerRole == EPlayerRole::Police) ? PolicePawnClass : MafiaPawnClass;
 	}
 
@@ -347,7 +347,7 @@ void AACMainGameMode::SpawnAllAI()
 		}
 
 		//AACCitizen* NewAI = GetWorld()->SpawnActorDeferred<AACCitizen>(CitizenBPClass, Transform,nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-		
+
 		if (NewAI)
 		{
 			// AI 관리하는 애
@@ -362,7 +362,7 @@ void AACMainGameMode::SpawnAllAI()
 				NewAI->OnRep_HeadMesh();
 				AC_LOG(LogHY, Error, TEXT("%d:Hair %s"), i, *LoadedHair->GetName())
 			}
-			
+
 			USkeletalMesh* LoadedFace = OutfitCombo.FaceAsset.LoadSynchronous();
 			if (LoadedFace)
 			{
@@ -386,7 +386,7 @@ void AACMainGameMode::SpawnAllAI()
 				NewAI->OnRep_BottomMesh();
 				AC_LOG(LogHY, Error, TEXT("%d:Bottom %s"), i, *LoadedBottom->GetName())
 			}
-			
+
 			USkeletalMesh* LoadedShoes = OutfitCombo.ShoesAsset.LoadSynchronous();
 			if (LoadedShoes)
 			{
@@ -394,25 +394,25 @@ void AACMainGameMode::SpawnAllAI()
 				NewAI->OnRep_ShoesMesh();
 				AC_LOG(LogHY, Error, TEXT("%d:Shoes %s"), i, *LoadedShoes->GetName())
 			}
-			
+
 			USkeletalMesh* LoadedFaceAcc = OutfitCombo.FaceAccAsset.LoadSynchronous();
-            if (LoadedFaceAcc)
-            {
-            	NewAI->SetFaceAccMesh(LoadedFaceAcc);
-            	NewAI->OnRep_FaceAccMesh();
-            	AC_LOG(LogHY, Error, TEXT("%d:FaceAcc %s"), i, *LoadedFaceAcc->GetName())
-            }
+			if (LoadedFaceAcc)
+			{
+				NewAI->SetFaceAccMesh(LoadedFaceAcc);
+				NewAI->OnRep_FaceAccMesh();
+				AC_LOG(LogHY, Error, TEXT("%d:FaceAcc %s"), i, *LoadedFaceAcc->GetName())
+			}
 			UE_LOG(LogTemp, Log, TEXT("Spawn Success %d"), i);
 		}
 		else
 		{
 			AC_LOG(LogHY, Warning, TEXT("스폰 실패"));
 		}
-		
+
 		// Capsule 크기 가져오기
 		ACharacter* DefaultChar = CitizenBPClass->GetDefaultObject<ACharacter>();
 		UCapsuleComponent* Capsule = DefaultChar->GetCapsuleComponent();
-		
+
 		FVector Location = Transform.GetLocation();
 		Location.Z += Capsule->GetScaledCapsuleHalfHeight();
 		Transform.SetLocation(Location);
@@ -430,7 +430,7 @@ FVector AACMainGameMode::GetRandomSpawnLocation() const
 
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	float Radius = 5000;
-	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector(12200.0f, 7200.0f, 90.0f), Radius, RandomLocation))
+	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector(17200.f, 2200.0f, 90.0f), Radius, RandomLocation))
 	{
 		return RandomLocation.Location;
 	}
@@ -523,7 +523,7 @@ FOutfitCombo AACMainGameMode::GetClothesFromPool()
 		return FOutfitCombo();
 	}
 
-	int32 RandIndex = FMath::RandRange(0, OutfitPool.Num() - 1); 
+	int32 RandIndex = FMath::RandRange(0, OutfitPool.Num() - 1);
 	return OutfitPool[RandIndex];
 }
 
@@ -537,8 +537,8 @@ void AACMainGameMode::ImprisonCharacter(AACCharacter* Character)
 	{
 		return;
 	}
-	
-	PrisonManager->ImprisonCharacter(Character);	
+
+	PrisonManager->ImprisonCharacter(Character);
 }
 
 
