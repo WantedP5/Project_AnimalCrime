@@ -5,6 +5,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Item/ACEscapeMissionBomb.h"
 
+#include "ACDestructibleBuilding.h"
+#include "Kismet/GameplayStatics.h"
 #include "Game/ACMainGameState.h"
 #include "AnimalCrime.h"
 
@@ -23,6 +25,42 @@ void AACBombInstallArea::BeginPlay()
 
 	AC_LOG(LogSY, Log, TEXT("BombAreas add"));
 	GS->BombAreas.Add(this); // 클라만 저장
+
+	// 서버에서 설치 구역에 맞는 건물 찾기
+	if (HasAuthority() == false)
+	{
+		return;
+	}
+
+	TArray<AActor*> FoundBuildings;
+	UGameplayStatics::GetAllActorsOfClass(
+		GetWorld(),
+		AACDestructibleBuilding::StaticClass(),
+		FoundBuildings
+	);
+
+	for (AActor* Actor : FoundBuildings)
+	{
+		AACDestructibleBuilding* Building = Cast<AACDestructibleBuilding>(Actor);
+		if (Building == nullptr)
+		{
+			continue;
+		}
+
+		if (Building->BombSpot == BombSpot)
+		{
+			DestructibleBuilding = Building;
+
+			AC_LOG(LogSY, Log, TEXT("[BombInstallArea] Matched Building: %s (Spot: %d)"), *Building->GetName(), (int32)BombSpot);
+
+			break;
+		}
+	}
+
+	if (DestructibleBuilding == nullptr)
+	{
+		AC_LOG(LogSY, Warning, TEXT("[BombInstallArea] No DestructibleBuilding found for Spot: %d"), (int32)BombSpot);
+	}
 }
 
 void AACBombInstallArea::OnBombTriggerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -75,6 +113,15 @@ void AACBombInstallArea::OnBombDestroyComplete(AACEscapeMissionBomb* Bomb)
 	}
 	Bomb->Multicast_PlayExplosion();
 	Bomb->SetLifeSpan(0.2f);
+
+	if (DestructibleBuilding != nullptr)
+	{
+		DestructibleBuilding->DestroyBuilding();
+	}
+	else
+	{
+		AC_LOG(LogSY, Warning, TEXT("DestructibleBuilding is nullptr"));
+	}
 
 	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
 	if (GS == nullptr)

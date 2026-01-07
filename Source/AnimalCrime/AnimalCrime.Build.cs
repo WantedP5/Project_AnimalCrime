@@ -4,17 +4,20 @@ using UnrealBuildTool;
 
 public class AnimalCrime : ModuleRules
 {
-	public AnimalCrime(ReadOnlyTargetRules Target) : base(Target)
-	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+    public AnimalCrime(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "RenderCore", "RHI", "AudioMixer", "MoviePlayer" });
 
         // 모듈 추가 (작업자: 나희영)
-        PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem", "Niagara"});
+        PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem", "Niagara" });
 
         // 스팀 연동을 위한 모듈 추가 (작업자: 이상윤)
         PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemUtils", "AdvancedSessions", "AdvancedSteamSessions", "NetCore", "SteamSockets" });
+
+        // GeometryCollectionComponent를 위한 모듈 추가 (작업자: 이상윤)
+        PublicDependencyModuleNames.AddRange(new string[] { "Chaos", "ChaosSolverEngine", "GeometryCollectionEngine" });
 
         // 모듈 경로도 Include할 때 검색하도록 설정.
         PublicIncludePaths.AddRange(new string[] {

@@ -113,3 +113,11 @@ enum class EInteractionKey : uint8
 	T,	// 2
 	Total
 };
+
+// 주요 위치 정보
+UENUM(BlueprintType)
+enum class ESpot : uint8
+{
+	None				UMETA(DisplayName = "None"),
+	Bank				UMETA(DisplayName = "Bank"),
+};

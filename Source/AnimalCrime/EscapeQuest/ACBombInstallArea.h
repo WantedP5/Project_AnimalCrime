@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Game/ACGameEnums.h"
 #include "ACArea.h"
 #include "ACBombInstallArea.generated.h"
 
@@ -18,4 +19,12 @@ protected:
 
 	UFUNCTION()
 	void OnBombDestroyComplete(AACEscapeMissionBomb* Bomb);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spot")
+	ESpot BombSpot = ESpot::Bank;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bomb")
+	TObjectPtr<class AACDestructibleBuilding> DestructibleBuilding;
 };
