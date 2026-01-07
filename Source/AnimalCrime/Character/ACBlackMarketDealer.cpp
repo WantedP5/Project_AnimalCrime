@@ -37,27 +37,23 @@ void AACBlackMarketDealer::UpdateHighlightForLocalPlayer()
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (PC == nullptr)
 	{
+		AC_LOG(LogHG, Error, TEXT("PC is nullptr"));
 		return;
 	}
 
 	AACCharacter* LocalChar = Cast<AACCharacter>(PC->GetPawn());
 	if (LocalChar == nullptr)
 	{
+		AC_LOG(LogHG, Error, TEXT("LocalChar is nullptr"));
 		return;
 	}
 
 	// 마피아만 하이라이트 적용
 	if (LocalChar->GetCharacterType() == EACCharacterType::Mafia)
 	{
-		// AACCitizen의 메시 컴포넌트들 사용
 		TArray<USkeletalMeshComponent*> MeshComponents = {
-			HeadMeshComp,
-			FaceMeshComp,
-			TopMeshComp,
-			BottomMeshComp,
-			ShoesMeshComp,
-			FaceAccMeshComp,
-			GetMesh()
+			HeadMeshComp, FaceMeshComp, TopMeshComp,
+			BottomMeshComp, ShoesMeshComp, FaceAccMeshComp, GetMesh()
 		};
 
 		for (USkeletalMeshComponent* MeshComp : MeshComponents)
@@ -69,11 +65,6 @@ void AACBlackMarketDealer::UpdateHighlightForLocalPlayer()
 		}
 	}
 }
-
-//EACCharacterType AACBlackMarketDealer::GetCharacterType()
-//{
-//	return EACCharacterType::BlackMarketDealer;
-//}
 
 void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 {
