@@ -31,6 +31,7 @@
 #include "Engine/StreamableManager.h"
 #include "Game/ACGameRuleManager.h"
 #include "Game/ACMainGameMode.h"
+#include "Game/ACMainPlayerController.h"
 
 
 // Sets default values
@@ -286,7 +287,7 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	// 피격 효과 
 	if (DamageAmount > 0.0f)
 	{
-		PlayHitEffect(0.2f);  // 0.2초 동안 빨간색
+		PlayHitEffect(10.0f);  // 0.2초 동안 빨간색
 	}
 
 	AACCitizenAIController* AIControler = Cast<AACCitizenAIController>(GetController());
@@ -1207,11 +1208,19 @@ void AACCitizen::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 		return;
 	}
 
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(ACPlayer->GetController());
+	if (PC == nullptr)
+	{
+		AC_LOG(LogSY, Log, TEXT("PC is nullptr"));
+		return;
+	}
+
 	//todo: DB로 교체
 	switch (InKey)
 	{
 	case EInteractionKey::E:
 		AC_LOG(LogSW, Log, TEXT("시민 신분증!"))
+			PC->ShowNotification(FText::FromString(TEXT("시민")));
 			break;
 	case EInteractionKey::R:
 		AC_LOG(LogSW, Log, TEXT("시민 사망!"))

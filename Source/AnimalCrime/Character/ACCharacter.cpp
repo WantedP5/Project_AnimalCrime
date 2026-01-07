@@ -220,7 +220,7 @@ AACCharacter::AACCharacter()
 
 	// 방망이 휘두르기 사운드 로드
 	static ConstructorHelpers::FObjectFinder<USoundBase> BatSwingSoundRef(
-		TEXT("/Game/Project/SFX/422506__nightflame__swinging-staff-whoosh-strong-01")
+		TEXT("/Game/Project/SFX/Attack/422506__nightflame__swinging-staff-whoosh-strong-01")
 	);
 	if (BatSwingSoundRef.Succeeded())
 	{
@@ -1687,6 +1687,11 @@ void AACCharacter::PlayHitEffect(float Duration)
 
 void AACCharacter::ResetHitEffect()
 {
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this is nullptr"));
+		return;
+	}
 	// 모든 메시 컴포넌트 리스트
 	TArray<USkeletalMeshComponent*> MeshComponents = {
 		HeadMesh,
@@ -1706,6 +1711,7 @@ void AACCharacter::ResetHitEffect()
 			MeshComp->SetOverlayMaterial(nullptr);
 		}
 	}
+	AC_LOG(LogHY, Error, TEXT("Reset Test"));
 }
 
 int32 AACCharacter::GetBulletCount() const

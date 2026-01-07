@@ -44,7 +44,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	// 피격 효과 
 	if (DamageAmount > 0.0f)
 	{
-		PlayHitEffect(0.2f);  // 0.2초 동안 빨간색
+		PlayHitEffect(10.f);  // 0.2초 동안 빨간색
 	}
 
 	// 권한있는 APawn만 계산해야 함.
@@ -234,12 +234,20 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey
 	//	AC_LOG(LogSW, Log, TEXT("마피아 신분증!"));
 	//}
 
+	AACMainPlayerController* PC = Cast<AACMainPlayerController>(ACPlayer->GetController());
+	if (PC == nullptr)
+	{
+		AC_LOG(LogSY, Log, TEXT("PC is nullptr"));
+		return;
+	}
+
 		//todo: DB로 교체
 	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
 	switch (InKey)
 	{
 	case EInteractionKey::E:
 		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"))
+			PC->ShowNotification(FText::FromString(TEXT("마피아")));
 			break;
 	case EInteractionKey::R:
 		// 경찰과 상호작용(투옥)
