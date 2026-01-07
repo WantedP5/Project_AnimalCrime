@@ -69,10 +69,12 @@ void AACBombInstallArea::OnBombDestroyComplete(AACEscapeMissionBomb* Bomb)
 		return;
 	}
 
-	if (IsValid(Bomb))
+	if (IsValid(Bomb) == false)
 	{
-		Bomb->Destroy();
+		return;
 	}
+	Bomb->Multicast_PlayExplosion();
+	Bomb->SetLifeSpan(0.2f);
 
 	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
 	if (GS == nullptr)

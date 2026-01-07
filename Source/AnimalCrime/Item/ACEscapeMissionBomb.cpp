@@ -9,7 +9,9 @@
 #include "Game/ACMainGameState.h"
 #include "UI/Interaction/ACInteractionInfoWidget.h"
 #include "Interaction/ACInteractionData.h"
-
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "AnimalCrime.h"
 
 AACEscapeMissionBomb::AACEscapeMissionBomb()
@@ -23,7 +25,7 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 	RootComp->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	RootComp->SetCollisionResponseToAllChannels(ECR_Overlap);
 	RootComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);  // 캐릭터와 Block
-	
+
 	RootComp->SetBoxExtent(FVector(50.f, 50.f, 50.f));
 
 	// 커스텀 캐릭터 채널만 Block
@@ -68,6 +70,16 @@ AACEscapeMissionBomb::AACEscapeMissionBomb()
 	if (InteractionWidgetRef.Succeeded())
 	{
 		InteractionInfoWidgetClass = InteractionWidgetRef.Class;
+	}
+
+	//폭발 이펙트 컴포넌트
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionEffectRef(
+		TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_B.P_Explosion_Big_B")
+	);
+
+	if (ExplosionEffectRef.Succeeded())
+	{
+		ExplosionEffect = ExplosionEffectRef.Object;
 	}
 
 	// 네트워크 복제 설정. 서버에 이 액터가 생성되면 클라이언트로 복제됨, 삭제도 동기화
@@ -241,5 +253,22 @@ void AACEscapeMissionBomb::HideInteractionHints()
 		HintWidget->HideWidget();
 
 	InteractionWidgetComponent->SetVisibility(false);
+}
+
+void AACEscapeMissionBomb::Multicast_PlayExplosion_Implementation()
+{
+	if (ExplosionEffect == nullptr)
+	{
+		return;
+	}
+
+	UGameplayStatics::SpawnEmitterAtLocation(
+		GetWorld(),
+		ExplosionEffect,
+		GetActorLocation(),
+		FRotator::ZeroRotator,
+		FVector(1.f),
+		true // AutoDestroy
+	);
 }
 

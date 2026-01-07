@@ -1,12 +1,13 @@
-#include "EscapeQuest/ACArea.h"
+Ôªø#include "EscapeQuest/ACArea.h"
 #include "Components/BoxComponent.h"
-#include "Components/DecalComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 AACArea::AACArea()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Root º≥¡§
+	// Root ÏÑ§Ï†ï
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	SetRootComponent(TriggerBox);
 
@@ -15,34 +16,26 @@ AACArea::AACArea()
 	TriggerBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	TriggerBox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 
-	TriggerBox->SetBoxExtent(FVector(200.f, 200.f, 100.f)); // ±‚∫ª ≈©±‚ º≥¡§
+	TriggerBox->SetBoxExtent(FVector(200.f, 200.f, 100.f)); // Í∏∞Î≥∏ ÌÅ¨Í∏∞ ÏÑ§Ï†ï
 	RootComponent = TriggerBox;
 
-	VisualBox = CreateDefaultSubobject<UDecalComponent>(TEXT("VisualBox"));
-	VisualBox->SetupAttachment(RootComponent);
-	static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialRef(TEXT("/Game/Project/EscapeQuest/M_Area.M_Area"));
-	if (DecalMaterialRef.Succeeded() == true)
+	// ÎÇòÏù¥ÏïÑÍ∞ÄÎùº
+	NiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraEffect"));
+	NiagaraEffect->SetupAttachment(RootComponent);
+	NiagaraEffect->SetAutoActivate(true);
+	//NiagaraEffect->SetRelativeRotation(FRotator(0.0f, 0.0f, -20.0f));
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> NiagaraRef(TEXT("/Game/Project/Shop/NS_ShopArea.NS_ShopArea"));
+	if (NiagaraRef.Succeeded())
 	{
-		VisualBox->SetDecalMaterial(DecalMaterialRef.Object);
+		NiagaraEffect->SetAsset(NiagaraRef.Object);
 	}
 
-	//±‚∫ª º˚±‚±‚
+	//Í∏∞Î≥∏ Ïà®Í∏∞Í∏∞
 	SetActorHiddenInGame(true);
 }
 
 void AACArea::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//  VisualBox ≈©±‚∏¶ TriggerBox ≈©±‚ø° ∏¬∞‘ º≥¡§
-	VisualBox->DecalSize = TriggerBox->GetScaledBoxExtent();
-	VisualBox->UpdateComponentToWorld();
-	VisualBox->MarkRenderStateDirty();
-
-	//auto GS = GetWorld()->GetGameState<ACTestGameState>();
-	//if (GS)
-	//{
-	//	GS->RegisterBombArea(this);
-	//}
 }
 

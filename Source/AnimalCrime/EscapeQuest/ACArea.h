@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
@@ -21,5 +21,5 @@ protected:
 	TObjectPtr<class UBoxComponent> TriggerBox;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UDecalComponent> VisualBox;
+	TObjectPtr<class UNiagaraComponent> NiagaraEffect;
 };

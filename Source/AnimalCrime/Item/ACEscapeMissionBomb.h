@@ -45,6 +45,10 @@ protected:
 	virtual void ShowInteractionHints(const TArray<class UACInteractionData*>& Interactions) override;
 	virtual void HideInteractionHints() override;
 
+public:
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayExplosion();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	TObjectPtr<class UBoxComponent> RootComp;
@@ -66,4 +70,7 @@ public:
 	//!< 누가 이 폭탄을 들고 있는지 저장하는 변수
 	UPROPERTY(ReplicatedUsing = OnRep_AttachedCharacter)
 	TObjectPtr<class AACMafiaCharacter> AttachedCharacter;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VFX")
+	TObjectPtr<class UParticleSystem> ExplosionEffect;
 };
