@@ -437,6 +437,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
 
+	ECharacterState PrevCharacterState;
+
 
 protected: // Dash 전용 맴버 변수
 	FTimerHandle DashTimerHandle;

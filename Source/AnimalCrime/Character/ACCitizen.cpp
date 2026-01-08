@@ -71,6 +71,7 @@ AACCitizen::AACCitizen()
 	
 	
 	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled;
+	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_NavWalking;
 	
 	HeadMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
 	HeadMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
