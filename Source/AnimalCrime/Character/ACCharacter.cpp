@@ -523,7 +523,7 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	}
 
 	// 유효성 체크
-	if (!CurrentHoldTarget || IsValid(CurrentHoldTarget) || !NearInteractables.Contains(CurrentHoldTarget))
+	if (!CurrentHoldTarget || !NearInteractables.Contains(CurrentHoldTarget))
 	{
 		ResetHoldInteract();
 		return;
@@ -1593,7 +1593,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 	}
 	else
 	{
-		SetCharacterState(PrevCharacterState);
+		SetCharacterState(ECharacterState::Free);
 
 		if (Target == nullptr)
 		{
@@ -1637,7 +1637,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 				return;
 			}
 
-			ACChar->SetCharacterState(PrevCharacterState);
+			ACChar->SetCharacterState(ECharacterState::Free);
 		}
 	}
 }
