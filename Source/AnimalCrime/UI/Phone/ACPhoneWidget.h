@@ -16,6 +16,7 @@ class ANIMALCRIME_API UACPhoneWidget : public UACCustomWidget
 	
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 protected:
 	// 버튼 클릭 핸들러들
@@ -103,4 +104,10 @@ protected:
 	// 캐싱된 CCTVArea
 	UPROPERTY()
 	TObjectPtr<class AACCCTVArea> CachedCCTVArea;
+
+	// CCTV를 보고 있는지 여부
+	bool bIsViewingCCTV = false;
+
+	// 현재 보고 있는 CCTV 인덱스
+	int32 CurrentCCTVIndex = -1;
 };

@@ -65,6 +65,13 @@ void AACCCTVArea::BeginPlay()
         }
     }
 
+    // 개별 카운터 배열 초기화
+    ActiveViewerCountPerCapture.SetNum(SceneCaptureComponents.Num());
+    for (int32 i = 0; i < ActiveViewerCountPerCapture.Num(); i++)
+    {
+        ActiveViewerCountPerCapture[i] = 0;
+    }
+
     // 콜리전 종료 이벤트 바인딩
     if (InteractBoxComponent)
     {
@@ -129,16 +136,81 @@ void AACCCTVArea::OnInteractBoxOverlapEnd(UPrimitiveComponent* OverlappedCompone
 
 void AACCCTVArea::SetSceneCaptureActive(bool bActive)
 {
+    // 참조 카운팅
+    if (bActive == true)
+    {
+        ActiveViewerCount++;
+    }
+    else
+    {
+        ActiveViewerCount--;
+        if (ActiveViewerCount < 0)
+        {
+            ActiveViewerCount = 0;
+        }
+    }
+
+    UE_LOG(LogHG, Warning, TEXT("[CCTV] SetSceneCaptureActive: %d → ActiveViewerCount=%d"),
+        bActive, ActiveViewerCount);
+
+    // 카운터가 0보다 크면 활성화
+    bool bShouldCapture = (ActiveViewerCount > 0);
+
     for (USceneCaptureComponent2D* SceneCapture : SceneCaptureComponents)
     {
         if (SceneCapture != nullptr)
         {
-            SceneCapture->bCaptureEveryFrame = bActive;
+            SceneCapture->bCaptureEveryFrame = bShouldCapture;
 
-            if (bActive)
+            if (bShouldCapture)
             {
-                SceneCapture->CaptureScene(); // 즉시 한 번 캡처
+                SceneCapture->CaptureScene();
             }
+        }
+    }
+}
+
+void AACCCTVArea::SetSceneCaptureActiveByIndex(int32 Index, bool bActive)
+{
+    if (SceneCaptureComponents.IsValidIndex(Index) == true)
+    {
+        UE_LOG(LogHG, Error, TEXT("[CCTV] Invalid Index: %d"), Index);
+        return;
+    }
+
+    if (ActiveViewerCountPerCapture.IsValidIndex(Index) == true)
+    {
+        UE_LOG(LogHG, Error, TEXT("[CCTV] ActiveViewerCountPerCapture Invalid Index: %d"), Index);
+        return;
+    }
+
+    // 개별 참조 카운팅
+    if (bActive == true)
+    {
+        ActiveViewerCountPerCapture[Index]++;
+    }
+    else
+    {
+        ActiveViewerCountPerCapture[Index]--;
+        if (ActiveViewerCountPerCapture[Index] < 0)
+        {
+            ActiveViewerCountPerCapture[Index] = 0;
+        }
+    }
+
+    UE_LOG(LogHG, Warning, TEXT("[CCTV] SetSceneCaptureActiveByIndex(%d): %d → Count=%d"),
+        Index, bActive, ActiveViewerCountPerCapture[Index]);
+
+    // 해당 인덱스의 Scene Capture만 제어
+    USceneCaptureComponent2D* SceneCapture = SceneCaptureComponents[Index];
+    if (SceneCapture != nullptr)
+    {
+        bool bShouldCapture = (ActiveViewerCountPerCapture[Index] > 0);
+        SceneCapture->bCaptureEveryFrame = bShouldCapture;
+
+        if (bShouldCapture == true)
+        {
+            SceneCapture->CaptureScene();
         }
     }
 }
