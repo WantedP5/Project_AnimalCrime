@@ -10,6 +10,8 @@
 #include "Net/VoiceConfig.h"
 #include "ACCharacter.generated.h"
 
+class AACMainPlayerController;
+
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
@@ -21,7 +23,7 @@ public:
 		@brief  캐릭터 정보를 반환하는 함수. 캐릭터 베이스는 시민.
 		@retval  - 캐릭터 정보 Enum
 	**/
-	virtual EACCharacterType GetCharacterType();
+	virtual EACCharacterType GetCharacterType() const;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -75,6 +77,8 @@ public:
 	// 서버에 Dash 요청 함수
 	UFUNCTION(Server, Reliable)
 	void ServerSprintEnd();
+	
+	AACMainPlayerController* GetMainPlayerController() const;
 
 protected:
 
@@ -115,11 +119,6 @@ public:
 
 
 public:
-	// TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
-	// TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
-	// TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
-	// TObjectPtr<class USkeletalMeshComponent> GetBottomMesh() const { return BottomMesh; }
-	// TObjectPtr<class USkeletalMeshComponent> GetShoesMesh() const { return ShoesMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
@@ -251,6 +250,7 @@ protected:
 
 public:
 	virtual void AttackHitCheck();
+	bool IsHoldingGun();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
@@ -423,6 +423,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shop")
 	TObjectPtr<class UACShopComponent> ShopComponent;
 
+
+	
 	UFUNCTION()
 	void OnRep_CharacterState();
 public:
@@ -436,9 +438,18 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
-
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState PrevCharacterState;
-
+	
+	void SetFreeState();
+	void SetOnDamageState();
+	void SetStunState();
+	void SetPrisonState();
+	void SetPrisonEscapeState();
+	void SetOnInteractState();
+	
+	float CalculateMoveSpeed() const;
 
 protected: // Dash 전용 맴버 변수
 	FTimerHandle DashTimerHandle;
@@ -562,4 +573,44 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DashCoolTimeData;
+
+	// 나중에 추가
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float OriginZVelocity = 500.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunWalkSpeed = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunZVelocity = 0.0f;
+
+	
+	FTimerHandle EscapeTimerHandle;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxHpData = 5.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GunDamage = 5.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WeaponDamage = 3.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float NormalDamage = 1.0f;
+	
+	
+	float BaseRunSpeed;
+	
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	uint8 bOnDamage:1;
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	uint8 bStun:1;
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	uint8 bInteract:1;
+	
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite)
+	uint8 bOnInteract:1;
 };

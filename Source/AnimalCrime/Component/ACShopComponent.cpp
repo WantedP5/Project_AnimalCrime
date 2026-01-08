@@ -358,7 +358,7 @@ void UACShopComponent::ServerPurchaseAndAddToQuickSlot_Implementation(UACItemDat
             UE_LOG(LogHY, Error, TEXT("None Test Name:%s"), *GetOwner()->GetName());
             return;
         }
-        CharacterPawn->AddBullets(10);
+        CharacterPawn->AddBullets(10000);
     }
 
     // 구매 성공 - 클라이언트에게 퀵슬롯 추가 명령

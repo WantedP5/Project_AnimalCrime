@@ -14,8 +14,11 @@
 #include "Component/ACMoneyComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Component/ACDestroyableStatComponent.h"
+#include "Component/ACShopComponent.h"
+#include "DSP/LFO.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Game/ACMainPlayerController.h"
+#include "Item/ACItemData.h"
 #include "Sound/SoundBase.h"
 
 AACMafiaCharacter::AACMafiaCharacter()
@@ -33,6 +36,16 @@ void AACMafiaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	// 감옥 상태에서는 맞아서는 안됌.
+	if (CharacterState == ECharacterState::OnDamage ||
+		CharacterState == ECharacterState::Stun ||
+		CharacterState == ECharacterState::Prison || 
+		CharacterState == ECharacterState::PrisonEscape || 
+		CharacterState == ECharacterState::OnInteract)
+	{
+		return 0.0;
+	}
+	
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	// 피격 사운드 재생
@@ -64,7 +77,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	}
 
 	float CurrentHp = Stat->GetCurrentHp();
-	CurrentHp -= 1.0f;
+	CurrentHp -= DamageAmount;
 	Stat->SetCurrentHp(CurrentHp);
 	//AC_LOG(LogHY, Error, TEXT("My HP is %f"), Stat->GetCurrentHp());
 
@@ -95,7 +108,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		}
 	}
 
-	return 1.0f;
+	return DamageAmount;
 }
 
 void AACMafiaCharacter::PostNetInit()
@@ -132,7 +145,9 @@ void AACMafiaCharacter::UpdateCharacterStatusFree()
 	}
 
 	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
-	CharacterState = ECharacterState::Free;
+	// false로 미리 바꿔야 계산이 된다.
+	bOnDamage = false;
+	SetCharacterState(ECharacterState::Free);
 	OnRep_CharacterState();
 }
 
@@ -144,11 +159,12 @@ void AACMafiaCharacter::UpdateCharacterStatusRevive()
 		return;
 	}
 	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
-	CharacterState = ECharacterState::Free;
+	bStun = false;
+	SetCharacterState(ECharacterState::Free);
 	OnRep_CharacterState();
 	if (HasAuthority() == true)
 	{
-		Stat->SetCurrentHp(6);
+		Stat->SetCurrentHp(MaxHpData);
 	}
 }
 
@@ -210,8 +226,8 @@ void AACMafiaCharacter::BeginPlay()
 		HasAuthority());
 
 	// 체력 설정.
-	Stat->SetMaxHp(6);
-	Stat->SetCurrentHp(6);
+	Stat->SetMaxHp(5);
+	Stat->SetCurrentHp(5);
 	Stat->SetArmor(0);
 	AC_LOG(LogHY, Warning, TEXT("After HP=%f | Authority=%d"), Stat->GetCurrentHp(), HasAuthority());
 
@@ -284,7 +300,7 @@ void AACMafiaCharacter::ServerFireHitscan_Implementation()
 {
 }
 
-EACCharacterType AACMafiaCharacter::GetCharacterType()
+EACCharacterType AACMafiaCharacter::GetCharacterType() const
 {
 	return EACCharacterType::Mafia;
 }
@@ -431,6 +447,7 @@ void AACMafiaCharacter::AttackHitCheck()
 	if (bHit)
 	{
 		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+		
 		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
 	}
 }
@@ -556,3 +573,21 @@ float AACMafiaCharacter::GetCurrentHP() const
 {
 	return Stat->GetCurrentHp();
 }
+
+void AACMafiaCharacter::ExcuteEscape()
+{
+	if (EscapeCount <= 0)
+	{
+		return;
+	}
+	
+	ServerEscape();
+}
+
+void AACMafiaCharacter::ServerEscape_Implementation()
+{
+	EscapeCount = EscapeCount - 1;
+	AC_LOG(LogHY, Error, TEXT("Log HI"));
+	SetCharacterState(ECharacterState::Free);
+}
+

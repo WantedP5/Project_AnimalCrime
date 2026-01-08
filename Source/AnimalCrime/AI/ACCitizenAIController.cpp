@@ -4,26 +4,26 @@
 #include "ACCitizenAIController.h"
 
 #include "AnimalCrime.h"
+#include "NavigationSystem.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Character/ACCitizen.h"
 
 
-// Sets default values
+#pragma region 생성자
+
 AACCitizenAIController::AACCitizenAIController()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// AI Controller의 Tick 제거
 	PrimaryActorTick.bCanEverTick = false;
 	
-	BTComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BTComponent"));
-	
-	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBWAssetRef(TEXT("/Script/AIModule.BlackboardData'/Game/Project/AI/BB_Citizen.BB_Citizen'"));
-	ensureAlways(BBWAssetRef.Object);
-
+	static ConstructorHelpers::FObjectFinder<UBlackboardData> BlackBoardAssetRef(TEXT("/Script/AIModule.BlackboardData'/Game/Project/AI/BB_Citizen.BB_Citizen'"));
 	// Blackboard 에셋 연결
-	if (BBWAssetRef.Object)
+	if (BlackBoardAssetRef.Succeeded() == false)
 	{
-		BBAsset = BBWAssetRef.Object;
+		UE_LOG(LogHY, Error, TEXT("Begin"));
 	}
+	BBAsset = BlackBoardAssetRef.Object;
 
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTWAssetRef(TEXT("/Script/AIModule.BehaviorTree'/Game/Project/AI/BT_Citizen.BT_Citizen'"));
 	ensureAlways(BTWAssetRef.Object);
@@ -36,15 +36,31 @@ AACCitizenAIController::AACCitizenAIController()
 	}
 }
 
-// Called when the game starts or when spawned
-void AACCitizenAIController::BeginPlay()
+#pragma endregion
+
+#pragma region 엔진 제공 함수
+
+void AACCitizenAIController::PostInitializeComponents()
 {
-	Super::BeginPlay();
-	
-	
+	AC_LOG(LogHY, Error, TEXT("Begin"));
+	Super::PostInitializeComponents();
+	AC_LOG(LogHY, Error, TEXT("End"));
 }
 
-// Called every frame
+void AACCitizenAIController::PostNetInit()
+{
+	AC_LOG(LogHY, Error, TEXT("Begin"));
+	Super::PostNetInit();
+	AC_LOG(LogHY, Error, TEXT("End"));
+}
+
+void AACCitizenAIController::BeginPlay()
+{
+	AC_LOG(LogHY, Error, TEXT("Begin"));
+	Super::BeginPlay();
+	AC_LOG(LogHY, Error, TEXT("End"));
+}
+
 void AACCitizenAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -68,6 +84,8 @@ void AACCitizenAIController::OnUnPossess()
 	StopAI();
 }
 
+#pragma endregion
+
 void AACCitizenAIController::RunAI()
 {
 	UBlackboardComponent* BlackboardPtr = Blackboard.Get();
@@ -79,20 +97,54 @@ void AACCitizenAIController::RunAI()
 		return;
 	}
 
-	// bool RunResult = RunBehaviorTree(BTAsset);
-	// if (RunResult == false)
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("[AVMBossAIController::RunAI] RunBehaviorTree를 실패하였습니다."));
-	// 	return;
-	// }
+	bool RunResult = RunBehaviorTree(BTAsset);
+	if (RunResult == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("행동트리 동작 불가"));
+		return;
+	}
 	
-	// 행동 트리 시작.
-	BTComp->StartTree(*BTAsset);
-
-	// 행동트리의 Tick 조절
-	BTComp->SetComponentTickInterval(0.5f);
+	UBrainComponent* LocalBrainComp = BrainComponent;
+	if (LocalBrainComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("LocalBrainComp 존재하지 않아서 Tick 설정 불가."));
+		return;
+	}
+	LocalBrainComp->SetComponentTickInterval(1.0f);
 }
 
 void AACCitizenAIController::StopAI()
 {
+	UBrainComponent* LocalBrainComp = GetBrainComponent();
+	if (LocalBrainComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("LocalBrainComp 존재하지 않아서 StopAI 불가."));
+		return;
+	}
+	
+	LocalBrainComp->StopLogic(TEXT("AI Stopped by StopAI function"));
+}
+
+bool AACCitizenAIController::GetNextPosition(FVector& InOutPosition) const
+{
+	APawn* PossessedPawn = GetPawn();
+	if (PossessedPawn == nullptr)
+	{
+		return false;
+	}
+	
+	const AACCitizen* CitizenPawn = Cast<AACCitizen>(PossessedPawn);
+	if (CitizenPawn == nullptr)
+	{
+		return false;
+	}
+	
+	// Citizen의 함수를 통해 가져옴.
+	InOutPosition = CitizenPawn->GetNextPosition();
+	if (InOutPosition == FVector::Zero())
+	{
+		
+	}
+	
+	return true;
 }

@@ -7,9 +7,12 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Component/ACMoneyComponent.h"
 #include <Kismet/GameplayStatics.h>
+
+#include "Component/ACShopComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Item/ACItemData.h"
 
 AACPoliceCharacter::AACPoliceCharacter()
 {
@@ -77,7 +80,29 @@ void AACPoliceCharacter::BeginPlay()
 	ChangeSalary(20.0f);
 }
 
-EACCharacterType AACPoliceCharacter::GetCharacterType()
+float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	if (DamageCauser == nullptr)
+	{
+		return 0.0f;
+	}
+	
+	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	AC_LOG(LogHY, Error, TEXT("Name:%s"), *DamageCauser->GetName());
+	CharacterState = ECharacterState::Stun;
+	OnRep_CharacterState();
+	// todo: SetCharacterState(ECharacterState::Stun) ?????
+	
+	FTimerDelegate TimerDelegate;
+	
+	TimerDelegate.BindUObject(this, &AACPoliceCharacter::UpdateCharacterStatusRevive);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
+	
+	return SuperResult;
+}
+
+EACCharacterType AACPoliceCharacter::GetCharacterType() const
 {
 	return EACCharacterType::Police;
 }
@@ -124,8 +149,33 @@ void AACPoliceCharacter::AttackHitCheck()
 	if (bHit)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
+		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+		if (EquippedWeapon == nullptr)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is nullptr Damage %f"), NormalDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), NormalDamage, GetController(), this, nullptr);
+			return;
+		}
+		if (EquippedWeapon->ItemType == EItemType::Weapon)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is 빠따 Damage %f"), WeaponDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponDamage, GetController(), this, nullptr);
+			return;
+		}
 	}
+}
+
+void AACPoliceCharacter::UpdateCharacterStatusRevive()
+{
+	if (IsValid(this) == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("this가 올바르지 않습니다."));
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
+	bStun = false;
+	SetCharacterState(ECharacterState::Free);
+	OnRep_CharacterState();
 }
 
 void AACPoliceCharacter::CalculateSalary()

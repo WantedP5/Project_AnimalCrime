@@ -23,6 +23,7 @@
 #include "ACGameRuleManager.h"
 #include "EngineUtils.h"
 #include "OnlineSubsystem.h"
+#include "Character/ACMafiaCharacter.h"
 #include "GameFramework/GameStateBase.h"
 #include "UI/Ammo/ACAmmoWidget.h"
 #include "Game/ACUIManagerComponent.h"
@@ -108,7 +109,13 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		SprintAction = SprintActionRef.Object;
 	}
-
+	
+	static ConstructorHelpers::FObjectFinder<UInputAction> EscapeActionRef(TEXT("/Game/Project/Input/Actions/IA_Escape.IA_Escape"));
+	if (EscapeActionRef.Succeeded())
+	{
+		EscapeAction = EscapeActionRef.Object;
+	}
+	
 	// ===== 퀵슬롯 Input Action 로드 (하나만) =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> QuickSlotActionRef(TEXT("/Game/Project/Input/Actions/IA_QuickSlot.IA_QuickSlot"));
 	if (QuickSlotActionRef.Succeeded())
@@ -294,7 +301,12 @@ void AACMainPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleSprintEnd);
 		// EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &AACMainPlayerController::HandleSprintEnd);
 	}
-
+	// 캐릭터 스킬 - Escape
+	if (EscapeAction)
+	{
+		EnhancedInputComponent->BindAction(EscapeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleEscape);
+	}
+	
 	if (SettingsCloseAction)
 	{
 		EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSettingsClose);
@@ -525,6 +537,32 @@ void AACMainPlayerController::HandleSprintEnd(const struct FInputActionValue& Va
 	CharacterPawn->Sprint(Value);
 }
 
+void AACMainPlayerController::HandleEscape(const FInputActionValue& Value)
+{
+	bool InputFlag = Value.Get<bool>();
+	if (InputFlag == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("InputFlag is false"));
+		return;
+	}
+	
+	if (CanUseEscapeSkill() == false)
+	{
+		AC_LOG(LogHY, Error, TEXT("CanUseEscapeSkill is false"));
+		return;
+	}
+	
+	
+	AACMafiaCharacter* MafiaPawn = GetPawn<AACMafiaCharacter>();
+	if (MafiaPawn == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
+		return;
+	}
+	AC_LOG(LogHY, Error, TEXT("PlayerController-Press Escape Key"));
+	MafiaPawn->ExcuteEscape();
+}
+
 #pragma endregion
 
 void AACMainPlayerController::HandleQuickSlot(const FInputActionValue& Value)
@@ -605,6 +643,26 @@ bool AACMainPlayerController::CanUseSkill() const
 		return false;
 	}
 
+	return true;
+}
+
+bool AACMainPlayerController::CanUseEscapeSkill() const
+{
+	AACMafiaCharacter* MafiaPawn = GetPawn<AACMafiaCharacter>();
+	if (MafiaPawn == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("CharacterPawn is nullptr"));
+		return false;
+	}
+	
+	ECharacterState CharacterState = MafiaPawn->GetCharacterState();
+	// 캐릭터의 상태가 None, Stun, Prison 상태일 경우 불가
+	if (CharacterState != ECharacterState::OnInteract)
+	{
+		AC_LOG(LogHY, Error, TEXT("CharacterState is %s"), *UEnum::GetValueAsString(CharacterState));
+		return false;
+	}
+	
 	return true;
 }
 
@@ -878,27 +936,42 @@ void AACMainPlayerController::ZoomIn()
 {
 	bZoomFlag = true;
 	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
-
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
+	
+	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
+	if (CharacterPawn == nullptr)
 	{
-		AC_LOG(LogHY, Log, TEXT("ControlledCharacter is nullptr"));
+		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
+		return;
+	}
+	
+	if (CharacterPawn->IsHoldingGun() == false)
+	{
+		AC_LOG(LogHY, Log, TEXT("No Gun In Hand"));
+		return;
+	}
+	
+	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
+	if (FollowCamera == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("FollowCamera is nullptr"));
+		return;
+	}
+	UCameraComponent* GunCamera = CharacterPawn->GetGunCamera();
+	if (GunCamera == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("GunCamera is nullptr"));
 		return;
 	}
 
-	UCameraComponent* FollowCamera = ControlledCharacter->GetFollowCamera();
-	UCameraComponent* GunCamera = ControlledCharacter->GetGunCamera();
-
-	if (FollowCamera && GunCamera)
+	// 기존 카메라 대신 총의 위치 카메라로 변경.
+	FollowCamera->Deactivate();
+	GunCamera->Activate();
+	USkeletalMeshComponent* Mesh = CharacterPawn->GetMesh();
+	if (Mesh)
 	{
-		FollowCamera->Deactivate();
-		GunCamera->Activate();
-		USkeletalMeshComponent* Mesh = ControlledCharacter->GetMesh();
-		if (Mesh)
-		{
-			Mesh->SetOwnerNoSee(true);
-		}
+		Mesh->SetOwnerNoSee(true);
 	}
+	
 	ACHUDWidget->ZoomInState();
 }
 

@@ -46,7 +46,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientSetEscapeAreaVisible(bool bVisible);
 
-	virtual EACCharacterType GetCharacterType() override;
+	virtual EACCharacterType GetCharacterType() const override;
 protected:
 
 	void ItemDrop() override;
@@ -104,4 +104,17 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission")
 	int32 Constrband = 0;
+	
+public:
+	void ExcuteEscape();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerEscape();
+	
+	UPROPERTY(Replicated)
+	int32 EscapeCount = 3;
+	
+protected:
+	// UPROPERTY()
+	// TObjectPtr<UDataAsset> 
 };
