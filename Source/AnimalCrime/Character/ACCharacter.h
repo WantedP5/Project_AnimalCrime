@@ -362,12 +362,6 @@ private:
 	void UpdateFocus();
 
  /**
-     @brief FocusedInteractable에 대한 상호작용 데이터를 DB에서 조회하고 필터링
-     @details InitiatorType과 TargetType으로 DB 조회 후 CharacterState로 필터링
- **/
-	void QueryInteractionsForFocus();
-
- /**
      @brief 홀드 상호작용 관련 멤버변수를 모두 초기화
  **/
 	void ResetHoldInteract();

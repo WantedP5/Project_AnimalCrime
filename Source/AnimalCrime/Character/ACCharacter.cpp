@@ -1060,52 +1060,6 @@ void AACCharacter::UpdateFocus()
 	
 }
 
-void AACCharacter::QueryInteractionsForFocus()
-{
-	//FocusedInteractions.Empty();
-
-	//// 1. Subsystem 가져오기
-	//UACInteractionSubsystem* InteractionSys =
-	//	GetGameInstance()->GetSubsystem<UACInteractionSubsystem>();
-	//if (!InteractionSys) return;
-
-	//UACInteractionDatabase* DB = InteractionSys->GetInteractionDatabase();
-	//if (!DB) return;
-
-	//// 2. 타입 정보 가져오기
-	//EACCharacterType InitiatorType = GetCharacterType();
-	//IACInteractInterface* Interactable = Cast<IACInteractInterface>(FocusedInteractable);
-	//if (!Interactable) return;
-
-	//EACInteractorType TargetType = Interactable->GetInteractorType();
-
-	//// 3. DB 조회
-	//TArray<UACInteractionData*> AllInteractions = DB->GetInteractions(InitiatorType, TargetType);
-	//AC_LOG(LogSW, Log, TEXT("Interaction Count: %d"), AllInteractions.Num())
-
-	//	// 4. 캐릭터 상태로 필터링 (bIsCharacterInteraction 사용)
-	//	for (UACInteractionData* InteractionData : AllInteractions)
-	//	{
-	//		if (!InteractionData) continue;
-
-	//		// 캐릭터 상호작용인 경우만 상태 체크
-	//		//if (InteractionData->bIsCharacterInteraction)
-	//		//{
-	//		//	AACCharacter* TargetChar = Cast<AACCharacter>(FocusedInteractable);
-	//		//	if (TargetChar)
-	//		//	{
-	//		//		if (InteractionData->InteractableState != TargetChar->CharacterState)
-	//		//			continue; // 상태 불일치 - 필터링
-	//		//	}
-	//		//}
-
-	//		FocusedInteractions.Add(InteractionData);
-	//	}
-
-	//// 5. 위젯에 상호작용 정보 전달
-	//Interactable->ShowInteractionHints(FocusedInteractions);
-}
-
 void AACCharacter::AddInteractable(AActor* Interactor)
 {
 	//ensureAlways(Interactor);

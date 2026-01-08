@@ -88,12 +88,6 @@ struct FInteractionKey
  * 3. 각 조합마다 임무 데이터 애셋들 할당
  * 4. Interact Subsystem에서 이 DB를 참조
  * 5. 런타임에 GetInteractions()로 조회
- *
- * 장점:
- * - 중앙 관리로 유지보수 쉬움
- * - 각 액터에 프로퍼티 추가 불필요
- * - 다중 임무 지원 용이
- * - 데이터 주도 설계
  */
 UCLASS(BlueprintType)
 class ANIMALCRIME_API UACInteractionDatabase : public UDataAsset
@@ -106,15 +100,7 @@ public:
 	 *
 	 * @details
 	 * Key: FInteractionKey (InitiatorType + TargetType)
-	 * Value: FInteractionMissionList (임무 배열을 담은 구조체)
-	 *
-	 * 에디터 설정 예시:
-	 * [0] Key: {Police, Citizen}
-	 *     Value:
-	 *       Missions: [DA_PoliceCheckID, DA_PoliceArrest]
-	 * [1] Key: {Mafia, BlackMarketDealer}
-	 *     Value:
-	 *       Missions: [DA_BuyWeapon, DA_BuyArmor]
+	 * Value: FInteractionInfoList (임무 배열을 담은 구조체)
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction Database")
 	TMap<FInteractionKey, FInteractionInfoList> InteractionMap;
@@ -125,10 +111,6 @@ public:
 	 * @param Initiator 주체 캐릭터 타입 (경찰, 마피아, 시민)
 	 * @param TargetType 대상 타입 (Citizen, CCTVArea, BlackMarketDealer 등)
 	 * @return 해당 조합의 임무 배열 (없으면 빈 배열)
-	 *
-	 * 사용 예시:
-	 * TArray<UACInteractionData*> Missions =
-	 *     Database->GetInteractions(EACCharacterType::Police, EACInteractorType::Citizen);
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	TArray<UACInteractionData*> GetInteractions(EACCharacterType Initiator, EACInteractorType TargetType) const
