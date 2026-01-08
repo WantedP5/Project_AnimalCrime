@@ -175,7 +175,7 @@ AACCitizen::AACCitizen()
 
 void AACCitizen::PostInitializeComponents()
 {
-	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	//AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::PostInitializeComponents();
 	
 	DebugDeltaData = CitizenDataAsset->DebugDelta;
@@ -201,19 +201,19 @@ void AACCitizen::PostInitializeComponents()
 	PoliceScoreData = CitizenDataAsset->PoliceScore;
 	
 	DebugDelta = DebugDeltaData; 
-	AC_LOG(LogHY, Warning, TEXT("End"));
+	//AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 void AACCitizen::PostNetInit()
 {
-	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	//AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::PostNetInit();
-	AC_LOG(LogHY, Warning, TEXT("End"));
+	//AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 void AACCitizen::BeginPlay()
 {
-	AC_LOG(LogHY, Warning, TEXT("Begin"));
+	//AC_LOG(LogHY, Warning, TEXT("Begin"));
 	Super::BeginPlay();
 	
 	// 시민 이동 속도 변경
@@ -238,12 +238,12 @@ void AACCitizen::BeginPlay()
 		MeshComp->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 	}
 	
-	AC_LOG(LogHY, Warning, TEXT("End"));
+	//AC_LOG(LogHY, Warning, TEXT("End"));
 }
 
 void AACCitizen::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	AC_LOG(LogHY, Warning, TEXT("AACCitizen::EndPlay"));
+	//AC_LOG(LogHY, Warning, TEXT("AACCitizen::EndPlay"));
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 	Super::EndPlay(EndPlayReason);
 }
@@ -255,7 +255,7 @@ void AACCitizen::Tick(float DeltaTime)
 	DebugDelta -= DeltaTime;
 	if (DebugDelta <= 0.0f)
 	{
-		AC_LOG(LogHY, Warning, TEXT("Damage Count: %d"), DamagedFlag);
+		//AC_LOG(LogHY, Warning, TEXT("Damage Count: %d"), DamagedFlag);
 		DebugDelta = DebugDeltaData;
 	}
 }
@@ -471,7 +471,7 @@ void AACCitizen::OnArrive()
 void AACCitizen::OnChangeState()
 {
 	// 상태값 변경
-	AC_LOG(LogHY, Warning, TEXT("Cur: %d Next: %d"), CharacterState, TempCharacterState );
+	//AC_LOG(LogHY, Warning, TEXT("Cur: %d Next: %d"), CharacterState, TempCharacterState );
 	CharacterState = TempCharacterState;
 	OnRep_CharacterState();
 	
@@ -496,7 +496,7 @@ void AACCitizen::OnChangeState()
 			return;
 		}
 
-		AC_LOG(LogHY, Warning, TEXT("Next Target: %s"), *MafiaCharacter->GetName());
+		//AC_LOG(LogHY, Warning, TEXT("Next Target: %s"), *MafiaCharacter->GetName());
 		BBComp->SetValueAsObject(TEXT("Target"), MafiaCharacter);
 	}
 }
@@ -576,7 +576,7 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 		{
 			MoneyComp->EarnMoney(Money);
 			ACCharacter->MoneyComp->LoseMoney(Money);
-			AC_LOG(LogHY, Warning, TEXT("Police Lost Money: %d Cur Money: %d"), Money, ACCharacter->MoneyComp->GetMoney());
+			//AC_LOG(LogHY, Warning, TEXT("Police Lost Money: %d Cur Money: %d"), Money, ACCharacter->MoneyComp->GetMoney());
 			return;
 		}
 		case EACCharacterType::Mafia:
@@ -594,7 +594,7 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 				MafiaCharacter = Cast<AACMafiaCharacter>(Actor);
 				
 				TryRegenMoneyTimer();
-				AC_LOG(LogHY, Error, TEXT("CurrentMoney <= 0  name:%s"), *MafiaCharacter->GetName());
+				//AC_LOG(LogHY, Error, TEXT("CurrentMoney <= 0  name:%s"), *MafiaCharacter->GetName());
 			}
 			else
 			{
@@ -605,7 +605,7 @@ void AACCitizen::OnUpdateMoney(AActor* Actor)
 				GetWorldTimerManager().SetTimer(MoneyCoolTimerHandle, TimerDelegate, DropTimeData, false);
 				ACCharacter->MoneyComp->EarnMoney(Result);
 			}
-			AC_LOG(LogHY, Warning, TEXT("Mafia Earn Money: %d Cur Money: %d"), Result, ACCharacter->MoneyComp->GetMoney());
+			//AC_LOG(LogHY, Warning, TEXT("Mafia Earn Money: %d Cur Money: %d"), Result, ACCharacter->MoneyComp->GetMoney());
 			
 			break;
 		}
@@ -667,7 +667,7 @@ void AACCitizen::ExcuteMoneyCoolTime()
 		UE_LOG(LogHY, Error, TEXT("[MoneyCoolTimerHandle] this is Invalid"));	
 		return;
 	}
-	AC_LOG(LogHY, Error, TEXT("끝"));
+	//AC_LOG(LogHY, Error, TEXT("끝"));
 }
 
 void AACCitizen::UpdateAISkillFlag()
@@ -678,7 +678,7 @@ void AACCitizen::UpdateAISkillFlag()
 		return;
 	}
 	
-	AC_LOG(LogHY, Error, TEXT("Call UpdateAISkillFlag"));
+	// AC_LOG(LogHY, Error, TEXT("Call UpdateAISkillFlag"));
 	
 	bIsInitialSkillBlocked = false;
 }
@@ -776,11 +776,11 @@ void AACCitizen::RunFromPolice()
 		return ;
 	}
 	
-	AC_LOG(LogHY, Log, TEXT("Enemy:%s"), *EnemyPosition.ToString());
-	AC_LOG(LogHY, Log, TEXT("My:%s"), *CurrentPosition.ToString());
-	AC_LOG(LogHY, Log, TEXT("Dir:%s"), *DirVector.ToString());
-	AC_LOG(LogHY, Log, TEXT("Next:%s"), *NextPoint.ToString());
-	AC_LOG(LogHY, Log, TEXT("Random Point: %s"), *RandomPoint.Location.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Enemy:%s"), *EnemyPosition.ToString());
+	// AC_LOG(LogHY, Log, TEXT("My:%s"), *CurrentPosition.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Dir:%s"), *DirVector.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Next:%s"), *NextPoint.ToString());
+	// AC_LOG(LogHY, Log, TEXT("Random Point: %s"), *RandomPoint.Location.ToString());
 	
 	AACCitizenAIController* AIController = Cast<AACCitizenAIController>(GetController());
 	if (AIController == nullptr)
@@ -813,7 +813,7 @@ void AACCitizen::CheckMafiaStat(AActor* InActor)
 		{
 			return;
 		}
-		AC_LOG(LogHY, Error, TEXT("name: %s"), *InActor->GetName());
+		//AC_LOG(LogHY, Error, TEXT("name: %s"), *InActor->GetName());
 		return;	
 	}
 	
@@ -848,9 +848,9 @@ void AACCitizen::ApplyHeadMesh()
 {
 	if (USkeletalMesh* SKMesh = HeadMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before HeadMeshComp OK | prev:%s next:%s"), HeadMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
 		HeadMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After HeadMeshComp OK | prev:%s next:%s"), *HeadMeshComp->GetSkeletalMeshAsset()->GetName(), *HeadMesh->GetName());
 	}
 }
 
@@ -858,9 +858,9 @@ void AACCitizen::ApplyFaceMesh()
 {
 	if (USkeletalMesh* SKMesh = FaceMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before FaceMeshComp OK | prev:%s next:%s"), FaceMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
 		FaceMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After FaceMeshComp OK | prev:%s next:%s"), *FaceMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceMesh->GetName());
 	}
 }
 
@@ -868,9 +868,9 @@ void AACCitizen::ApplyTopMesh()
 {
 	if (USkeletalMesh* SKMesh = TopMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before TopMeshComp OK | prev:%s next:%s"), TopMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
 		TopMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After TopMeshComp OK | prev:%s next:%s"), *TopMeshComp->GetSkeletalMeshAsset()->GetName(), *TopMesh->GetName());
 	}
 }
 
@@ -878,9 +878,9 @@ void AACCitizen::ApplyBottomMesh()
 {
 	if (USkeletalMesh* SKMesh = BottomMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before BottomMeshComp OK | prev:%s next:%s"), BottomMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
 		BottomMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After BottomMeshComp OK | prev:%s next:%s"), *BottomMeshComp->GetSkeletalMeshAsset()->GetName(), *BottomMesh->GetName());
 	}
 }
 
@@ -888,9 +888,9 @@ void AACCitizen::ApplyShoesMesh()
 {
 	if (USkeletalMesh* SKMesh = ShoesMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before ShoesMeshComp OK | prev:%s next:%s"), ShoesMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
 		ShoesMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After ShoesMeshComp OK | prev:%s next:%s"), *ShoesMeshComp->GetSkeletalMeshAsset()->GetName(), *ShoesMesh->GetName());
 	}
 }
 
@@ -898,9 +898,9 @@ void AACCitizen::ApplyFaceAccMesh()
 {
 	if (USkeletalMesh* SKMesh = FaceAccMesh.Get())
 	{
-		AC_LOG(LogHY, Error, TEXT("Before FaceAccMeshComp OK | prev:%s next:%s"), FaceAccMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("Before FaceAccMeshComp OK | prev:%s next:%s"), FaceAccMeshComp->GetSkeletalMeshAsset() == nullptr ? TEXT("No Asset") : *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
 		FaceAccMeshComp->SetSkeletalMesh(SKMesh);
-		AC_LOG(LogHY, Error, TEXT("After FaceAccMeshComp OK | prev:%s next:%s"), *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
+		//AC_LOG(LogHY, Error, TEXT("After FaceAccMeshComp OK | prev:%s next:%s"), *FaceAccMeshComp->GetSkeletalMeshAsset()->GetName(), *FaceAccMesh->GetName());
 	}
 }
 
