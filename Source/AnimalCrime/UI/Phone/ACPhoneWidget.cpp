@@ -45,6 +45,23 @@ void UACPhoneWidget::NativeConstruct()
     ShowHomeScreen();
 }
 
+void UACPhoneWidget::NativeDestruct()
+{
+    Super::NativeDestruct();
+
+    // Phone이 닫힐 때 보던 CCTV 비활성화
+    if (bIsViewingCCTV && CurrentCCTVIndex >= 0)
+    {
+        AACCCTVArea* CCTVArea = FindCCTVArea();
+        if (CCTVArea != nullptr)
+        {
+            CCTVArea->SetSceneCaptureActiveByIndex(CurrentCCTVIndex, false);
+            CurrentCCTVIndex = -1;
+            bIsViewingCCTV = false;
+        }
+    }
+}
+
 void UACPhoneWidget::InitializeCCTVSlots()
 {
     // CCTVSlotDataArray에서 데이터 가져와서 슬롯에 설정
@@ -92,11 +109,13 @@ void UACPhoneWidget::InitializeCCTVSlots()
 
 void UACPhoneWidget::ShowHomeScreen()
 {
-    // CCTVArea 찾아서 Scene Capture 비활성화
     AACCCTVArea* CCTVArea = FindCCTVArea();
-    if (CCTVArea != nullptr)
+    if (CCTVArea != nullptr && bIsViewingCCTV && CurrentCCTVIndex >= 0)
     {
-        CCTVArea->SetSceneCaptureActive(false);
+        // 현재 보던 CCTV 비활성화
+        CCTVArea->SetSceneCaptureActiveByIndex(CurrentCCTVIndex, false);
+        CurrentCCTVIndex = -1;
+        bIsViewingCCTV = false;
     }
 
     if (MainSwitcher != nullptr)
@@ -107,11 +126,19 @@ void UACPhoneWidget::ShowHomeScreen()
 
 void UACPhoneWidget::ShowCCTVScreen(int32 CCTVIndex)
 {
-    // CCTVArea 찾아서 Scene Capture 활성화
     AACCCTVArea* CCTVArea = FindCCTVArea();
     if (CCTVArea != nullptr)
     {
-        CCTVArea->SetSceneCaptureActive(true);
+        // 이전에 보던 CCTV가 있으면 비활성화
+        if (CurrentCCTVIndex >= 0)
+        {
+            CCTVArea->SetSceneCaptureActiveByIndex(CurrentCCTVIndex, false);
+        }
+
+        // 새로운 CCTV 활성화
+        CCTVArea->SetSceneCaptureActiveByIndex(CCTVIndex, true);
+        CurrentCCTVIndex = CCTVIndex;
+        bIsViewingCCTV = true;
     }
 
     // 메인 화면을 CCTV 뷰어로 전환

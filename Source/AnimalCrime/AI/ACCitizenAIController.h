@@ -18,7 +18,9 @@ public:
 
 #pragma region 엔진 제공 함수
 public:
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void PostNetInit() override;
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void OnPossess(APawn* InPawn) override;
@@ -31,8 +33,15 @@ public:
 	void StopAI();
 #pragma endregion
 	
+#pragma region AI Task 로직
+public:
+	bool GetNextPosition(FVector& InOutPosition) const;
+#pragma endregion
+	
 #pragma region 맴버 변수
-private:
+public:
+	
+protected:
 	// Blackboard 애셋.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UBlackboardData> BBAsset;
@@ -40,8 +49,12 @@ private:
 	// Behaviour Tree 애셋.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
+#pragma region 캐시용 변수
+	// UPROPERTY(EditAnywhere, Category = AI)
+	// TObjectPtr<class UBehaviorTreeComponent> BTComp;
+#pragma endregion
 	
-	UPROPERTY(EditAnywhere, Category = AI)
-	TObjectPtr<class UBehaviorTreeComponent> BTComp;
+private:
 #pragma endregion
 };

@@ -148,8 +148,14 @@ void UACHUDWidget::ZoomInState()
 
 void UACHUDWidget::ZoomOutState()
 {
+	if (IsValid(WBP_CrossHair) == false)
+	{
+		UE_LOG(LogHY, Error, TEXT("예?"));
+		return;
+	}
 	if (WBP_CrossHair == nullptr)
 	{
+		UE_LOG(LogHY, Error, TEXT("예1?"));
 		return;
 	}
 

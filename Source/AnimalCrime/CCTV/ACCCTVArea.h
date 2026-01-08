@@ -56,6 +56,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CCTV")
 	void SetSceneCaptureActive(bool bActive);
 
+	// 특정 인덱스의 Scene Capture만 활성화/비활성화 (Phone용)
+	UFUNCTION(BlueprintCallable, Category = "CCTV")
+	void SetSceneCaptureActiveByIndex(int32 Index, bool bActive);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
@@ -75,9 +79,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
 	TArray<class USceneCaptureComponent2D*> SceneCaptureComponents;
 
+
+protected:
 	// 30프레임 캡쳐 핸들 타이머
 	FTimerHandle CaptureTimerHandle;
 
 	// 캡처 활성화 여부
 	bool bIsCaptureActive = false;
+
+	// Scene Capture 활성화 카운터 (전체용)
+	int32 ActiveViewerCount = 0;
+
+	// 각 Scene Capture의 활성화 카운터 (개별용)
+	TArray<int32> ActiveViewerCountPerCapture;
 };

@@ -21,12 +21,14 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void PostNetInit() override;
 	virtual void BeginPlay() override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 public:
-	virtual EACCharacterType GetCharacterType() override;
+	virtual EACCharacterType GetCharacterType() const override;
 
 	virtual void AttackHitCheck() override;
 	
+	void UpdateCharacterStatusRevive();
 	
 public:
 	/**

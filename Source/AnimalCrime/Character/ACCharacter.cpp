@@ -33,6 +33,7 @@
 #include "Game/ACMainPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Component/ACDestroyableStatComponent.h"
 #include "Component/ACMoneyComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -48,6 +49,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Net/VoiceConfig.h"
 #include "EngineUtils.h"
+#include "Objects/ACGunBase.h"
 
 AACCharacter::AACCharacter()
 {
@@ -267,9 +269,12 @@ void AACCharacter::BeginPlay()
 	AC_LOG(LogHY, Error, TEXT("Begin"));
 	Super::BeginPlay();
 
-	
-	CharacterState = ECharacterState::Free;
+	AC_LOG(LogHY, Error, TEXT("Before Speed %f %s"), GetCharacterMovement()->MaxWalkSpeed, *GetName());
+	SetCharacterState(ECharacterState::Free);
+	AC_LOG(LogHY, Error, TEXT("Before After %f %s"), GetCharacterMovement()->MaxWalkSpeed, *GetName());
 
+	
+	
 	// @Todo 변경 필요. Mafia와 Police 구분이 안감.
 	// Police와 Mafia는 각자의 BeginPlay에서 초기화
 	// ※ 얘도 확인 했으면 지워주세요
@@ -527,6 +532,7 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	if (CharacterState == ECharacterState::OnDamage)
 	{
 		//todo: 상대 OnDamage로 풀어주기
+		AC_LOG(LogSW, Log, TEXT("%s's interaction was canceled!!"), *GetName())
 		ResetHoldInteract();
 		return;
 	}
@@ -665,6 +671,11 @@ void AACCharacter::Sprint(const FInputActionValue& Value)
 	}
 }
 
+AACMainPlayerController* AACCharacter::GetMainPlayerController() const
+{
+	return Cast<AACMainPlayerController>(GetController());
+}
+
 void AACCharacter::ServerSprintStart_Implementation()
 {
 	if (bSprint == true)
@@ -707,22 +718,24 @@ void AACCharacter::ServerSprintEnd_Implementation()
 
 void AACCharacter::OnRep_Sprint()
 {
-	if (bSprint)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintMoveSpeedData;
-		// AC_LOG(LogHY, Warning, TEXT("Sprint is active %f"), GetCharacterMovement()->MaxWalkSpeed);
-	}
-	else
-	{
-		if (GetCharacterType() == EACCharacterType::Mafia)
-		{
-			GetCharacterMovement()->MaxWalkSpeed = OriginMafiaMoveSpeedData;
-		}
-		else if (GetCharacterType() == EACCharacterType::Police)
-		{
-			GetCharacterMovement()->MaxWalkSpeed = OriginPoliceMoveSpeedData;
-		}
-	}
+	GetCharacterMovement()->MaxWalkSpeed = CalculateMoveSpeed();
+	// if (bSprint)
+	// {
+	// 	//GetCharacterMovement()->MaxWalkSpeed = SprintMoveSpeedData;
+	// 	
+	// 	// AC_LOG(LogHY, Warning, TEXT("Sprint is active %f"), GetCharacterMovement()->MaxWalkSpeed);
+	// }
+	// else
+	// {
+	// 	if (GetCharacterType() == EACCharacterType::Mafia)
+	// 	{
+	// 		GetCharacterMovement()->MaxWalkSpeed = OriginMafiaMoveSpeedData;
+	// 	}
+	// 	else if (GetCharacterType() == EACCharacterType::Police)
+	// 	{
+	// 		GetCharacterMovement()->MaxWalkSpeed = OriginPoliceMoveSpeedData;
+	// 	}
+	// }
 }
 
 void AACCharacter::GaugeUp()
@@ -753,7 +766,8 @@ void AACCharacter::GaugeDown()
 void AACCharacter::Jump()
 {
 	// Case: 스턴 및 감옥 상태일 경우 Jump 불가 
-	if (CharacterState == ECharacterState::Stun ||
+	if (CharacterState == ECharacterState::None ||
+		CharacterState == ECharacterState::Stun ||
 		CharacterState == ECharacterState::Prison)
 	{
 		return;
@@ -827,22 +841,31 @@ void AACCharacter::AttackHitCheck()
 	// 자식 클래스에서 구현
 }
 
-void AACCharacter::FireHitscan()
+bool AACCharacter::IsHoldingGun()
 {
 	UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
 	if (EquippedWeapon == nullptr)
 	{
 		AC_LOG(LogHY, Log, TEXT("EquippedWeapon is nullptr"));
-		return;
+		return false;
 	}
 	if (EquippedWeapon->ItemType != EItemType::Weapon)
 	{
 		AC_LOG(LogTemp, Log, TEXT(">>> Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
-		return;
+		return false;
 	}
 	if (EquippedWeapon->ItemName.ToString() != TEXT("Pistol_001"))
-    {
+	{
 		AC_LOG(LogTemp, Log, TEXT(">>>	 Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
+		return false;
+	}
+	return true;
+}
+
+void AACCharacter::FireHitscan()
+{
+	if (IsHoldingGun() == false)
+	{
 		return;
 	}
 	
@@ -901,6 +924,11 @@ void AACCharacter::ShowInteractionHints(const TArray<UACInteractionData*>& Inter
 {
 	if (!InteractionWidgetComponent) return;
 
+	if (IsValid(InteractionWidgetComponent) == false)
+	{
+		return;
+	}
+
 	// 위젯 생성 (최초 1회)
 	if (!InteractionWidgetComponent->GetWidget() && InteractionInfoWidgetClass)
 	{
@@ -919,6 +947,11 @@ void AACCharacter::ShowInteractionHints(const TArray<UACInteractionData*>& Inter
 void AACCharacter::HideInteractionHints()
 {
 	if (!InteractionWidgetComponent) return;
+
+	if (IsValid(InteractionWidgetComponent) == false)
+	{
+		return;
+	}
 
 	UACInteractionInfoWidget* HintWidget = Cast<UACInteractionInfoWidget>(
 		InteractionWidgetComponent->GetWidget());
@@ -942,19 +975,31 @@ void AACCharacter::UpdateFocus()
 		return;
 	}
 
+	/*if (IsValid(FocusedInteractable) == false)
+	{
+		return;
+	}*/
+
 	AActor* PreviousFocus = FocusedInteractable;
 	FocusedInteractable = nullptr;
-	//FocusedInteractions.Empty();
+	IACInteractInterface* PrevInteractable = nullptr;
+
+	if (PreviousFocus != nullptr && IsValid(PreviousFocus))
+	{
+		PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
+		if (PrevInteractable == nullptr)
+		{
+			return;
+		}
+	}
 
 	// 1. 거리순 정렬
 	if (SortNearInteractables() == false)
 	{
 		// 주변에 상호작용 가능한 객체 없음 - 이전 Focus 위젯 숨김
-		if (PreviousFocus != nullptr)
+		if (PreviousFocus != nullptr && IsValid(PreviousFocus))
 		{
-			IACInteractInterface* PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
-			if (PrevInteractable)
-				PrevInteractable->HideInteractionHints();
+			PrevInteractable->HideInteractionHints();
 		}
 		return;
 	}
@@ -998,11 +1043,9 @@ void AACCharacter::UpdateFocus()
 	if (FocusedInteractable != PreviousFocus)
 	{
 		// 이전 Focus 위젯 숨김
-		if (PreviousFocus)
+		if (PreviousFocus!=nullptr && IsValid(PreviousFocus))
 		{
-			IACInteractInterface* PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
-			if (PrevInteractable)
-				PrevInteractable->HideInteractionHints();
+			PrevInteractable->HideInteractionHints();
 		}
 	}
 
@@ -1111,18 +1154,13 @@ bool AACCharacter::SortNearInteractables()
 
 void AACCharacter::OnRep_CharacterState()
 {
-	//if (IsValid(this) == false)
-	//{
-	//	return;
-	//}		
-
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (IsValid(this) == false)
 	{
 		AC_LOG(LogHY, Error, TEXT("this is Invalid"));
 		return;
 	}
-
+	
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp == nullptr)
 	{
 		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
@@ -1134,34 +1172,29 @@ void AACCharacter::OnRep_CharacterState()
 
 	switch (CharacterState)
 	{
-	case ECharacterState::OnInteract:
+	case ECharacterState::Free:
 	{
-		MoveComp->MaxWalkSpeed = 0.f;
-		MoveComp->JumpZVelocity = 0.f;
+		SetFreeState();
 		break;
 	}
 	case ECharacterState::Stun:
 	{
-		MoveComp->MaxWalkSpeed = 10.f;
-		MoveComp->JumpZVelocity = 0.f;
-		break;
-	}
-	case ECharacterState::Free:
-	{
-		if (GetCharacterType() == EACCharacterType::Police)
-		{
-			MoveComp->MaxWalkSpeed = 500.0f; // 경찰
-		}
-		else
-		{
-			MoveComp->MaxWalkSpeed = 300.0f; // 마피아
-		}
-		MoveComp->JumpZVelocity = 500.0f;
+		SetStunState();
 		break;
 	}
 	case ECharacterState::OnDamage:
 	{
-		MoveComp->MaxWalkSpeed = 600.0f;
+		SetOnDamageState();
+		break;
+	}
+	case ECharacterState::OnInteract:
+	{
+		SetOnInteractState();
+		break;
+	}
+	case ECharacterState::Prison:
+	{
+		SetPrisonState();
 		break;
 	}
 	}
@@ -1187,6 +1220,8 @@ void AACCharacter::OnRep_CharacterState()
 	}
 }
 
+
+
 ECharacterState AACCharacter::GetCharacterState() const
 {
 	return CharacterState;
@@ -1194,12 +1229,220 @@ ECharacterState AACCharacter::GetCharacterState() const
 
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
+	if (CharacterState == InCharacterState)
+	{
+		AC_LOG(LogHY, Warning, TEXT("Fail Same Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+		return;
+	}
+	
+	// Free 상태 체크
+	if (CharacterState == ECharacterState::Free)
+	{
+		// Free로만 변경가능.	보류( || (InCharacterState == ECharacterState::Prison))
+		
+		if (!( (InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::PrisonEscape)))
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+			return;
+		}
+	}
+	
+	// 
+	if (CharacterState == ECharacterState::OnDamage)
+	{
+		// Free로만 변경가능.
+		if (!(InCharacterState == ECharacterState::Free))
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+			return;
+		}
+	}
+	
+	if (CharacterState == ECharacterState::Stun)
+	{
+		if (!(InCharacterState == ECharacterState::Free || InCharacterState == ECharacterState::OnInteract))
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+			return;
+		}
+	}
+	
+	// Prison 상태
+	if (CharacterState == ECharacterState::Prison)
+	{
+		if (InCharacterState != ECharacterState::PrisonEscape)
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+			return;
+		}
+	}
+	
+	AC_LOG(LogHY, Warning, TEXT("Success !!! Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+	
+	PrevCharacterState = CharacterState;
 	CharacterState = InCharacterState;
 
 	if (HasAuthority())
 	{
 		OnRep_CharacterState();
 	}
+}
+
+void AACCharacter::SetFreeState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
+		return;
+	}
+	
+	// Case: Police
+	// if (GetCharacterType() == EACCharacterType::Police)
+	// {
+	// 	MoveComp->MaxWalkSpeed = OriginPoliceMoveSpeedData;; 
+	// 		
+	// }
+	// // Case: Mafia
+	// else
+	// {
+	// 	MoveComp->MaxWalkSpeed = OriginMafiaMoveSpeedData;
+	// }
+	AC_LOG(LogHY, Error, TEXT("Before speed: %f"), MoveComp->MaxWalkSpeed);
+	MoveComp->MaxWalkSpeed = CalculateMoveSpeed(); 
+	AC_LOG(LogHY, Error, TEXT("After  speed: %f"), MoveComp->MaxWalkSpeed);
+	MoveComp->JumpZVelocity = OriginZVelocity;
+}
+
+void AACCharacter::SetOnDamageState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
+		return;
+	}
+	
+	bOnDamage = true;
+	AC_LOG(LogHY, Error, TEXT("Before speed: %f"), MoveComp->MaxWalkSpeed);
+	MoveComp->MaxWalkSpeed = CalculateMoveSpeed();
+	AC_LOG(LogHY, Error, TEXT("After  speed: %f"), MoveComp->MaxWalkSpeed);
+}
+
+void AACCharacter::SetStunState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
+		return;
+	}
+	
+	// MovementComponent 속성 변경
+	bStun = true;
+	AC_LOG(LogHY, Error, TEXT("Before speed: %f"), MoveComp->MaxWalkSpeed);
+	MoveComp->MaxWalkSpeed = CalculateMoveSpeed();
+	AC_LOG(LogHY, Error, TEXT("After  speed: %f"), MoveComp->MaxWalkSpeed);
+	MoveComp->JumpZVelocity = StunZVelocity;
+	
+	// 컨트롤러의 HUD 변경
+	// AACMainPlayerController* MainPlayerController = GetMainPlayerController();
+	// if (MainPlayerController == nullptr)
+	// {
+	// 	AC_LOG(LogHY, Error, TEXT("MainPlayerController is nullptr"));
+	// 	return;
+	// }
+	// MainPlayerController->ZoomOut();
+}
+
+void AACCharacter::SetPrisonState()
+{
+	Stat->SetCurrentHp(Stat->GetMaxHp());	
+}
+
+void AACCharacter::SetPrisonEscapeState()
+{
+	// Todo: 언젠가 Free로 되돌려야 함.
+	
+	// FTimerDelegate TimerDelegate;
+	// TimerDelegate.BindUObject(this, &AACCharacter::SetPrisonEscapeState);
+	// GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, 3, false);
+}
+
+void AACCharacter::SetOnInteractState()
+{
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
+		return;
+	}
+	
+	MoveComp->MaxWalkSpeed = 0.f;
+	MoveComp->JumpZVelocity = 0.f;
+}
+
+float AACCharacter::CalculateMoveSpeed() const
+{
+	float Speed = 600.0f;
+	
+	AC_LOG(
+	LogHY,
+	Error,
+	TEXT("Type: %s"),
+	*StaticEnum<EACCharacterType>()->GetNameStringByValue(
+		static_cast<int64>(GetCharacterType())
+	)
+);
+	// Free 상태일 때
+	if (GetCharacterType() == EACCharacterType::Police)
+	{
+		Speed = OriginPoliceMoveSpeedData; 
+	}
+	// Case: Mafia
+	else if (GetCharacterType() == EACCharacterType::Mafia)
+	{
+		Speed = OriginMafiaMoveSpeedData;
+	}
+	
+	if (bOnDamage)
+	{
+		if (GetCharacterType() == EACCharacterType::Police)
+		{
+			Speed -= 200;	
+		}
+		else if (GetCharacterType() == EACCharacterType::Mafia)
+		{
+			Speed += 200;
+		}
+		else
+		{
+			AC_LOG(LogHY, Error, TEXT("과연 뭘까?"));
+		}
+	}
+	
+	// @Todo 애매...
+	Speed += SprintMoveSpeedData;
+	if (bSprint)
+	{
+		Speed += SprintMoveSpeedData;
+	}
+	else
+	{
+		Speed -= SprintMoveSpeedData;
+	}
+
+	if (bStun)
+	{
+		Speed = StunWalkSpeed;
+	}
+	
+	if (bOnInteract || bInteract)
+	{
+		Speed = 0;
+	}
+
+	return Speed;
 }
 
 void AACCharacter::ResetHoldInteract()
@@ -1384,7 +1627,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 			}
 
 			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
 		}
 		else
 		{
@@ -1469,10 +1712,10 @@ void AACCharacter::MulticastStopHoldInteraction_Implementation(AActor* TargetAct
 	}
 }
 
-EACCharacterType AACCharacter::GetCharacterType()
+EACCharacterType AACCharacter::GetCharacterType() const
 {
 	// todo: 우리 게임에 이 캐릭터 그대로 사용할 일이 있나?
-	return EACCharacterType::Total;
+	return EACCharacterType::None;
 }
 
 #pragma region Update SkeletalMeshComponent
@@ -1590,12 +1833,12 @@ void AACCharacter::ServerShoot_Implementation()
 	
 	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, MuzzleLoc, End, ObjectParams, QueryParams);
 	
-	FColor LineColor = bHit ? FColor::Red : FColor::Green;
-	DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
+	// FColor LineColor = bHit ? FColor::Red : FColor::Green;
+	// DrawDebugLine(GetWorld(),MuzzleLoc, bHit ? Hit.ImpactPoint : End, LineColor, false, 2.0f, 0, 2.0f);
 	if (bHit)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
-		UGameplayStatics::ApplyDamage(Hit.GetActor(),30.0f, GetController(),this, nullptr);
+		UGameplayStatics::ApplyDamage(Hit.GetActor(), GunDamage, GetController(),this, AACGunBase::StaticClass());
 	}
 }
 
@@ -1729,7 +1972,7 @@ void AACCharacter::SpendBullets(int32 InBulletCount)
 
 void AACCharacter::OnRep_BulletCount()
 {
-	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	AACMainPlayerController* PC = GetMainPlayerController();
 	if (PC && PC->IsLocalController())
 	{
 		PC->UpdateAmmoUI(BulletCount);
