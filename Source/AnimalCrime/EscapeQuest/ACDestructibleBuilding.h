@@ -38,6 +38,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
 	UFUNCTION(BlueprintCallable)
@@ -54,6 +55,9 @@ protected:
 	// 파괴용 프랙처 메시 (Geometry Collection)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Destructible", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UGeometryCollectionComponent> FractureMesh;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UGeometryCollection> FractureCollectionAsset;
 
 	// 붕괴 이펙트 (Cascade)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
