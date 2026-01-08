@@ -518,7 +518,7 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	}
 
 	// 유효성 체크
-	if (!CurrentHoldTarget || !NearInteractables.Contains(CurrentHoldTarget))
+	if (!CurrentHoldTarget || IsValid(CurrentHoldTarget) || !NearInteractables.Contains(CurrentHoldTarget))
 	{
 		ResetHoldInteract();
 		return;
@@ -527,6 +527,7 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	if (CharacterState == ECharacterState::OnDamage)
 	{
 		//todo: 상대 OnDamage로 풀어주기
+		AC_LOG(LogSW, Log, TEXT("%s's interaction was canceled!!"), *GetName())
 		ResetHoldInteract();
 		return;
 	}
@@ -753,7 +754,7 @@ void AACCharacter::GaugeDown()
 void AACCharacter::Jump()
 {
 	// Case: 스턴 및 감옥 상태일 경우 Jump 불가 
-	if (CharacterState == ECharacterState::Stun ||
+	if (CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::OnDamage ||
 		CharacterState == ECharacterState::Prison)
 	{
 		return;
@@ -901,6 +902,11 @@ void AACCharacter::ShowInteractionHints(const TArray<UACInteractionData*>& Inter
 {
 	if (!InteractionWidgetComponent) return;
 
+	if (IsValid(InteractionWidgetComponent) == false)
+	{
+		return;
+	}
+
 	// 위젯 생성 (최초 1회)
 	if (!InteractionWidgetComponent->GetWidget() && InteractionInfoWidgetClass)
 	{
@@ -919,6 +925,11 @@ void AACCharacter::ShowInteractionHints(const TArray<UACInteractionData*>& Inter
 void AACCharacter::HideInteractionHints()
 {
 	if (!InteractionWidgetComponent) return;
+
+	if (IsValid(InteractionWidgetComponent) == false)
+	{
+		return;
+	}
 
 	UACInteractionInfoWidget* HintWidget = Cast<UACInteractionInfoWidget>(
 		InteractionWidgetComponent->GetWidget());
@@ -942,19 +953,31 @@ void AACCharacter::UpdateFocus()
 		return;
 	}
 
+	/*if (IsValid(FocusedInteractable) == false)
+	{
+		return;
+	}*/
+
 	AActor* PreviousFocus = FocusedInteractable;
 	FocusedInteractable = nullptr;
-	//FocusedInteractions.Empty();
+	IACInteractInterface* PrevInteractable = nullptr;
+
+	if (PreviousFocus != nullptr && IsValid(PreviousFocus))
+	{
+		PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
+		if (PrevInteractable == nullptr)
+		{
+			return;
+		}
+	}
 
 	// 1. 거리순 정렬
 	if (SortNearInteractables() == false)
 	{
 		// 주변에 상호작용 가능한 객체 없음 - 이전 Focus 위젯 숨김
-		if (PreviousFocus != nullptr)
+		if (PreviousFocus != nullptr && IsValid(PreviousFocus))
 		{
-			IACInteractInterface* PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
-			if (PrevInteractable)
-				PrevInteractable->HideInteractionHints();
+			PrevInteractable->HideInteractionHints();
 		}
 		return;
 	}
@@ -998,11 +1021,9 @@ void AACCharacter::UpdateFocus()
 	if (FocusedInteractable != PreviousFocus)
 	{
 		// 이전 Focus 위젯 숨김
-		if (PreviousFocus)
+		if (PreviousFocus!=nullptr && IsValid(PreviousFocus))
 		{
-			IACInteractInterface* PrevInteractable = Cast<IACInteractInterface>(PreviousFocus);
-			if (PrevInteractable)
-				PrevInteractable->HideInteractionHints();
+			PrevInteractable->HideInteractionHints();
 		}
 	}
 
@@ -1194,6 +1215,7 @@ ECharacterState AACCharacter::GetCharacterState() const
 
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
+	PrevCharacterState = CharacterState;
 	CharacterState = InCharacterState;
 
 	if (HasAuthority())
@@ -1350,7 +1372,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 	}
 	else
 	{
-		SetCharacterState(ECharacterState::Free);
+		SetCharacterState(PrevCharacterState);
 
 		if (Target == nullptr)
 		{
@@ -1384,7 +1406,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 			}
 
 			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
 		}
 		else
 		{
@@ -1394,7 +1416,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 				return;
 			}
 
-			ACChar->SetCharacterState(ECharacterState::Free);
+			ACChar->SetCharacterState(PrevCharacterState);
 		}
 	}
 }
