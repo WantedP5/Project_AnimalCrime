@@ -41,11 +41,23 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
+ /**
+     @brief 건물 파괴 호출 함수
+ **/
 	UFUNCTION(BlueprintCallable)
 	void DestroyBuilding();
 
+ /**
+	 @brief 실제 파괴 처리 함수
+ **/
 	UFUNCTION()
 	void OnRep_Destroyed();
+
+private:
+ /**
+	 @brief 특정 위치에 파괴 스트레인 적용
+ **/
+	void ApplyFractureStrain();
 
 protected:
 	// 평소 건물 (메시 / 충돌 / 위치 조정 가능)
@@ -79,4 +91,7 @@ protected:
 	/** 파괴 종료 시 재생할 파티클들 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
 	TArray<FDestroyParticleInfo> EndDestroyParticles;
+
+private:
+	FTimerHandle StrainTimerHandle;
 };

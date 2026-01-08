@@ -33,6 +33,9 @@ AACDestructibleBuilding::AACDestructibleBuilding()
 	static ConstructorHelpers::FObjectFinder<UGeometryCollection> GC_Building(
 		TEXT("/Game/Project/EscapeQuest/GC_SM_Building_Skyscraper.GC_SM_Building_Skyscraper")
 	);
+	//static ConstructorHelpers::FObjectFinder<UGeometryCollection> GC_Building(
+	//	TEXT("/Game/Project/EscapeQuest/GC_SM_Building_Skyscraper.GC_SM_Building_Skyscraper")
+	//);
 
 	if (GC_Building.Succeeded())
 	{
@@ -107,16 +110,30 @@ void AACDestructibleBuilding::OnRep_Destroyed()
 	FractureMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	FractureMesh->SetSimulatePhysics(true);
+	
+	const FVector Origin = GetActorLocation() + StrainLocationOffset;
 
-	// 파괴 스트레인 적용
-	FractureMesh->ApplyExternalStrain(
-		0,
-		GetActorLocation() + StrainLocationOffset, // 위치
-		1000.f,              // Radius
-		1,                  // PropagationDepth
-		1.f,                // PropagationFactor
-		10000.f              // Strain (파괴 강도)
+#if WITH_EDITOR
+	DrawDebugSphere(
+		GetWorld(),
+		Origin,
+		1500.f,
+		32,
+		FColor::Red,
+		false,
+		5.f
 	);
+#endif
+
+	// AddRadialImpulse 사용 (물리 기반)
+	FractureMesh->AddRadialImpulse(
+		Origin,
+		1000.f,      // Radius
+		5000.f,    // Strength (큰 값 필요)
+		ERadialImpulseFalloff::RIF_Linear,
+		true         // bVelChange
+	);
+
 
 	// 파괴 이펙트
 	if (DestroyEffect != nullptr)
