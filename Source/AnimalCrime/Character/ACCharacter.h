@@ -120,6 +120,7 @@ public:
 
 public:
 	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetFaceMesh() const { return FaceMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetBottomMesh() const { return BottomMesh; }
