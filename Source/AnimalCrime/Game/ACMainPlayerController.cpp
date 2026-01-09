@@ -27,6 +27,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "UI/Ammo/ACAmmoWidget.h"
 #include "Game/ACUIManagerComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "CCTV/ACCCTVArea.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -791,6 +793,18 @@ void AACMainPlayerController::CloseCCTV()
 		return;
 	}
 
+	// 클라이언트도 SceneCapture 비활성화
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AACCCTVArea::StaticClass(), FoundActors);
+	if (FoundActors.Num() > 0)
+	{
+		AACCCTVArea* CCTVArea = Cast<AACCCTVArea>(FoundActors[0]);
+		if (CCTVArea != nullptr)
+		{
+			CCTVArea->SetSceneCaptureActive(false);
+		}
+	}
+
 	// ===== CCTV 닫기 =====
 	CurrentCCTVWidget->RemoveFromParent();
 	CurrentCCTVWidget = nullptr;
@@ -1132,6 +1146,18 @@ void AACMainPlayerController::ClientToggleCCTVWidget_Implementation(TSubclassOf<
 		{
 			CCTVWidget->AddToViewport();
 			CurrentCCTVWidget = CCTVWidget;
+
+			//  클라이언트에서도 SceneCapture 활성화
+			TArray<AActor*> FoundActors;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AACCCTVArea::StaticClass(), FoundActors);
+			if (FoundActors.Num() > 0)
+			{
+				AACCCTVArea* CCTVArea = Cast<AACCCTVArea>(FoundActors[0]);
+				if (CCTVArea != nullptr)
+				{
+					CCTVArea->SetSceneCaptureActive(true);
+				}
+			}
 
 			// 입력모드를 게임,UI로 변경
 			FInputModeGameAndUI InputMode;
