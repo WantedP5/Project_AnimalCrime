@@ -586,9 +586,11 @@ void AACCharacter::ItemDrop()
 	UE_LOG(LogTemp, Log, TEXT("ItemDrop!!"));
 }
 
+
 void AACCharacter::Attack()
 {
-	if (CharacterState == ECharacterState::OnInteract || CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::Prison)
+	if (CharacterState == ECharacterState::None || CharacterState == ECharacterState::Stun ||
+		CharacterState == ECharacterState::Interact || CharacterState == ECharacterState::OnInteract)
 	{
 		return;
 	}
