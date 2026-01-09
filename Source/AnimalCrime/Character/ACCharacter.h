@@ -445,8 +445,7 @@ protected:
 	void SetFreeState();
 	void SetOnDamageState();
 	void SetStunState();
-	void SetPrisonState();
-	void SetPrisonEscapeState();
+	void SetInteractState();
 	void SetOnInteractState();
 	
 	float CalculateMoveSpeed() const;

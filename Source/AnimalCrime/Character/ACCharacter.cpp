@@ -494,6 +494,7 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 	// 즉시 상호작용
 	if (RequiredHoldTime <= KINDA_SMALL_NUMBER)
 	{
+		AC_LOG(LogSW, Warning, TEXT("Instant Interaction Started!!! %s | State: %s"), *GetName(), *UEnum::GetValueAsString(CharacterState));
 		ServerInteract(FocusedInteractable, Key);
 	}
 	// 홀드 상호작용
@@ -503,7 +504,7 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 		CurrentHoldTarget = FocusedInteractable;
 		CurrentHoldTime = 0.f;
 		CurrentHoldKey = Key;
-
+		AC_LOG(LogSW, Warning, TEXT("Hold Interaction Progress Started!!! %s | State: %s"), *GetName(), *UEnum::GetValueAsString(CharacterState));
 		ServerFreezeCharacter(CurrentHoldTarget, true);
 
 		// 서버에 홀드 상호작용 시작 알림 (몽타주 + 회전)
@@ -569,6 +570,7 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	// 홀드 시간 완료 시 상호작용 실행
 	if (CurrentHoldTime >= RequiredHoldTime)
 	{
+		AC_LOG(LogSW, Warning, TEXT("Hold Interaction Progress Finished!!! %s | State: %s"), *GetName(), *UEnum::GetValueAsString(CharacterState));
 		ServerInteract(CurrentHoldTarget, CurrentHoldKey);
 		ResetHoldInteract();
 	}
@@ -1202,14 +1204,14 @@ void AACCharacter::OnRep_CharacterState()
 			SetOnDamageState();
 			break;
 		}
+		case ECharacterState::Interact:
+		{
+			SetInteractState();
+			break;
+		}
 		case ECharacterState::OnInteract:
 		{
 			SetOnInteractState();
-			break;
-		}
-		case ECharacterState::Prison:
-		{
-			SetPrisonState();
 			break;
 		}
 	}
@@ -1266,6 +1268,14 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s name:%s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState), *GetName());
 			return;
 		}
+		if ((InCharacterState == ECharacterState::Interact))
+		{
+			bInteract = true;
+		}
+		if ((InCharacterState == ECharacterState::OnInteract))
+		{
+			bOnInteract = true;
+		}
 	}
 	
 	// Case: Free에서 갈 수 있는 케이스 여부
@@ -1301,6 +1311,24 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s name:%s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState), *GetName());
 			return;
 		}
+		bInteract = false;
+	}
+
+	// OnInteract->None (X),
+	// OnInteract->Free
+	// OnInteract->OnDamage (X)
+	// OnInteract->Interact (X),
+	// OnInteract->OnInteract (X)
+	// OnInteract->Stun (X)
+	if (CharacterState == ECharacterState::OnInteract)
+	{
+		if ((InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::OnDamage) || (InCharacterState == ECharacterState::Interact) ||
+			(InCharacterState == ECharacterState::Stun))
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s name:%s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState), *GetName());
+			return;
+		}
+		bOnInteract = false;
 	}
 	
 	// Stun->None (X),
@@ -1316,6 +1344,11 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 		{
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s name:%s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState), *GetName());
 			return;
+		}
+
+		if ((InCharacterState == ECharacterState::OnInteract))
+		{
+			bOnInteract = true;
 		}
 	}
 	
@@ -1397,18 +1430,31 @@ void AACCharacter::SetStunState()
 	// MainPlayerController->ZoomOut();
 }
 
-void AACCharacter::SetPrisonState()
-{
-	Stat->SetCurrentHp(Stat->GetMaxHp());	
-}
+//void AACCharacter::SetPrisonState()
+//{
+//	Stat->SetCurrentHp(Stat->GetMaxHp());	
+//}
+//
+//void AACCharacter::SetPrisonEscapeState()
+//{
+//	// Todo: 언젠가 Free로 되돌려야 함.
+//	
+//	// FTimerDelegate TimerDelegate;
+//	// TimerDelegate.BindUObject(this, &AACCharacter::SetPrisonEscapeState);
+//	// GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, 3, false);
+//}
 
-void AACCharacter::SetPrisonEscapeState()
+void AACCharacter::SetInteractState()
 {
-	// Todo: 언젠가 Free로 되돌려야 함.
-	
-	// FTimerDelegate TimerDelegate;
-	// TimerDelegate.BindUObject(this, &AACCharacter::SetPrisonEscapeState);
-	// GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, 3, false);
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp == nullptr)
+	{
+		AC_LOG(LogHY, Error, TEXT("MoveComp is nullptr"));
+		return;
+	}
+
+	AC_LOG(LogSW, Error, TEXT("%s changed to Interact"), *GetName());
+	MoveComp->MaxWalkSpeed = CalculateMoveSpeed();
 }
 
 void AACCharacter::SetOnInteractState()
@@ -1421,9 +1467,7 @@ void AACCharacter::SetOnInteractState()
 	}
 	
 	AC_LOG(LogSW, Error, TEXT("%s changed to OnInteract"), *GetName());
-	bOnInteract = true;
-	MoveComp->MaxWalkSpeed = 0.f;
-	// MoveComp->JumpZVelocity = 0.f;
+	MoveComp->MaxWalkSpeed = CalculateMoveSpeed();
 }
 
 float AACCharacter::CalculateMoveSpeed() const
@@ -1476,6 +1520,7 @@ float AACCharacter::CalculateMoveSpeed() const
 	
 	if (bOnInteract || bInteract)
 	{
+		AC_LOG(LogHY, Error, TEXT("bOnInteract:%d, bInteract:%d"), bOnInteract, bInteract);
 		Speed = 0;
 	}
 
@@ -1508,7 +1553,7 @@ void AACCharacter::ResetHoldInteract()
 	CurrentHoldTarget = nullptr;
 	CurrentHoldTime = 0.f;
 	RequiredHoldTime = 0.f;
-	bOnInteract = false;
+	//bOnInteract = false;
 
 	UpdateFocus();
 }
@@ -1585,7 +1630,8 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 	if (bFreeze == true)
 	{
 		AC_LOG(LogSW, Error, TEXT("2222222"));
-		SetCharacterState(ECharacterState::OnInteract);
+		//bOnInteract = true;
+		SetCharacterState(ECharacterState::Interact);
 
 		if (Target == nullptr)
 		{
