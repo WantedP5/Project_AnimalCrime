@@ -768,6 +768,8 @@ void AACCharacter::Jump()
 	// Case: 스턴 및 감옥 상태일 경우 Jump 불가 
 	if (CharacterState == ECharacterState::None ||
 		CharacterState == ECharacterState::Stun ||
+		CharacterState == ECharacterState::OnInteract ||
+		CharacterState == ECharacterState::Interact	||
 		CharacterState == ECharacterState::Prison)
 	{
 		return;
@@ -1223,48 +1225,75 @@ ECharacterState AACCharacter::GetCharacterState() const
 
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
+	// Case: 상태각 같은 경우
 	if (CharacterState == InCharacterState)
 	{
 		AC_LOG(LogHY, Warning, TEXT("Fail Same Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 		return;
 	}
-	
-	// Free 상태 체크
+
+	// Case: Free에서 갈 수 있는 케이스 여부
+	// Free->None (X)
+	// Free->OnDamage
+	// Free->Interact
+	// Free->OnInteract
+	// Free->Stun
 	if (CharacterState == ECharacterState::Free)
 	{
 		// Free로만 변경가능.	보류( || (InCharacterState == ECharacterState::Prison))
 		
-		if (!( (InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::PrisonEscape)))
+		if ((InCharacterState == ECharacterState::None))
 		{
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 			return;
 		}
 	}
 	
-	// 
+	// Case: Free에서 갈 수 있는 케이스 여부
+	// OnDamage->None (X)
+	// OnDamage->Free
+	// OnDamage->OnDamage (X)
+	// OnDamage->Interact (X)
+	// OnDamage->OnInteract (X)
+	// OnDamage->Stun (X)
 	if (CharacterState == ECharacterState::OnDamage)
 	{
 		// Free로만 변경가능.
-		if (!(InCharacterState == ECharacterState::Free))
+		if ((InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::Interact) || 
+			(InCharacterState == ECharacterState::OnInteract) || (InCharacterState == ECharacterState::Angry) || 
+			(InCharacterState == ECharacterState::Stun))
+		{
+			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
+			return;
+		}
+	}
+
+	// Interact->None (X),
+	// Interact->Free (X)
+	// Interact->OnDamage
+	// Interact->Interact (X),
+	// Interact->OnInteract (X)
+	// Interact->Stun 
+	if (CharacterState == ECharacterState::Interact)
+	{
+		if ((InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::OnInteract) ||
+			(InCharacterState == ECharacterState::Angry))
 		{
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 			return;
 		}
 	}
 	
+	// Stun->None (X),
+	// Stun->Free
+	// Stun->OnDamage (X)
+	// Stun->Interact (X),
+	// Stun->OnInteract
+	// Stun->Stun (X)
 	if (CharacterState == ECharacterState::Stun)
 	{
-		if (!(InCharacterState == ECharacterState::Free || InCharacterState == ECharacterState::OnInteract))
-		{
-			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
-			return;
-		}
-	}
-	
-	// Prison 상태
-	if (CharacterState == ECharacterState::Prison)
-	{
-		if (InCharacterState != ECharacterState::PrisonEscape)
+		if ((InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::OnDamage) ||
+			(InCharacterState == ECharacterState::Interact))
 		{
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 			return;
@@ -1374,21 +1403,14 @@ void AACCharacter::SetOnInteractState()
 	
 	bOnInteract = true;
 	MoveComp->MaxWalkSpeed = 0.f;
-	MoveComp->JumpZVelocity = 0.f;
+	// MoveComp->JumpZVelocity = 0.f;
 }
 
 float AACCharacter::CalculateMoveSpeed() const
 {
 	float Speed = 600.0f;
 	
-	AC_LOG(
-	LogHY,
-	Error,
-	TEXT("Type: %s"),
-	*StaticEnum<EACCharacterType>()->GetNameStringByValue(
-		static_cast<int64>(GetCharacterType())
-	)
-);
+	AC_LOG(LogHY,Error,TEXT("Type: %s"),*StaticEnum<EACCharacterType>()->GetNameStringByValue(static_cast<int64>(GetCharacterType())));
 	// Free 상태일 때
 	if (GetCharacterType() == EACCharacterType::Police)
 	{
