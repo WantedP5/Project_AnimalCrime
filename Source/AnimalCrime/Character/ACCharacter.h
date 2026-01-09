@@ -102,7 +102,8 @@ protected:
 	void MulticastStartHoldInteraction(
 		AActor* TargetActor,
 		UAnimMontage* InitiatorMontage,
-		UAnimMontage* TargetMontage
+		UAnimMontage* TargetMontage,
+		bool bDoRotateTarget = false
 	);
 
 	UFUNCTION(NetMulticast, Reliable)

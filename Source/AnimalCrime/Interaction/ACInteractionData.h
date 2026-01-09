@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	TArray<ECharacterState> TargetState;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	ECharacterLocation InteractorLocation = ECharacterLocation::None;
+
 	// === UI 정보 ===
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	float HoldDuration = 0.0f;  // 홀드 시간 (0 = 즉시)
