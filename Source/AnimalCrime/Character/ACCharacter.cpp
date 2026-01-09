@@ -457,6 +457,12 @@ void AACCharacter::Look(const FInputActionValue& Value)
 // 기본값 0 (E 키)
 void AACCharacter::InteractStarted(int32 InputIndex)
 {
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
+
 	if (!FocusedInteractable || !IsValid(FocusedInteractable))
 	{
 		UpdateFocus();
@@ -591,6 +597,12 @@ void AACCharacter::Attack()
 		return;
 	}
 
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
+
 	// Listen Server에 존재하는 클라이언트 경우
 	if (HasAuthority())
 	{
@@ -628,6 +640,12 @@ void AACCharacter::Dash(const FInputActionValue& Value)
 	if (bDashFlag == false)
 	{
 		AC_LOG(LogHY, Error, TEXT("Dash Input False"));
+		return;
+	}
+
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
 		return;
 	}
 
@@ -672,6 +690,11 @@ void AACCharacter::ResetDashFlag()
 
 void AACCharacter::Sprint(const FInputActionValue& Value)
 {
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
 	if (Value.Get<bool>())
 	{
 		if (SprintGauge > 0)
@@ -795,6 +818,12 @@ void AACCharacter::Jump()
 		return;
 	}
 
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
+
 	Super::Jump();
 }
 
@@ -890,6 +919,12 @@ void AACCharacter::FireHitscan()
 		AC_LOG(LogTemp, Log, TEXT("총알 갯수 %d"), GetBulletCount());
 		return;
 	}
+
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
 	
 	ServerShoot();
 }
@@ -918,7 +953,7 @@ void AACCharacter::Multicast_SetCarryState_Implementation(bool bPlay)
 	{
 		return;
 	}
-
+	bIsCarry = bPlay;
 	Anim->SetIsCarrying(bPlay);
 }
 

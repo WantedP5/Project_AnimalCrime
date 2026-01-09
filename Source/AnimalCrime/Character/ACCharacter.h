@@ -614,4 +614,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	
 	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite)
 	uint8 bOnInteract:1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsCarry : 1;
 };
