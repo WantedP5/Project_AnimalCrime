@@ -452,3 +452,42 @@ bool UAdvancedSteamFriendsLibrary::IsSteamInBigPictureMode()
 
 	return false;
 }
+
+EBPOnlinePresenceState UAdvancedSteamFriendsLibrary::GetSteamFriendPersonaState(const FBPUniqueNetId UniqueNetId)
+{
+#if (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_LINUX) && STEAM_SDK_INSTALLED
+	if (!UniqueNetId.IsValid() || !UniqueNetId.UniqueNetId->IsValid() || UniqueNetId.UniqueNetId->GetType() != STEAM_SUBSYSTEM)
+	{
+		UE_LOG(AdvancedSteamFriendsLog, Warning, TEXT("GetSteamFriendPersonaState Had a bad UniqueNetId!"));
+		return EBPOnlinePresenceState::Offline;
+	}
+
+	if (SteamAPI_Init())
+	{
+		uint64 id = *((uint64*)UniqueNetId.UniqueNetId->GetBytes());
+		EPersonaState PersonaState = SteamFriends()->GetFriendPersonaState(id);
+
+		// Convert Steam's EPersonaState to EBPOnlinePresenceState
+		switch (PersonaState)
+		{
+		case k_EPersonaStateOffline:
+			return EBPOnlinePresenceState::Offline;
+		case k_EPersonaStateOnline:
+			return EBPOnlinePresenceState::Online;
+		case k_EPersonaStateBusy:
+			return EBPOnlinePresenceState::DoNotDisturb;
+		case k_EPersonaStateAway:
+			return EBPOnlinePresenceState::Away;
+		case k_EPersonaStateSnooze:
+			return EBPOnlinePresenceState::ExtendedAway;
+		case k_EPersonaStateLookingToTrade:
+		case k_EPersonaStateLookingToPlay:
+			return EBPOnlinePresenceState::Online;
+		default:
+			return EBPOnlinePresenceState::Offline;
+		}
+	}
+#endif
+
+	return EBPOnlinePresenceState::Offline;
+}
