@@ -579,8 +579,28 @@ void AACMafiaCharacter::ExcuteEscape()
 
 void AACMafiaCharacter::ServerEscape_Implementation()
 {
+	
+	//Attack(); -> OnInteract는 불가.
+	//SetCharacterState(ECharacterState::Free);
+	
+	// 현재 공격 중인지 확인. 
+	if (CheckProcessAttack() == true)
+	{
+		return;
+	}
+	
+	AC_LOG(LogHY, Error, TEXT("ServerEscape_Implementation 실행 가즈아."));
 	EscapeCount = EscapeCount - 1;
-	AC_LOG(LogHY, Error, TEXT("Log HI"));
-	SetCharacterState(ECharacterState::Free);
+
+	// Listen Server에 존재하는 클라이언트 경우
+	if (HasAuthority())
+	{
+		PerformAttackTrace();
+	}
+	// Listen Server에 접속한 클라이언트 경우
+	else
+	{
+		ServerAttack();
+	}
 }
 
