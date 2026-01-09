@@ -91,11 +91,8 @@ float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	
 	AC_LOG(LogHY, Error, TEXT("Name:%s"), *DamageCauser->GetName());
 	CharacterState = ECharacterState::Stun;
-	OnRep_CharacterState();
-	// todo: SetCharacterState(ECharacterState::Stun) ?????
 	
 	FTimerDelegate TimerDelegate;
-	
 	TimerDelegate.BindUObject(this, &AACPoliceCharacter::UpdateCharacterStatusRevive);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
 	
@@ -175,7 +172,6 @@ void AACPoliceCharacter::UpdateCharacterStatusRevive()
 	AC_LOG(LogHY, Error, TEXT("상태가 변경되었습니다."));
 	bStun = false;
 	SetCharacterState(ECharacterState::Free);
-	OnRep_CharacterState();
 }
 
 void AACPoliceCharacter::CalculateSalary()
