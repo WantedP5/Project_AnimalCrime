@@ -23,6 +23,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayHitEffect(float Duration);
 public:
 	virtual EACCharacterType GetCharacterType() const override;
 

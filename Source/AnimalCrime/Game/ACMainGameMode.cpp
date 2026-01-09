@@ -37,11 +37,18 @@ AACMainGameMode::AACMainGameMode()
 		TEXT("/Game/Project/Character/BP_ACMafia")
 	);
 
+	static ConstructorHelpers::FClassFinder<APawn> PolicePawnBP(
+		TEXT("/Game/Project/Character/BP_ACPolice")
+	);
 	if (MafiaPawnBP.Succeeded())
 	{
 		MafiaPawnClass = MafiaPawnBP.Class;
 	}
-	PolicePawnClass = AACPoliceCharacter::StaticClass();
+	if (PolicePawnBP.Succeeded())
+	{
+		PolicePawnClass = PolicePawnBP.Class;
+	}
+	//PolicePawnClass = AACPoliceCharacter::StaticClass();
 
 	static ConstructorHelpers::FClassFinder<AACCitizen> CitizenBP(TEXT("/Script/Engine.Blueprint'/Game/Project/AI/BP_Citizen.BP_Citizen_C'"));
 	if (CitizenBP.Succeeded())

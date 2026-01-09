@@ -94,6 +94,12 @@ float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	{
 		return 0.0f;
 	}
+
+	if (DamageAmount > 0.0f)
+	{
+		MulticastPlayHitEffect(10.f);  // 모든 클라이언트에 전파
+	}
+
 	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
 	AC_LOG(LogHY, Error, TEXT("Name:%s"), *DamageCauser->GetName());
 	SetCharacterState(ECharacterState::Stun);
@@ -103,6 +109,11 @@ float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
 	
 	return SuperResult;
+}
+
+void AACPoliceCharacter::MulticastPlayHitEffect_Implementation(float Duration)
+{
+	PlayHitEffect(Duration);
 }
 
 EACCharacterType AACPoliceCharacter::GetCharacterType() const
