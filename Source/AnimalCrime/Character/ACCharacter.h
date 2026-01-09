@@ -439,8 +439,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
 	
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
-	ECharacterState PrevCharacterState;
+	//UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
+	//ECharacterState PrevCharacterState;
 	
 	void SetFreeState();
 	void SetOnDamageState();

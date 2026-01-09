@@ -975,11 +975,6 @@ void AACCharacter::UpdateFocus()
 		return;
 	}
 
-	/*if (IsValid(FocusedInteractable) == false)
-	{
-		return;
-	}*/
-
 	AActor* PreviousFocus = FocusedInteractable;
 	FocusedInteractable = nullptr;
 	IACInteractInterface* PrevInteractable = nullptr;
@@ -1167,36 +1162,35 @@ void AACCharacter::OnRep_CharacterState()
 		return;
 	}
 
-	AC_LOG(LogHY, Error, TEXT("CharacterType:%d name:%s"), CharacterState, *GetName());
 	AC_LOG(LogSW, Error, TEXT("CharacterType:%d name:%s"), CharacterState, *GetName());
 
 	switch (CharacterState)
 	{
-	case ECharacterState::Free:
-	{
-		SetFreeState();
-		break;
-	}
-	case ECharacterState::Stun:
-	{
-		SetStunState();
-		break;
-	}
-	case ECharacterState::OnDamage:
-	{
-		SetOnDamageState();
-		break;
-	}
-	case ECharacterState::OnInteract:
-	{
-		SetOnInteractState();
-		break;
-	}
-	case ECharacterState::Prison:
-	{
-		SetPrisonState();
-		break;
-	}
+		case ECharacterState::Free:
+		{
+			SetFreeState();
+			break;
+		}
+		case ECharacterState::Stun:
+		{
+			SetStunState();
+			break;
+		}
+		case ECharacterState::OnDamage:
+		{
+			SetOnDamageState();
+			break;
+		}
+		case ECharacterState::OnInteract:
+		{
+			SetOnInteractState();
+			break;
+		}
+		case ECharacterState::Prison:
+		{
+			SetPrisonState();
+			break;
+		}
 	}
 
 	// todo: 시민은 처리 안해주고있음
@@ -1279,7 +1273,7 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 	
 	AC_LOG(LogHY, Warning, TEXT("Success !!! Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 	
-	PrevCharacterState = CharacterState;
+	//PrevCharacterState = CharacterState;
 	CharacterState = InCharacterState;
 
 	if (HasAuthority())
@@ -1378,6 +1372,7 @@ void AACCharacter::SetOnInteractState()
 		return;
 	}
 	
+	bOnInteract = true;
 	MoveComp->MaxWalkSpeed = 0.f;
 	MoveComp->JumpZVelocity = 0.f;
 }
@@ -1471,6 +1466,7 @@ void AACCharacter::ResetHoldInteract()
 	CurrentHoldTarget = nullptr;
 	CurrentHoldTime = 0.f;
 	RequiredHoldTime = 0.f;
+	bOnInteract = false;
 
 	UpdateFocus();
 }
