@@ -386,4 +386,9 @@ public:
 	// Returns if steam is running in big picture mode
 	UFUNCTION(BlueprintPure, Category = "Online|SteamAPI")
 		static bool IsSteamInBigPictureMode();
+
+	// Gets the online state of a steam friend directly from Steam API (bypasses cache issues)
+	// Returns the friend's current online presence state
+	UFUNCTION(BlueprintCallable, Category = "Online|AdvancedFriends|SteamAPI")
+		static EBPOnlinePresenceState GetSteamFriendPersonaState(const FBPUniqueNetId UniqueNetId);
 };	

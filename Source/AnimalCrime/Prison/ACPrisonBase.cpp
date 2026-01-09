@@ -25,12 +25,17 @@ AACPrisonBase::AACPrisonBase()
 	// todo: 정확한 좌표 모르겠음.
 	InteractBoxComponent->SetOffset(FVector(180, 0.f, 30.f));
 
+	// 문 위젯 위치 기준점 생성
+	DoorWidgetRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DoorWidgetRoot"));
+	DoorWidgetRoot->SetupAttachment(RootComponent);
+	DoorWidgetRoot->SetRelativeLocation(FVector(120.f, -30.f, 95.f)); // 대략적인 문 위치
+
 	// 상호작용 위젯 컴포넌트
 	InteractionWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
-	InteractionWidgetComponent->SetupAttachment(RootComponent);
+	InteractionWidgetComponent->SetupAttachment(DoorWidgetRoot); // DoorWidgetRoot에 부착
 	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	InteractionWidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
-	InteractionWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 80.0f)); // 오브젝트 위
+	InteractionWidgetComponent->SetRelativeLocation(FVector(0.0f, -50.0f, 0.0f)); // 기준점에서 위로
 	InteractionWidgetComponent->SetVisibility(false); // 기본 숨김
 
 	// 상호작용 위젯 클래스 설정
@@ -209,7 +214,7 @@ void AACPrisonBase::Imprison(AACCharacter* Character, bool bForced)
 
 	AC_LOG(LogSW, Warning, TEXT("Character %s imprisoned"), *Character->GetName());
 
-	Character->SetCharacterState(ECharacterState::Prison);
+	//Character->SetCharacterState(ECharacterState::Prison);
 
 	// PlayerState의 Location을 Prison으로 상태 변경
 	APlayerController* PC = Cast<APlayerController>(Character->GetController());
@@ -252,7 +257,7 @@ void AACPrisonBase::Release(AACCharacter* Character)
 	Prisoners.Remove(Character);
 	AC_LOG(LogSW, Warning, TEXT("Character %s released"), *Character->GetName());
 
-	Character->SetCharacterState(ECharacterState::Free);
+	//Character->SetCharacterState(ECharacterState::Free);
 
 	// PlayerState의 Location을 None으로 상태 변경
 	APlayerController* PC = Cast<APlayerController>(Character->GetController());

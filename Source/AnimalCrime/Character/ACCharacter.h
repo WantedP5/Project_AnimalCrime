@@ -102,7 +102,8 @@ protected:
 	void MulticastStartHoldInteraction(
 		AActor* TargetActor,
 		UAnimMontage* InitiatorMontage,
-		UAnimMontage* TargetMontage
+		UAnimMontage* TargetMontage,
+		bool bDoRotateTarget = false
 	);
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -120,6 +121,7 @@ public:
 
 public:
 	TObjectPtr<class USkeletalMeshComponent> GetHeadMesh() const { return HeadMesh; }
+	TObjectPtr<class USkeletalMeshComponent> GetFaceMesh() const { return FaceMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetFaceAccMesh() const { return FaceAccMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetTopMesh() const { return TopMesh; }
 	TObjectPtr<class USkeletalMeshComponent> GetBottomMesh() const { return BottomMesh; }
@@ -612,4 +614,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	
 	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite)
 	uint8 bOnInteract:1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsCarry : 1;
 };

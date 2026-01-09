@@ -29,6 +29,7 @@
 #include "Game/ACUIManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "CCTV/ACCCTVArea.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -985,8 +986,24 @@ void AACMainPlayerController::ZoomIn()
 	USkeletalMeshComponent* Mesh = CharacterPawn->GetMesh();
 	if (Mesh)
 	{
-		Mesh->SetOwnerNoSee(true);
+		// Mesh->SetOwnerNoSee(true);
+		Mesh->SetHiddenInGame(true);
+		CharacterPawn->GetHeadMesh()->SetHiddenInGame(true);
+		CharacterPawn->GetFaceMesh()->SetHiddenInGame(true);
+		CharacterPawn->GetTopMesh()->SetHiddenInGame(true);
+		CharacterPawn->GetBottomMesh()->SetHiddenInGame(true);
+		CharacterPawn->GetFaceAccMesh()->SetHiddenInGame(true);
+		CharacterPawn->GetShoesMesh()->SetHiddenInGame(true);
+		
 	}
+	
+	// 이동 방향으로 회전하지 않게
+	UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
+	if (CharacterPawn)
+		CharacterMoveComp->bOrientRotationToMovement = false;
+
+	// 컨트롤러 회전(Yaw)을 사용
+	CharacterPawn->bUseControllerRotationYaw = true;
 	
 	ACHUDWidget->ZoomInState();
 }
@@ -996,26 +1013,50 @@ void AACMainPlayerController::ZoomOut()
 	bZoomFlag = false;
 	AC_LOG(LogHY, Error, TEXT("ZoomOut %d"), bZoomFlag);
 
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
+	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
+	if (CharacterPawn == nullptr)
 	{
-		AC_LOG(LogHY, Log, TEXT("ControlledCharacter is nullptr"));
+		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
+		return;
+	}
+	
+	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
+	if (FollowCamera == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("FollowCamera is nullptr"));
+		return;
+	}
+	
+	UCameraComponent* GunCamera = CharacterPawn->GetGunCamera();
+	if (GunCamera == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("GunCamera is nullptr"));
 		return;
 	}
 
-	UCameraComponent* FollowCamera = ControlledCharacter->GetFollowCamera();
-	UCameraComponent* GunCamera = ControlledCharacter->GetGunCamera();
-
-	if (FollowCamera && GunCamera)
+	FollowCamera->Activate();
+	GunCamera->Deactivate();
+	USkeletalMeshComponent* Mesh = CharacterPawn->GetMesh();
+	if (Mesh)
 	{
-		FollowCamera->Activate();
-		GunCamera->Deactivate();
-		USkeletalMeshComponent* Mesh = ControlledCharacter->GetMesh();
-		if (Mesh)
-		{
-			Mesh->SetOwnerNoSee(false);
-		}
+		Mesh->SetOwnerNoSee(false);
+		CharacterPawn->GetHeadMesh()->SetHiddenInGame(false);
+		CharacterPawn->GetFaceMesh()->SetHiddenInGame(false);
+		CharacterPawn->GetTopMesh()->SetHiddenInGame(false);
+		CharacterPawn->GetBottomMesh()->SetHiddenInGame(false);
+		CharacterPawn->GetFaceAccMesh()->SetHiddenInGame(false);
+		CharacterPawn->GetShoesMesh()->SetHiddenInGame(false);
+		Mesh->SetHiddenInGame(false);
 	}
+	
+	// 이동 방향으로 회전하도록
+	UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
+	if (CharacterPawn)
+		CharacterMoveComp->bOrientRotationToMovement = true;
+
+	// 컨트롤러 회전(Yaw)을 미사용
+	CharacterPawn->bUseControllerRotationYaw = false;
+	
 	ACHUDWidget->ZoomOutState();
 }
 

@@ -429,7 +429,7 @@ void AACCharacter::ChangeInputMode(EInputMode NewMode)
 
 void AACCharacter::Move(const FInputActionValue& Value)
 {
-	if (CharacterState == ECharacterState::OnInteract)
+	if ((CharacterState == ECharacterState::Interact) || (CharacterState == ECharacterState::OnInteract))
 	{
 		return;
 	}
@@ -457,6 +457,12 @@ void AACCharacter::Look(const FInputActionValue& Value)
 // 기본값 0 (E 키)
 void AACCharacter::InteractStarted(int32 InputIndex)
 {
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
+
 	if (!FocusedInteractable || !IsValid(FocusedInteractable))
 	{
 		UpdateFocus();
@@ -518,40 +524,31 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 
 void AACCharacter::InteractHolding(const float DeltaTime)
 {
-	if (!bIsHoldingInteract)
+	//todo: bInteract로도 처리 가능한가?
+	if (bIsHoldingInteract == false)
 	{
 		return;
 	}
 
-	// 유효성 체크
-	//if (!CurrentHoldTarget || IsValid(CurrentHoldTarget) || !NearInteractables.Contains(CurrentHoldTarget))
-	//{
-	//	ResetHoldInteract();
-	//	return;
-	//}
 	if (CurrentHoldTarget == nullptr)
 	{
-		AC_LOG(LogSW, Error, TEXT("11111111"));
 		ResetHoldInteract();
 		return;
 	}
 	if (IsValid(CurrentHoldTarget) == false)
 	{
-		AC_LOG(LogSW, Error, TEXT("22222222"));
 		ResetHoldInteract();
 		return;
 	}
 	if (NearInteractables.Contains(CurrentHoldTarget) == false)
 	{
-		AC_LOG(LogSW, Error, TEXT("33333333"));
 		ResetHoldInteract();
 		return;
 	}
 
 
-	if (CharacterState == ECharacterState::OnDamage)
+	if ((CharacterState == ECharacterState::OnDamage) || (CharacterState == ECharacterState::Stun))
 	{
-		//todo: 상대 OnDamage로 풀어주기
 		AC_LOG(LogSW, Log, TEXT("%s's interaction was canceled!!"), *GetName())
 		ResetHoldInteract();
 		return;
@@ -586,15 +583,23 @@ void AACCharacter::ItemDrop()
 	UE_LOG(LogTemp, Log, TEXT("ItemDrop!!"));
 }
 
+
 void AACCharacter::Attack()
 {
-	if (CharacterState == ECharacterState::OnInteract || CharacterState == ECharacterState::Stun || CharacterState == ECharacterState::Prison)
+	if (CharacterState == ECharacterState::None || CharacterState == ECharacterState::Stun ||
+		CharacterState == ECharacterState::Interact || CharacterState == ECharacterState::OnInteract)
 	{
 		return;
 	}
 	// 현재 공격 중인지 확인. 
 	if (CheckProcessAttack() == true)
 	{
+		return;
+	}
+
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
 		return;
 	}
 
@@ -635,6 +640,12 @@ void AACCharacter::Dash(const FInputActionValue& Value)
 	if (bDashFlag == false)
 	{
 		AC_LOG(LogHY, Error, TEXT("Dash Input False"));
+		return;
+	}
+
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
 		return;
 	}
 
@@ -679,6 +690,11 @@ void AACCharacter::ResetDashFlag()
 
 void AACCharacter::Sprint(const FInputActionValue& Value)
 {
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
 	if (Value.Get<bool>())
 	{
 		if (SprintGauge > 0)
@@ -802,6 +818,12 @@ void AACCharacter::Jump()
 		return;
 	}
 
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
+
 	Super::Jump();
 }
 
@@ -897,6 +919,12 @@ void AACCharacter::FireHitscan()
 		AC_LOG(LogTemp, Log, TEXT("총알 갯수 %d"), GetBulletCount());
 		return;
 	}
+
+	if (bIsCarry == true)
+	{
+		AC_LOG(LogSY, Log, TEXT("Cannot interact while carrying"));
+		return;
+	}
 	
 	ServerShoot();
 }
@@ -925,7 +953,7 @@ void AACCharacter::Multicast_SetCarryState_Implementation(bool bPlay)
 	{
 		return;
 	}
-
+	bIsCarry = bPlay;
 	Anim->SetIsCarrying(bPlay);
 }
 
@@ -1022,9 +1050,31 @@ void AACCharacter::UpdateFocus()
 		return;
 	}
 
+	// PlayerState의 Location을 Prison으로 상태 변경
+
+
 	// 2. 첫 번째 유효한 액터 찾기
 	UACInteractionSubsystem* InteractionSys = GetGameInstance()->GetSubsystem<UACInteractionSubsystem>();
-	UACInteractionDatabase* DB = InteractionSys ? InteractionSys->GetInteractionDatabase() : nullptr;
+	if (InteractionSys == nullptr || IsValid(InteractionSys) == false)
+	{
+		return;
+	}
+	UACInteractionDatabase* DB = InteractionSys->GetInteractionDatabase();
+	if (DB == nullptr)
+	{
+		return;
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC == nullptr)
+	{
+		return;
+	}
+	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	if (PS == nullptr)
+	{
+		return;
+	}
 
 	EACCharacterType CharacterType = GetCharacterType();
 	IACInteractInterface* FocusedInterface = nullptr;
@@ -1040,7 +1090,7 @@ void AACCharacter::UpdateFocus()
 		EACInteractorType TargetType = Interactable->GetInteractorType();
 
 		// DB에 상호작용이 없으면 스킵
-		if (!DB || !DB->HasInteractions(CharacterType, TargetType))
+		if (DB->HasInteractions(CharacterType, TargetType) == false)
 			continue;
 
 		// PrisonDoor 예외: 문이 열려있으면 스킵
@@ -1070,6 +1120,9 @@ void AACCharacter::UpdateFocus()
 	// 4. 현재 Focus 위젯 업데이트 (Focus가 같아도 상태 변경으로 인해 목록이 바뀔 수 있음)
 	if (FocusedInteractable && FocusedInterface && DB)
 	{
+		// 하나라도 표기 가능하면 true설정해준다.
+		bool bHasUsefulInteraction = false;
+
 		// FocusedInteractions 초기화 (최대 키 개수만큼, nullptr로 채움)
 		const int32 MaxKeys = static_cast<int32>(EInteractionKey::Total);
 		FocusedInteractions.Init(nullptr, MaxKeys);
@@ -1090,7 +1143,14 @@ void AACCharacter::UpdateFocus()
 				}
 			}
 
-			// 2) 대상 상태 체크 (대상이 캐릭터인 경우만)
+			// 2) 주체(나) 위치 체크
+			if (InteractionData->InteractorLocation != PS->CharacterLocation)
+			{
+				AC_LOG(LogSW, Error, TEXT("%d is not %d Location!!!"), PS->CharacterLocation, InteractionData->InteractorLocation)
+				continue;
+			}
+
+			// 3) 대상 상태 체크 (대상이 캐릭터인 경우만)
 			if (InteractionData->bIsCharacterInteraction == true)
 			{
 				if (InteractionData->TargetState.IsEmpty() == false)
@@ -1107,6 +1167,7 @@ void AACCharacter::UpdateFocus()
 				}
 			}
 
+			bHasUsefulInteraction = true;
 			// 키 매핑 (Enum 값을 바로 인덱스로 사용)
 			int32 KeyIndex = static_cast<int32>(InteractionData->AssignedKey);
 
@@ -1116,7 +1177,14 @@ void AACCharacter::UpdateFocus()
 			}
 		}
 
-		FocusedInterface->ShowInteractionHints(FocusedInteractions);
+		if (bHasUsefulInteraction == false)
+		{
+			FocusedInterface->HideInteractionHints();
+		}
+		else
+		{
+			FocusedInterface->ShowInteractionHints(FocusedInteractions);
+		}
 	}
 	
 }
@@ -1752,25 +1820,12 @@ void AACCharacter::ServerStartHoldInteraction_Implementation(AActor* TargetActor
 		return;
 	}
 
-	// 1. 나(주체)를 타겟 방향으로 회전
-	FVector DirectionToTarget = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
-	if (!DirectionToTarget.IsZero())
-	{
-		SetActorRotation(DirectionToTarget.Rotation());
-	}
-
-	// 2. 캐릭터 간 상호작용이면 타겟도 나를 보게 회전
-	if (InteractionData->bIsCharacterInteraction)
-	{
-		FVector DirectionToMe = -DirectionToTarget;
-		TargetActor->SetActorRotation(DirectionToMe.Rotation());
-	}
-
-	// Multicast로 몽타주 재생
+	// Multicast로 몽타주 재생 및 회전 동기화
 	MulticastStartHoldInteraction(
 		TargetActor,
 		InteractionData->InitiatorMontage,
-		InteractionData->TargetMontage
+		InteractionData->TargetMontage,
+		InteractionData->bIsCharacterInteraction
 	);
 }
 
@@ -1782,8 +1837,27 @@ void AACCharacter::ServerStopHoldInteraction_Implementation(AActor* TargetActor)
 void AACCharacter::MulticastStartHoldInteraction_Implementation(
 	AActor* TargetActor,
 	UAnimMontage* InitiatorMontage,
-	UAnimMontage* TargetMontage)
+	UAnimMontage* TargetMontage,
+	bool bDoRotateTarget)
 {
+	// 0. 회전 처리 (클라이언트 시각적 동기화)
+	if (TargetActor)
+	{
+		// 1) 나(주체)를 타겟 방향으로 회전
+		FVector DirectionToTarget = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+		if (!DirectionToTarget.IsZero())
+		{
+			SetActorRotation(DirectionToTarget.Rotation());
+		}
+
+		// 2) 캐릭터 간 상호작용이면 타겟도 나를 보게 회전
+		if (bDoRotateTarget)
+		{
+			FVector DirectionToMe = -DirectionToTarget;
+			TargetActor->SetActorRotation(DirectionToMe.Rotation());
+		}
+	}
+
 	// 1. Initiator 몽타주 재생
 	if (InitiatorMontage)
 	{

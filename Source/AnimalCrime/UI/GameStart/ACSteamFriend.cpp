@@ -30,7 +30,8 @@ void UACSteamFriend::UpdateFriend(const FBPFriendInfo& NewFriendDataInfo)
 	FriendDataInfo = NewFriendDataInfo;
 
 	// Steam 친구 offline 이면 투명하게
-	SetRenderOpacity((FriendDataInfo.OnlineState == EBPOnlinePresenceState::Offline) ? 0.25f : 1.0f);
+	// FriendDataInfo.OnlineState는 패키징 시에 캐시를 못읽는 버그가 있음. GetSteamFriendPersonaState를 이용해 직접 스팀 API에서 상태를 가져오도록 수정
+	SetRenderOpacity((UAdvancedSteamFriendsLibrary::GetSteamFriendPersonaState(FriendDataInfo.UniqueNetId) == EBPOnlinePresenceState::Offline) ? 0.25f : 1.0f);
 
 	// Steam 친구 이름 가져오기
 	PlayerNameText->SetText(FText::FromString(FriendDataInfo.DisplayName));

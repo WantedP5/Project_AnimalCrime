@@ -118,6 +118,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<class UACInteractableComponent> InteractBoxComponent;
 
+	// 문 위치에 위젯을 배치하기 위한 기준점
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interact")
+	TObjectPtr<class USceneComponent> DoorWidgetRoot;
+
 	//!< 상호작용 위젯
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interact")
 	TObjectPtr<class UWidgetComponent> InteractionWidgetComponent;

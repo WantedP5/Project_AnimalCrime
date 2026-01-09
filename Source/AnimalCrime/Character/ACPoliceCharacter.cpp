@@ -89,8 +89,14 @@ float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
+	// 권한있는 APawn만 계산해야 함.
+	if (HasAuthority() == false)
+	{
+		return 0.0f;
+	}
+	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
 	AC_LOG(LogHY, Error, TEXT("Name:%s"), *DamageCauser->GetName());
-	CharacterState = ECharacterState::Stun;
+	SetCharacterState(ECharacterState::Stun);
 	
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(this, &AACPoliceCharacter::UpdateCharacterStatusRevive);
@@ -133,10 +139,9 @@ void AACPoliceCharacter::AttackHitCheck()
 	FHitResult Hit;
 
 	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+	ObjectParams.AddObjectTypesToQuery(DESTROYABLE_OBJ);
+	ObjectParams.AddObjectTypesToQuery(MAFIA_OBJ);
+	ObjectParams.AddObjectTypesToQuery(CITIZEN_OBJ);
 
 	bool bHit = GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, ObjectParams, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 
