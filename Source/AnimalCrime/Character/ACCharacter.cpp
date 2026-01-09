@@ -523,11 +523,30 @@ void AACCharacter::InteractHolding(const float DeltaTime)
 	}
 
 	// 유효성 체크
-	if (!CurrentHoldTarget || !NearInteractables.Contains(CurrentHoldTarget))
+	//if (!CurrentHoldTarget || IsValid(CurrentHoldTarget) || !NearInteractables.Contains(CurrentHoldTarget))
+	//{
+	//	ResetHoldInteract();
+	//	return;
+	//}
+	if (CurrentHoldTarget == nullptr)
 	{
+		AC_LOG(LogSW, Error, TEXT("11111111"));
 		ResetHoldInteract();
 		return;
 	}
+	if (IsValid(CurrentHoldTarget) == false)
+	{
+		AC_LOG(LogSW, Error, TEXT("22222222"));
+		ResetHoldInteract();
+		return;
+	}
+	if (NearInteractables.Contains(CurrentHoldTarget) == false)
+	{
+		AC_LOG(LogSW, Error, TEXT("33333333"));
+		ResetHoldInteract();
+		return;
+	}
+
 
 	if (CharacterState == ECharacterState::OnDamage)
 	{
@@ -1234,7 +1253,7 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 	{
 		// Free로만 변경가능.	보류( || (InCharacterState == ECharacterState::Prison))
 		
-		if (!( (InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::PrisonEscape)))
+		if (!( (InCharacterState == ECharacterState::None) || (InCharacterState == ECharacterState::PrisonEscape) ))
 		{
 			AC_LOG(LogHY, Warning, TEXT("Fail Now: %s Input: %s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState));
 			return;
@@ -1372,6 +1391,7 @@ void AACCharacter::SetOnInteractState()
 		return;
 	}
 	
+	AC_LOG(LogSW, Error, TEXT("%s changed to OnInteract"), *GetName());
 	bOnInteract = true;
 	MoveComp->MaxWalkSpeed = 0.f;
 	MoveComp->JumpZVelocity = 0.f;
@@ -1539,8 +1559,10 @@ void AACCharacter::ServerItemDrop_Implementation()
 
 void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFreeze)
 {
+	AC_LOG(LogSW, Error, TEXT("111111"));
 	if (bFreeze == true)
 	{
+		AC_LOG(LogSW, Error, TEXT("2222222"));
 		SetCharacterState(ECharacterState::OnInteract);
 
 		if (Target == nullptr)
@@ -1575,6 +1597,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 
 			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
 			Char->GetCharacterMovement()->SetMovementMode(MOVE_None);
+			AC_LOG(LogSW, Error, TEXT("333333333"));
 		}
 		else
 		{
@@ -1585,11 +1608,13 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 			}
 
 			ACChar->SetCharacterState(ECharacterState::OnInteract);
+			AC_LOG(LogSW, Error, TEXT("44444444"));
 		}
 	}
 	else
 	{
 		SetCharacterState(ECharacterState::Free);
+		AC_LOG(LogSW, Error, TEXT("5555555555"));
 
 		if (Target == nullptr)
 		{
@@ -1624,6 +1649,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 
 			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
 			Char->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
+			AC_LOG(LogSW, Error, TEXT("666666666"));
 		}
 		else
 		{
@@ -1634,6 +1660,7 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 			}
 
 			ACChar->SetCharacterState(ECharacterState::Free);
+			AC_LOG(LogSW, Error, TEXT("777777777"));
 		}
 	}
 }
@@ -1641,8 +1668,35 @@ void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFr
 // === 홀드 상호작용 RPC 구현 ===
 void AACCharacter::ServerStartHoldInteraction_Implementation(AActor* TargetActor, UACInteractionData* InteractionData)
 {
-	if (!TargetActor || !InteractionData)
+	if (TargetActor == nullptr)
+	{
+		AC_LOG(LogSW, Error, TEXT("11111111"));
 		return;
+	}
+	if (IsValid(TargetActor) == false)
+	{
+		AC_LOG(LogSW, Error, TEXT("22222222"));
+		return;
+	}
+	if (InteractionData == nullptr)
+	{
+		AC_LOG(LogSW, Error, TEXT("33333333"));
+		return;
+	}
+
+	// 1. 나(주체)를 타겟 방향으로 회전
+	FVector DirectionToTarget = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+	if (!DirectionToTarget.IsZero())
+	{
+		SetActorRotation(DirectionToTarget.Rotation());
+	}
+
+	// 2. 캐릭터 간 상호작용이면 타겟도 나를 보게 회전
+	if (InteractionData->bIsCharacterInteraction)
+	{
+		FVector DirectionToMe = -DirectionToTarget;
+		TargetActor->SetActorRotation(DirectionToMe.Rotation());
+	}
 
 	// Multicast로 몽타주 재생
 	MulticastStartHoldInteraction(
