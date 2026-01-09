@@ -454,6 +454,14 @@ void UACShopComponent::ServerPurchaseSpecialItem_Implementation(UACItemData* Ite
         AActor* Owner = GetOwner();
         if (AACCharacter* Character = Cast<AACCharacter>(Owner))
         {
+            // ===== 추가: 경찰 체크 - 경찰은 무전기 구매 불가 =====
+            if (Character->GetCharacterType() == EACCharacterType::Police)
+            {
+                UE_LOG(LogHG, Warning, TEXT("서버: 경찰은 무전기를 구매할 수 없습니다!"));
+                return;  // 구매 차단! (PurchaseItem 호출 안함)
+            }
+
+            // ===== 마피아 중복 체크 =====
             AACMafiaCharacter* MafiaChar = Cast<AACMafiaCharacter>(Character);
             if (MafiaChar != nullptr && MafiaChar->HasWalkyTalky())
             {
