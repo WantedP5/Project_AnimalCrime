@@ -82,9 +82,26 @@ void AACPoliceCharacter::BeginPlay()
 
 float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
+	// 감옥 상태에서는 맞아서는 안됌.
+	if (CharacterState == ECharacterState::Stun)
+	{
+		return 0.0;
+	}
+	if (CharacterState == ECharacterState::OnDamage ||
+		CharacterState == ECharacterState::OnInteract)
+	{
+		AC_LOG(LogHY, Error, TEXT("나와서는 안됩니다."));
+		return 0.0;
+	}
+	
 	if (DamageCauser == nullptr)
 	{
 		return 0.0f;
+	}
+	
+	if (DamageAmount < 5.0f)
+	{
+		return 0.0f;	
 	}
 	
 	float SuperResult = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -150,7 +167,7 @@ void AACPoliceCharacter::AttackHitCheck()
 
 	if (bHit)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
 		if (EquippedWeapon == nullptr)
 		{
