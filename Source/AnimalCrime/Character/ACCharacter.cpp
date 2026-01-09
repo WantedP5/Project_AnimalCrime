@@ -1451,6 +1451,11 @@ void AACCharacter::SetFreeState()
 	// {
 	// 	MoveComp->MaxWalkSpeed = OriginMafiaMoveSpeedData;
 	// }
+	
+	// 테스트
+	bOnDamage = false;
+	bStun = false;
+	
 	AC_LOG(LogHY, Error, TEXT("Before speed: %f"), MoveComp->MaxWalkSpeed);
 	MoveComp->MaxWalkSpeed = CalculateMoveSpeed(); 
 	AC_LOG(LogHY, Error, TEXT("After  speed: %f"), MoveComp->MaxWalkSpeed);

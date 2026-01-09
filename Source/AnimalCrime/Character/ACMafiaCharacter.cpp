@@ -421,20 +421,12 @@ void AACMafiaCharacter::AttackHitCheck()
 	// bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2 | ECC_GameTraceChannel4, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 
 	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+	ObjectParams.AddObjectTypesToQuery(DESTROYABLE_OBJ);
+	ObjectParams.AddObjectTypesToQuery(MAFIA_OBJ);
+	ObjectParams.AddObjectTypesToQuery(POLICE_OBJ);
+	ObjectParams.AddObjectTypesToQuery(CITIZEN_OBJ);
 
-	bool bHit = GetWorld()->SweepSingleByObjectType(
-		Hit,
-		Start,
-		End,
-		FQuat::Identity,
-		ObjectParams,
-		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
-		Params
-	);
+	bool bHit = GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, ObjectParams, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 
 	// 디버그: 캡슐 그리기
 	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
@@ -442,8 +434,19 @@ void AACMafiaCharacter::AttackHitCheck()
 	if (bHit)
 	{
 		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-		
-		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
+		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+		if (EquippedWeapon == nullptr)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is nullptr Damage %f"), NormalDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), NormalDamage, GetController(), this, nullptr);
+			return;
+		}
+		if (EquippedWeapon->ItemType == EItemType::Weapon)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is 빠따 Damage %f"), WeaponDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponDamage, GetController(), this, nullptr);
+			return;
+		}
 	}
 }
 
