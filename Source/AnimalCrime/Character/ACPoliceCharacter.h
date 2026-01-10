@@ -28,7 +28,7 @@ public:
 public:
 	virtual EACCharacterType GetCharacterType() const override;
 
-	virtual void AttackHitCheck() override;
+	virtual void AttackHitCheck(int32 DamageAmount) override;
 	
 	void UpdateCharacterStatusRevive();
 	

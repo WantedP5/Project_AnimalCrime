@@ -31,6 +31,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "CCTV/ACCCTVArea.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AACMainPlayerController::AACMainPlayerController()
 {
@@ -244,11 +245,20 @@ void AACMainPlayerController::BeginPlay()
 		ScreenSetRole();
 	}
 	AC_LOG(LogHY, Warning, TEXT("End"));
+	
+	bReplicates = true;
 }
 
 void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+}
+
+void AACMainPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AACMainPlayerController, bZoomFlag);
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -977,9 +987,6 @@ void AACMainPlayerController::Client_ShowGameResult_Implementation(EGameEndType 
 
 void AACMainPlayerController::ZoomIn()
 {
-	bZoomFlag = true;
-	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
-	
 	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
 	if (CharacterPawn == nullptr)
 	{
@@ -992,6 +999,14 @@ void AACMainPlayerController::ZoomIn()
 		AC_LOG(LogHY, Log, TEXT("No Gun In Hand"));
 		return;
 	}
+	
+	if (CharacterPawn->CanZoomIn() == false)
+	{
+	AC_LOG(LogHY, Log, TEXT("줌이 안된데"));
+	return;
+	}
+	Server_Zoom(true);
+	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
 	
 	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
 	if (FollowCamera == nullptr)
@@ -1012,7 +1027,6 @@ void AACMainPlayerController::ZoomIn()
 	USkeletalMeshComponent* Mesh = CharacterPawn->GetMesh();
 	if (Mesh)
 	{
-		// Mesh->SetOwnerNoSee(true);
 		Mesh->SetHiddenInGame(true);
 		CharacterPawn->GetHeadMesh()->SetHiddenInGame(true);
 		CharacterPawn->GetFaceMesh()->SetHiddenInGame(true);
@@ -1020,23 +1034,29 @@ void AACMainPlayerController::ZoomIn()
 		CharacterPawn->GetBottomMesh()->SetHiddenInGame(true);
 		CharacterPawn->GetFaceAccMesh()->SetHiddenInGame(true);
 		CharacterPawn->GetShoesMesh()->SetHiddenInGame(true);
+
+		TArray<USceneComponent*> Childrens;
+		Mesh->GetChildrenComponents(true, Childrens);
+
+		for (USceneComponent* Child : Childrens)
+		{
+			UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Child);
+			if (!StaticMeshComp) continue;
+
+			// RightHand 소켓에 붙어 있는지 확인
+			if (StaticMeshComp->GetAttachSocketName() == TEXT("RightHandSocket"))
+			{
+				StaticMeshComp->SetHiddenInGame(true);
+			}
+		}
 		
 	}
-	
-	// 이동 방향으로 회전하지 않게
-	UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
-	if (CharacterPawn)
-		CharacterMoveComp->bOrientRotationToMovement = false;
-
-	// 컨트롤러 회전(Yaw)을 사용
-	CharacterPawn->bUseControllerRotationYaw = true;
 	
 	ACHUDWidget->ZoomInState();
 }
 
 void AACMainPlayerController::ZoomOut()
 {
-	bZoomFlag = false;
 	AC_LOG(LogHY, Error, TEXT("ZoomOut %d"), bZoomFlag);
 
 	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
@@ -1059,6 +1079,8 @@ void AACMainPlayerController::ZoomOut()
 		AC_LOG(LogHY, Log, TEXT("GunCamera is nullptr"));
 		return;
 	}
+	
+	Server_Zoom(false);
 
 	FollowCamera->Activate();
 	GunCamera->Deactivate();
@@ -1073,17 +1095,64 @@ void AACMainPlayerController::ZoomOut()
 		CharacterPawn->GetFaceAccMesh()->SetHiddenInGame(false);
 		CharacterPawn->GetShoesMesh()->SetHiddenInGame(false);
 		Mesh->SetHiddenInGame(false);
+		
+		TArray<USceneComponent*> Childrens;
+		Mesh->GetChildrenComponents(true, Childrens);
+
+		for (USceneComponent* Child : Childrens)
+		{
+			UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Child);
+			if (!StaticMeshComp) continue;
+
+			// RightHand 소켓에 붙어 있는지 확인
+			if (StaticMeshComp->GetAttachSocketName() == TEXT("RightHandSocket"))
+			{
+				StaticMeshComp->SetHiddenInGame(false);
+			}
+		}
 	}
 	
-	// 이동 방향으로 회전하도록
-	UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
-	if (CharacterPawn)
-		CharacterMoveComp->bOrientRotationToMovement = true;
-
-	// 컨트롤러 회전(Yaw)을 미사용
-	CharacterPawn->bUseControllerRotationYaw = false;
-	
 	ACHUDWidget->ZoomOutState();
+}
+
+void AACMainPlayerController::Server_Zoom_Implementation(bool NewZoomFlag)
+{
+	bZoomFlag = NewZoomFlag;
+	OnRep_Zoom();
+}
+
+void AACMainPlayerController::OnRep_Zoom()
+{
+	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
+	if (CharacterPawn == nullptr)
+	{
+		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
+		return;
+	}
+	
+	// Zoom In 상태
+	if (bZoomFlag == true)
+	{
+		UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
+		if (CharacterPawn)
+		{
+			CharacterMoveComp->bOrientRotationToMovement = false;
+		}
+
+		// 컨트롤러 회전(Yaw)을 사용
+		CharacterPawn->bUseControllerRotationYaw = true;
+	}
+	else
+	{
+		UCharacterMovementComponent* CharacterMoveComp = CharacterPawn->GetCharacterMovement();
+		if (CharacterPawn)
+		{
+			CharacterMoveComp->bOrientRotationToMovement = true;
+		}
+
+		// 컨트롤러 회전(Yaw)을 사용
+		CharacterPawn->bUseControllerRotationYaw = false;
+	}
 }
 
 void AACMainPlayerController::ClientNotifySpectateTargetRemoved_Implementation(APawn* RemovedPawn)

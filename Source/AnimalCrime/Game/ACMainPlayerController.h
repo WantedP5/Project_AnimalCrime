@@ -26,6 +26,7 @@ protected:
 	virtual void PostNetInit() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetupInputComponent() override;
 
 	virtual void OnRep_PlayerState() override;
@@ -230,8 +231,14 @@ public:
 	UFUNCTION()
 	void ZoomOut();
 
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_Zoom)
 	uint8 bZoomFlag : 1 = false;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_Zoom(bool NewZoomFlag);
+	
+	UFUNCTION()
+	void OnRep_Zoom();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")

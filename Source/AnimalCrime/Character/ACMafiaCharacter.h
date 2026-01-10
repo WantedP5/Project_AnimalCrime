@@ -29,8 +29,6 @@ protected:
 	virtual void OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey) override;
 	virtual EACInteractorType GetInteractorType() const override;
 
-	UFUNCTION(Server, Reliable)
-	void ServerFireHitscan();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayHitEffect(float Duration);
@@ -47,7 +45,7 @@ public:
 	void ClientSetEscapeAreaVisible(bool bVisible);
 
 	virtual EACCharacterType GetCharacterType() const override;
-protected:
+public:
 
 	void ItemDrop() override;
 
@@ -56,13 +54,10 @@ protected:
 	UFUNCTION()
 	void OnRep_HandBomb();
 
-	virtual void AttackHitCheck() override;
+	virtual void AttackHitCheck(int32 DamageAmount) override;
 	
 	// RayCast를 통해 공격
 	void FireHitscan();
-	
-	// Preojectile 소환
-	void FireBullet();
 
 	/**
 	 * @brief TimeRate마다 세금을 내는 함수
@@ -131,8 +126,6 @@ protected:
 public:
 	void ExcuteEscape();
 	
-	UFUNCTION(Server, Reliable)
-	void ServerEscape();
 	
 	UPROPERTY(Replicated)
 	int32 EscapeCount = 3;

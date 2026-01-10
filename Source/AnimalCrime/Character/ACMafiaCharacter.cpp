@@ -291,10 +291,6 @@ void AACMafiaCharacter::MulticastPlayHitEffect_Implementation(float Duration)
 	PlayHitEffect(Duration);
 }
 
-void AACMafiaCharacter::ServerFireHitscan_Implementation()
-{
-}
-
 EACCharacterType AACMafiaCharacter::GetCharacterType() const
 {
 	return EACCharacterType::Mafia;
@@ -390,10 +386,10 @@ void AACMafiaCharacter::OnRep_HandBomb()
 	}
 }
 
-void AACMafiaCharacter::AttackHitCheck()
+void AACMafiaCharacter::AttackHitCheck(int32 DamageAmount)
 {
 	// AACCharacter 클래스(Empty)
-	Super::AttackHitCheck();
+	Super::AttackHitCheck(DamageAmount);
 
 	// FireHitscan();
 	// 캡슐 크기
@@ -541,10 +537,6 @@ void AACMafiaCharacter::FireHitscan()
 	}
 }
 
-void AACMafiaCharacter::FireBullet()
-{
-}
-
 void AACMafiaCharacter::CalculateTax()
 {
 	if (IsValid(this) == false)
@@ -629,31 +621,3 @@ void AACMafiaCharacter::ExcuteEscape()
 	
 	ServerEscape();
 }
-
-void AACMafiaCharacter::ServerEscape_Implementation()
-{
-	
-	//Attack(); -> OnInteract는 불가.
-	//SetCharacterState(ECharacterState::Free);
-	
-	// 현재 공격 중인지 확인. 
-	if (CheckProcessAttack() == true)
-	{
-		return;
-	}
-	
-	AC_LOG(LogHY, Error, TEXT("ServerEscape_Implementation 실행 가즈아."));
-	EscapeCount = EscapeCount - 1;
-
-	// Listen Server에 존재하는 클라이언트 경우
-	if (HasAuthority())
-	{
-		PerformAttackTrace();
-	}
-	// Listen Server에 접속한 클라이언트 경우
-	else
-	{
-		ServerAttack();
-	}
-}
-

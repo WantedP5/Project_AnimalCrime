@@ -138,10 +138,10 @@ EACCharacterType AACPoliceCharacter::GetCharacterType() const
 	return EACCharacterType::Police;
 }
 
-void AACPoliceCharacter::AttackHitCheck()
+void AACPoliceCharacter::AttackHitCheck(int32 DamageAmount)
 {
 	// AACCharacter 클래스(Empty)
-	Super::AttackHitCheck();
+	Super::AttackHitCheck(DamageAmount);
 
 	// FireHitscan();
 	// 캡슐 크기

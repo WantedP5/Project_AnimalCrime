@@ -210,6 +210,12 @@ AACCharacter::AACCharacter()
 	{
 		MeleeMontage = MeleeMontageRef.Object;
 	}
+	
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> EscapeMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/Project/Character/AM_EscapeSkill.AM_EscapeSkill'"));
+	if (EscapeMontageRef.Succeeded())
+	{
+		EscapeMontage = EscapeMontageRef.Object;
+	}
 
 	// ShopComponent 생성
 	ShopComponent = CreateDefaultSubobject<UACShopComponent>(TEXT("ShopComponent"));
@@ -880,7 +886,23 @@ void AACCharacter::PerformAttackTrace()
 	MulticastPlayAttackMontage();
 }
 
-void AACCharacter::AttackHitCheck()
+void AACCharacter::ServerEscape_Implementation()
+{
+	PerformEscape();
+}
+
+void AACCharacter::PerformEscape()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance == nullptr)
+	{
+		return;
+	}
+	
+	MulticastPlayEscapeSkillMontage();
+}
+
+void AACCharacter::AttackHitCheck(int32 DamageAmount)
 {
 	// Empty Class
 	// 자식 클래스에서 구현
@@ -1687,6 +1709,26 @@ void AACCharacter::MulticastPlayAttackMontage_Implementation()
 	}
 }
 
+void AACCharacter::MulticastPlayEscapeSkillMontage_Implementation()
+{
+	if (EscapeMontage && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(EscapeMontage, 4.0f);
+	}
+
+	// 로컬 클라이언트 + 무기 장착 시에만 사운드 재생
+	if (IsLocallyControlled() && BatSwingSound && ShopComponent)
+	{
+		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+
+		// 무기를 들고 있는지 확인
+		if (EquippedWeapon != nullptr && EquippedWeapon->ItemType == EItemType::Weapon)
+		{
+			UGameplayStatics::PlaySound2D(this, BatSwingSound);
+		}
+	}
+}
+
 void AACCharacter::ServerAttack_Implementation()
 {
 	PerformAttackTrace(); // 서버에서만 실행됨
@@ -2037,6 +2079,20 @@ void AACCharacter::ServerShoot_Implementation()
 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
 		UGameplayStatics::ApplyDamage(Hit.GetActor(), GunDamage, GetController(),this, AACGunBase::StaticClass());
 	}
+}
+
+bool AACCharacter::CanZoomIn() const
+{
+	if (CharacterState == ECharacterState::None || CharacterState == ECharacterState::OnDamage ||
+		CharacterState == ECharacterState::Interact || CharacterState == ECharacterState::OnInteract ||
+		CharacterState == ECharacterState::Stun)
+	{
+		AC_LOG(LogHY, Log, TEXT("Cant ZoomIn %s"), *UEnum::GetValueAsString(CharacterState));
+		return false;
+	}
+	
+	
+	return true;
 }
 
 void AACCharacter::PlayHitEffect(float Duration)
