@@ -55,10 +55,27 @@ void AACLobbyGameMode::StartGamePlay()
 
 	//기존 플레이어 역할 데이터 삭제
 	GI->SavedPlayerRoles.Empty();
-	
+
 	const int32 PlayerCount = GameState->PlayerArray.Num();
-	// 경찰 수 결정 (플레이어 수가 3명 이상일 경우 2명, 그렇지 않으면 1명)
-	const int32 NumPolice = (PlayerCount >= 3) ? 2 : 1;
+	
+	// 인원 결정
+	// 1인 : 마피아 1명
+	// 2~3인 : 마피아 1~2명, 경찰 1명
+	// 4인 이상 : 마피아 2~N명, 경찰 2명
+	int32 NumPolice;
+	if (PlayerCount <= 1)
+	{
+		NumPolice = 0;
+	}
+	else if (PlayerCount >1 && PlayerCount <= 3)
+	{
+		NumPolice = 1;
+	}
+	else
+	{
+		NumPolice = 2;
+	}
+	
 	// 0 ~ PlayerCount-1 인덱스 셔플
 	TArray<int32> Indices;
 	Indices.Reserve(PlayerCount);
