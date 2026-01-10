@@ -54,10 +54,9 @@ void UACGameRuleManager::OnObjectDestroyed(float InScore)
 	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		UWorld* World = GameMode->GetWorld();
-		if (World && GameMode->HasAuthority())
+		if (GameMode->HasAuthority())
 		{
-			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
+			ShowGameResult(EGameEndType::Score);
 		}
 	}
 }
@@ -83,10 +82,9 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		UWorld* World = GameMode->GetWorld();
-		if (World && GameMode->HasAuthority())
+		if (GameMode->HasAuthority())
 		{
-			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 1.0f, false);
+			ShowGameResult(EGameEndType::Score);
 		}
 	}
 }
