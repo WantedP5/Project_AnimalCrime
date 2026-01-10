@@ -62,28 +62,28 @@ private:
     void UnequipWeapon();
 
     UFUNCTION(Server, Reliable)
-    void ServerPurchaseAndEquipItem(class UACItemData* ItemData);
+    void ServerPurchaseAndEquipItem(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(Server, Reliable)
-    void ServerPurchaseAndAddToQuickSlot(class UACItemData* ItemData);
+    void ServerPurchaseAndAddToQuickSlot(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(Server, Reliable)
-    void ServerToggleWeaponEquip(class UACItemData* ItemData);
+    void ServerToggleWeaponEquip(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(NetMulticast, Reliable)
-    void MulticastEquipItem(class UACItemData* ItemData);
+    void MulticastEquipItem(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(NetMulticast, Reliable)
     void MulticastUnequipWeapon();
 
     UFUNCTION(Client, Reliable)
-    void ClientAddToQuickSlot(class UACItemData* ItemData);
+    void ClientAddToQuickSlot(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(Server, Reliable)
-    void ServerPurchaseSpecialItem(class UACItemData* ItemData);
+    void ServerPurchaseSpecialItem(FPrimaryAssetId ItemAssetId);
 
     UFUNCTION(Client, Reliable)
-    void ClientNotifySpecialItemPurchased(class UACItemData* ItemData);
+    void ClientNotifySpecialItemPurchased(FPrimaryAssetId ItemAssetId);
 public:
     // 착용 중인 아이템들
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shop")
