@@ -291,10 +291,6 @@ void AACMafiaCharacter::MulticastPlayHitEffect_Implementation(float Duration)
 	PlayHitEffect(Duration);
 }
 
-void AACMafiaCharacter::ServerFireHitscan_Implementation()
-{
-}
-
 EACCharacterType AACMafiaCharacter::GetCharacterType() const
 {
 	return EACCharacterType::Mafia;
@@ -390,10 +386,10 @@ void AACMafiaCharacter::OnRep_HandBomb()
 	}
 }
 
-void AACMafiaCharacter::AttackHitCheck()
+void AACMafiaCharacter::AttackHitCheck(int32 DamageAmount)
 {
 	// AACCharacter 클래스(Empty)
-	Super::AttackHitCheck();
+	Super::AttackHitCheck(DamageAmount);
 
 	// FireHitscan();
 	// 캡슐 크기
@@ -421,20 +417,12 @@ void AACMafiaCharacter::AttackHitCheck()
 	// bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_GameTraceChannel2 | ECC_GameTraceChannel4, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 
 	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel6);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel7);
-	ObjectParams.AddObjectTypesToQuery(ECC_GameTraceChannel8);
+	ObjectParams.AddObjectTypesToQuery(DESTROYABLE_OBJ);
+	ObjectParams.AddObjectTypesToQuery(MAFIA_OBJ);
+	ObjectParams.AddObjectTypesToQuery(POLICE_OBJ);
+	ObjectParams.AddObjectTypesToQuery(CITIZEN_OBJ);
 
-	bool bHit = GetWorld()->SweepSingleByObjectType(
-		Hit,
-		Start,
-		End,
-		FQuat::Identity,
-		ObjectParams,
-		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight),
-		Params
-	);
+	bool bHit = GetWorld()->SweepSingleByObjectType(Hit, Start, End, FQuat::Identity, ObjectParams, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), Params);
 
 	// 디버그: 캡슐 그리기
 	DrawDebugCapsule(GetWorld(), (Start + End) * 0.5f, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(End - Start).ToQuat(), bHit ? FColor::Red : FColor::Green, false, 1.0f);
@@ -442,8 +430,19 @@ void AACMafiaCharacter::AttackHitCheck()
 	if (bHit)
 	{
 		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
-		
-		UGameplayStatics::ApplyDamage(Hit.GetActor(), 30.0f, GetController(), this, nullptr);
+		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
+		if (EquippedWeapon == nullptr)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is nullptr Damage %f"), NormalDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), NormalDamage, GetController(), this, nullptr);
+			return;
+		}
+		if (EquippedWeapon->ItemType == EItemType::Weapon)
+		{
+			AC_LOG(LogHY, Log, TEXT("EquippedWeapon is 빠따 Damage %f"), WeaponDamage);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponDamage, GetController(), this, nullptr);
+			return;
+		}
 	}
 }
 
@@ -538,10 +537,6 @@ void AACMafiaCharacter::FireHitscan()
 	}
 }
 
-void AACMafiaCharacter::FireBullet()
-{
-}
-
 void AACMafiaCharacter::CalculateTax()
 {
 	if (IsValid(this) == false)
@@ -626,31 +621,3 @@ void AACMafiaCharacter::ExcuteEscape()
 	
 	ServerEscape();
 }
-
-void AACMafiaCharacter::ServerEscape_Implementation()
-{
-	
-	//Attack(); -> OnInteract는 불가.
-	//SetCharacterState(ECharacterState::Free);
-	
-	// 현재 공격 중인지 확인. 
-	if (CheckProcessAttack() == true)
-	{
-		return;
-	}
-	
-	AC_LOG(LogHY, Error, TEXT("ServerEscape_Implementation 실행 가즈아."));
-	EscapeCount = EscapeCount - 1;
-
-	// Listen Server에 존재하는 클라이언트 경우
-	if (HasAuthority())
-	{
-		PerformAttackTrace();
-	}
-	// Listen Server에 접속한 클라이언트 경우
-	else
-	{
-		ServerAttack();
-	}
-}
-

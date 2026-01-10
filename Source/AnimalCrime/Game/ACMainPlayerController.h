@@ -26,6 +26,7 @@ protected:
 	virtual void PostNetInit() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetupInputComponent() override;
 
 	virtual void OnRep_PlayerState() override;
@@ -127,52 +128,52 @@ private:
 	TObjectPtr<class UUserWidget> CurrentPhoneWidget;
 
 
-	 public:
-		 // ===== 추가: 바운드 아이템 관련 함수 =====
+public:
+	// ===== 추가: 바운드 아이템 관련 함수 =====
 
-		 /**
-		  * @brief 무전기 획득 (로컬)
-		  */
-		 UFUNCTION(BlueprintCallable, Category = "BoundItem")
-		 void SetHasWalkyTalky(bool bInHasWalkyTalky);
+	/**
+	 * @brief 무전기 획득 (로컬)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "BoundItem")
+	void SetHasWalkyTalky(bool bInHasWalkyTalky);
 
-		 /**
-		  * @brief 밀수품 획득 (로컬)
-		  */
-		 UFUNCTION(BlueprintCallable, Category = "BoundItem")
-		 void SetHasContraband(bool bInHasContraband);
+	/**
+	 * @brief 밀수품 획득 (로컬)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "BoundItem")
+	void SetHasContraband(bool bInHasContraband);
 
-		 /**
-		  * @brief 무전기 소지 여부 확인
-		  */
-		 UFUNCTION(BlueprintPure, Category = "BoundItem")
-		 bool HasWalkyTalky() const { return bHasWalkyTalky; }
+	/**
+	 * @brief 무전기 소지 여부 확인
+	 */
+	UFUNCTION(BlueprintPure, Category = "BoundItem")
+	bool HasWalkyTalky() const { return bHasWalkyTalky; }
 
-		 /**
-		  * @brief 밀수품 소지 여부 확인
-		  */
-		 UFUNCTION(BlueprintPure, Category = "BoundItem")
-		 bool HasContraband() const { return bHasContraband; }
+	/**
+	 * @brief 밀수품 소지 여부 확인
+	 */
+	UFUNCTION(BlueprintPure, Category = "BoundItem")
+	bool HasContraband() const { return bHasContraband; }
 
-  protected:
-	  // ===== 추가: 로컬 바운드 아이템 정보 (Replicated 아님!) =====
+protected:
+	// ===== 추가: 로컬 바운드 아이템 정보 (Replicated 아님!) =====
 
-	  //!< 무전기 소지 여부 (로컬)
-	  UPROPERTY(BlueprintReadOnly, Category = "BoundItem")
-	  bool bHasWalkyTalky = false;
+	//!< 무전기 소지 여부 (로컬)
+	UPROPERTY(BlueprintReadOnly, Category = "BoundItem")
+	bool bHasWalkyTalky = false;
 
-	  //!< 밀수품 소지 여부 (로컬)
-	  UPROPERTY(BlueprintReadOnly, Category = "BoundItem")
-	  bool bHasContraband = false;
+	//!< 밀수품 소지 여부 (로컬)
+	UPROPERTY(BlueprintReadOnly, Category = "BoundItem")
+	bool bHasContraband = false;
 
-  public:
-	  // ===== 추가: 델리게이트 =====
+public:
+	// ===== 추가: 델리게이트 =====
 
-	  UPROPERTY(BlueprintAssignable, Category = "BoundItem")
-	  FOnWalkyTalkyChanged OnWalkyTalkyChanged;
+	UPROPERTY(BlueprintAssignable, Category = "BoundItem")
+	FOnWalkyTalkyChanged OnWalkyTalkyChanged;
 
-	  UPROPERTY(BlueprintAssignable, Category = "BoundItem")
-	  FOnContrabandChanged OnContrabandChanged;
+	UPROPERTY(BlueprintAssignable, Category = "BoundItem")
+	FOnContrabandChanged OnContrabandChanged;
 
 
 
@@ -221,14 +222,23 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ShowNotification(const FText& Message);
 
+	UFUNCTION(Client, Reliable)
+	void Client_ShowGameResult(EGameEndType GameEndType);
+
 	UFUNCTION()
 	void ZoomIn();
 
 	UFUNCTION()
 	void ZoomOut();
 
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_Zoom)
 	uint8 bZoomFlag : 1 = false;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_Zoom(bool NewZoomFlag);
+	
+	UFUNCTION()
+	void OnRep_Zoom();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
@@ -328,6 +338,10 @@ protected:
 	TSubclassOf<class UACRoleScreen> RoleScreenClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
 	TObjectPtr<class UACRoleScreen> RoleScreen;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Result")
+	TSubclassOf<class UACGameResultScreen> GameResultScreenClass;
 
 protected:
 	//!< UI 매니저 컴포넌트

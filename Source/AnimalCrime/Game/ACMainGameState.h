@@ -54,11 +54,11 @@ public:
 #pragma endregion
 
 public:
- /**
-     @brief  PlayerArray에서 지정한 CharacterLocation을 가진 플레이어들의 PlayerState 목록을 반환한다.
-     @param  Role - 조회할 플레이어의 역할
-     @retval      - 지정한 CharacterLocation에 해당하는 AACPlayerState들의 배열
- **/
+	/**
+		@brief  PlayerArray에서 지정한 CharacterLocation을 가진 플레이어들의 PlayerState 목록을 반환한다.
+		@param  Role - 조회할 플레이어의 역할
+		@retval      - 지정한 CharacterLocation에 해당하는 AACPlayerState들의 배열
+	**/
 	TArray<TObjectPtr<class AACPlayerState>> GetPlayersByLocation(ECharacterLocation CharacterLocation) const;
 
 #pragma region GameRuleManager와 동기화 및 테스트 함수
@@ -102,19 +102,22 @@ public:
 #pragma endregion
 
 public:
- /**
-	 @brief 특정 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
-	 @param Message    - 메시지 내용
-	 @param TargetRole - 타겟 직업, None이면 모두에게 표시
- **/
+	/**
+		@brief 특정 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
+		@param Message    - 메시지 내용
+		@param TargetRole - 타겟 직업, None이면 모두에게 표시
+	**/
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_GlobalShowNotification(const FText& Message , EPlayerRole TargetRole);
- /**
-	 @brief 모든 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
-     @param Message - 메시지 내용
-	 RPC는 오버로드 불가능하고, RPC 파라미터에는 기본값을 줄 수 없으므로 별도 함수로 구현
- **/
+	void Multicast_GlobalShowNotification(const FText& Message, EPlayerRole TargetRole);
+	/**
+		@brief 모든 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
+		@param Message - 메시지 내용
+		RPC는 오버로드 불가능하고, RPC 파라미터에는 기본값을 줄 수 없으므로 별도 함수로 구현
+	**/
 	void GlobalShowNotification(const FText& Message);
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	TArray< class AACPlayerState*> GetPlayersByRoleAndLocation(EPlayerRole InRole, ECharacterLocation InLocation) const;
 
 public:
 	//!< 탈출 임무

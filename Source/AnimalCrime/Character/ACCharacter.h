@@ -250,13 +250,28 @@ protected:
 	void ServerAttack();
 	void PerformAttackTrace();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAnimMontage> EscapeMontage;
+
+	/** 플레그: 공격 시도 중 여부 */
+	UPROPERTY()
+	uint8 bEscapeFlag : 1 = false;
+	
+	UFUNCTION(Server, Reliable)
+	void ServerEscape();
+	void PerformEscape();
+	
 public:
-	virtual void AttackHitCheck();
+	virtual void AttackHitCheck(int32 DamageAmount = 1);
 	bool IsHoldingGun();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayEscapeSkillMontage();
 
+	
 	void FireHitscan();
 	
  /**
@@ -478,6 +493,10 @@ protected: // Sprint 전용 맴버 변수
 
 	UPROPERTY(Replicated)
 	int32 SprintGauge = 10;
+	
+public:
+	bool CanZoomIn() const;
+	
 
 protected:
 	UPROPERTY(Replicated, EditAnywhere)

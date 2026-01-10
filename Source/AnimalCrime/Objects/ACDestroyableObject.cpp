@@ -82,7 +82,7 @@ float AACDestroyableObject::TakeDamage(float DamageAmount, const FDamageEvent& D
 	AC_LOG(LogTemp, Log, TEXT(">>> Weapon Equipped: %s"), *EquippedWeapon->ItemName.ToString());
 	
 	// 데미지 누적
-	DestroyComp->OnDamaged(DamageAmount);
+	DestroyComp->OnDamaged(DamageAmount * 10);
 	float CurrentHP = DestroyComp->GetCurrentHp();
 	if (CurrentHP <= 0.0f)
 	{

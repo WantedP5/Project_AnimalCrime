@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Game/ACGameEnums.h"
 #include "UObject/Object.h"
 #include "ACGameRuleManager.generated.h"
 
@@ -91,6 +92,11 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void OnAttackCitizen(float InScore);
 	
+private:
+ /**
+	 @brief 모든 플레이어에게 게임 종료를 알리는 멀티캐스트 함수
+ **/
+	void ShowGameResult(EGameEndType GameEndType);
 public:
  /**
      @brief 탈출, 체포 시에 게임 종료 조건 판단하는 함수

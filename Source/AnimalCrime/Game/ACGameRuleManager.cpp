@@ -7,6 +7,7 @@
 #include "ACMainGameInstance.h"
 #include "ACMainGameMode.h"
 #include "ACMainGameState.h"
+#include "ACMainPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "ACPlayerState.h"
 #include "AnimalCrime.h"
@@ -36,15 +37,15 @@ void UACGameRuleManager::OnObjectDestroyed(float InScore)
 	// 스코어가 음수인 경우는 불가능
 	if (InScore <= 0)
 	{
-		return ;
+		return;
 	}
-	
+
 	AACMainGameState* MainGameState = GetOwner()->GetGameState<AACMainGameState>();
 	if (MainGameState == nullptr)
 	{
 		return;
 	}
-	
+
 	GameScoreGauge -= InScore;
 	MainGameState->UpdateTeamScore(GameScoreGauge);
 	if (GetOwner()->HasAuthority())
@@ -68,7 +69,7 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 	{
 		return;
 	}
-	
+
 	AACMainGameState* MainGameState = GetOwner()->GetGameState<AACMainGameState>();
 	if (MainGameState == nullptr)
 	{
@@ -85,7 +86,7 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 		UWorld* World = GameMode->GetWorld();
 		if (World && GameMode->HasAuthority())
 		{
-			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
+			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 1.0f, false);
 		}
 	}
 }
@@ -139,8 +140,25 @@ void UACGameRuleManager::CheckGameEndCondition()
 	//모든 마피아가 감옥 또는 탈출 상태면 게임 종료
 	if (MafiaNum == PrisonNum + EscapeNum)
 	{
-		LoadNextMap();
+		ShowGameResult(EscapeNum > 0 ? EGameEndType::Escape : EGameEndType::AllPrison);
+		//LoadNextMap();
 	}
+}
+
+void UACGameRuleManager::ShowGameResult(EGameEndType GameEndType)
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AACMainPlayerController* PC = Cast<AACMainPlayerController>(*It);
+		if (PC == nullptr)
+		{
+			return;
+		}
+		PC->Client_ShowGameResult(GameEndType);
+	}
+
+	// 5초 뒤 다음 맵 로드 예약
+	GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 7.0f, false);
 }
 
 void UACGameRuleManager::RewardPoliceForAction(EPoliceAction Action, float InScore)
@@ -169,19 +187,19 @@ void UACGameRuleManager::RewardMafiaForAction(EMafiaAction Action, float InScore
 	switch (Action)
 	{
 	case EMafiaAction::DestroyObject:
-		{
-			OnObjectDestroyed(InScore);
-			break;
-		}
+	{
+		OnObjectDestroyed(InScore);
+		break;
+	}
 	case EMafiaAction::AttackCivilian:
-		{
-			OnAttackCitizen(InScore);
-			break;
-		}
+	{
+		OnAttackCitizen(InScore);
+		break;
+	}
 	default:
-		{
-			break;
-		}
+	{
+		break;
+	}
 	}
 }
 
@@ -197,13 +215,13 @@ void UACGameRuleManager::HandleVictory()
 void UACGameRuleManager::LoadNextMap()
 {
 	// @Todo: World 체크해야할 수도...
-	
+
 	UACAdvancedFriendsGameInstance* GameInstance = GetOwner()->GetWorld()->GetGameInstance<UACAdvancedFriendsGameInstance>();
 	if (GameInstance == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s 승리!"), TEXT("?????"));
 		return;
 	}
-	
+
 	GameInstance->LoadLobbyMap();
 }

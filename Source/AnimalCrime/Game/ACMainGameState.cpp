@@ -196,6 +196,32 @@ void AACMainGameState::GlobalShowNotification(const FText& Message)
 	Multicast_GlobalShowNotification(Message, EPlayerRole::None);
 }
 
+TArray<class AACPlayerState*> AACMainGameState::GetPlayersByRoleAndLocation(EPlayerRole InRole, ECharacterLocation InLocation) const
+{
+	TArray<class AACPlayerState*> Result;
+
+	for (APlayerState* PS : PlayerArray)
+	{
+		AACPlayerState* ACPS = Cast<AACPlayerState>(PS);
+		if (ACPS == nullptr)
+		{
+			continue;
+		}
+
+		//찾는 State와 같으면 배열에 추가, None이면 모두 포함
+		if(InRole != EPlayerRole::None && ACPS->PlayerRole != InRole)
+		{
+			continue;
+		}
+		if(InLocation != ECharacterLocation::None && ACPS->CharacterLocation != InLocation)
+		{
+			continue;
+		}
+		Result.Add(ACPS);
+	}
+	return Result;
+}
+
 void AACMainGameState::ServerChangeEscapeState_Implementation(EEscapeState NewEscapeState)
 {
 	EscapeState = NewEscapeState;
