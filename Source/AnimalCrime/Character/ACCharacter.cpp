@@ -458,7 +458,7 @@ void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AACCharacter::ChangeInputMode(EInputMode NewMode)
 {
-	AACMainPlayerController* PC = Cast<AACMainPlayerController>(GetController());
+	AACPlayerControllerBase* PC = Cast<AACPlayerControllerBase>(GetController());  // Base로 변경
 	if (PC)
 	{
 		PC->ChangeInputMode(NewMode);

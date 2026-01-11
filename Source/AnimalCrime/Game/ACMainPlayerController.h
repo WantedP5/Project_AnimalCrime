@@ -32,20 +32,9 @@ protected:
 	virtual void OnRep_PlayerState() override;
 	// ===== 입력 처리 핸들러 =====
 protected:
-	void HandleMove(const struct FInputActionValue& Value);
-	void HandleLook(const struct FInputActionValue& Value);
-	void HandleJump(const struct FInputActionValue& Value);
-	void HandleStopJumping(const struct FInputActionValue& Value);
-	void HandleInteractStart(const struct FInputActionValue& Value);
-	void HandleInteractHold(const struct FInputActionValue& Value);
-	void HandleInteractRelease(const struct FInputActionValue& Value);
-	void HandleItemDrop(const struct FInputActionValue& Value);
-	void HandleAttack(const struct FInputActionValue& Value);
-	void HandleSettingsClose(const struct FInputActionValue& Value);
+	virtual void HandleAttack(const struct FInputActionValue& Value) override;
 	void HandleSpectatorChange(const struct FInputActionValue& Value);
 	void HandleDash(const struct FInputActionValue& Value);
-	void HandleSprintStart(const struct FInputActionValue& Value);
-	void HandleSprintEnd(const struct FInputActionValue& Value);
 	void HandleEscape(const struct FInputActionValue& Value);
 
 	// ===== 퀵슬롯 관련 (하나의 핸들러로 통합) =====
@@ -55,19 +44,18 @@ protected:
 	void HandlePhone(const struct FInputActionValue& Value);
 
 	// ======스킬 체크 전 상태 체크 함수========
-	bool CanUseSkill() const;
+	// bool CanUseSkill() const; 플레이어 컨트롤러 베이스로 이전
 	bool CanUseEscapeSkill() const;
 public:
 	void TimeUp();
 	void TimeDown();
-
 
 public:
 	/**
 		@brief 입력 모드 변경 (기본 입력 ↔ 설정 메뉴 입력)
 		@param NewMode - 새로운 입력 모드
 	**/
-	void ChangeInputMode(EInputMode NewMode);
+	virtual void ChangeInputMode(EInputMode NewMode) override;
 
 
 	// ===== 상점 관련 =====
@@ -258,24 +246,7 @@ protected:
 	// ===== 입력 관련 =====
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> MoveAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> InteractAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> ItemDropAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> MeleeAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> DashAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> EscapeAction;
 
@@ -297,11 +268,6 @@ protected:
 	// ===== 핸드폰 관련 =====
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> PhoneAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputMappingContext> SettingsMappingContext;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> SettingsCloseAction;
 
 	// ===== 관전자 키 입력 =====
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")

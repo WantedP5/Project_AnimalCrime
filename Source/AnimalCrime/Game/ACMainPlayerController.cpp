@@ -70,58 +70,11 @@ AACMainPlayerController::AACMainPlayerController()
 
 
 	// ===== 입력 관련 로드 =====
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project/Input/IMC_Shoulder.IMC_Shoulder"));
-	if (DefaultMappingContextRef.Succeeded())
-	{
-		DefaultMappingContext = DefaultMappingContextRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project/Input/Actions/IA_Move.IA_Move"));
-	if (MoveActionRef.Succeeded())
-	{
-		MoveAction = MoveActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project/Input/Actions/IA_Look.IA_Look"));
-	if (LookActionRef.Succeeded())
-	{
-		LookAction = LookActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project/Input/Actions/IA_Jump.IA_Jump"));
-	if (JumpActionRef.Succeeded())
-	{
-		JumpAction = JumpActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project/Input/Actions/IA_Interact.IA_Interact"));
-	if (InteractActionRef.Succeeded())
-	{
-		InteractAction = InteractActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> ItemDropActionRef(TEXT("/Game/Project/Input/Actions/IA_ItemDrop.IA_ItemDrop"));
-	if (ItemDropActionRef.Succeeded())
-	{
-		ItemDropAction = ItemDropActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> MeleeActionRef(TEXT("/Game/Project/Input/Actions/IA_Attack.IA_Attack"));
-	if (MeleeActionRef.Succeeded())
-	{
-		MeleeAction = MeleeActionRef.Object;
-	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> DashActionRef(TEXT("/Game/Project/Input/Actions/IA_Dash.IA_Dash"));
 	if (DashActionRef.Succeeded())
 	{
 		DashAction = DashActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> SprintActionRef(TEXT("/Game/Project/Input/Actions/IA_Sprint.IA_Sprint"));
-	if (SprintActionRef.Succeeded())
-	{
-		SprintAction = SprintActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> EscapeActionRef(TEXT("/Game/Project/Input/Actions/IA_Escape.IA_Escape"));
@@ -135,19 +88,6 @@ AACMainPlayerController::AACMainPlayerController()
 	if (QuickSlotActionRef.Succeeded())
 	{
 		QuickSlotAction = QuickSlotActionRef.Object;
-	}
-
-	// ===== 설정창 입력 로드 =====
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> SettingsMappingContextRef(TEXT("/Game/Project/Input/IMC_Settings.IMC_Settings"));
-	if (SettingsMappingContextRef.Succeeded())
-	{
-		SettingsMappingContext = SettingsMappingContextRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> SettingsCloseActionRef(TEXT("/Game/Project/Input/Actions/IA_SettingsClose.IA_SettingsClose"));
-	if (SettingsCloseActionRef.Succeeded())
-	{
-		SettingsCloseAction = SettingsCloseActionRef.Object;
 	}
 
 	// ===== 관전자 입력 로드 =====
@@ -313,55 +253,12 @@ void AACMainPlayerController::SetupInputComponent()
 		return;
 	}
 
-	// Enhanced Input Subsystem에 기본 매핑 컨텍스트 추가
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-	{
-		if (DefaultMappingContext)
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-
 	// 입력 액션 바인딩
-	if (MoveAction)
-	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleMove);
-	}
-	if (LookAction)
-	{
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleLook);
-	}
-	if (JumpAction)
-	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleJump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleStopJumping);
-	}
-	if (InteractAction)
-	{
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleInteractStart);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AACMainPlayerController::HandleInteractHold);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleInteractRelease);
-	}
-	if (ItemDropAction)
-	{
-		EnhancedInputComponent->BindAction(ItemDropAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleItemDrop);
-	}
-	if (MeleeAction)
-	{
-		EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleAttack);
-	}
 
 	// 캐릭터 스킬 - Dash
 	if (DashAction)
 	{
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleDash);
-	}
-	// 캐릭터 스킬 - Sprint
-	if (SprintAction)
-	{
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSprintStart);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AACMainPlayerController::HandleSprintEnd);
-		// EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &AACMainPlayerController::HandleSprintEnd);
 	}
 	// 캐릭터 스킬 - Escape
 	if (EscapeAction)
@@ -416,101 +313,6 @@ void AACMainPlayerController::OnRep_PlayerState()
 }
 
 // ===== 입력 핸들러 구현 =====
-void AACMainPlayerController::HandleMove(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->Move(Value);
-}
-
-void AACMainPlayerController::HandleLook(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->Look(Value);
-}
-
-void AACMainPlayerController::HandleJump(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->Jump();
-}
-
-void AACMainPlayerController::HandleStopJumping(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->StopJumping();
-}
-
-void AACMainPlayerController::HandleInteractStart(const FInputActionValue& Value)
-{
-	// 1. float 값 추출 (E=1.0, R=2.0, T=3.0)
-	float InputFloat = Value.Get<float>();
-	//UE_LOG(LogSW, Log, TEXT("Interact [%f] Key Input!!"), InputFloat);
-
-	// 2. 정수 변환
-	int32 InputIndex = FMath::RoundToInt(InputFloat);
-	//UE_LOG(LogSW, Log, TEXT("Interact [%d] Key Input!!"), InputIndex);
-
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-		return;
-
-	// 3. 인덱스 전달
-	ControlledCharacter->InteractStarted(InputIndex - 1);
-
-}
-
-void AACMainPlayerController::HandleInteractHold(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->InteractHolding(GetWorld()->GetDeltaSeconds());
-}
-
-void AACMainPlayerController::HandleInteractRelease(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->InteractReleased();
-}
-
-void AACMainPlayerController::HandleItemDrop(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->ItemDrop();
-}
 
 void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
 {
@@ -529,17 +331,6 @@ void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
 		AC_LOG(LogHY, Error, TEXT("빵야빵야"));
 		ControlledCharacter->FireHitscan();
 	}
-}
-
-void AACMainPlayerController::HandleSettingsClose(const FInputActionValue& Value)
-{
-	AACCharacter* ControlledCharacter = GetPawn<AACCharacter>();
-	if (ControlledCharacter == nullptr)
-	{
-		return;
-	}
-
-	ControlledCharacter->SettingsClose();
 }
 
 void AACMainPlayerController::HandleSpectatorChange(const FInputActionValue& Value)
@@ -575,38 +366,6 @@ void AACMainPlayerController::HandleDash(const FInputActionValue& Value)
 
 	// Player에게 Dash 요청
 	CharacterPawn->Dash(Value);
-}
-
-void AACMainPlayerController::HandleSprintStart(const struct FInputActionValue& Value)
-{
-	if (CanUseSkill() == false)
-	{
-		AC_LOG(LogHY, Error, TEXT("CanUseSkill is false"));
-		return;
-	}
-
-	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
-	if (CharacterPawn == nullptr)
-	{
-		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
-		return;
-	}
-
-	// Player에게 Sprint 요청
-	AC_LOG(LogHY, Error, TEXT("PlayerController-Press Sprint Key"));
-	CharacterPawn->Sprint(Value);
-}
-
-void AACMainPlayerController::HandleSprintEnd(const struct FInputActionValue& Value)
-{
-	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
-	if (CharacterPawn == nullptr)
-	{
-		AC_LOG(LogHY, Error, TEXT("ControlledCharacter is nullptr"));
-		return;
-	}
-	AC_LOG(LogHY, Error, TEXT("PlayerController-Release Sprint Key"));
-	CharacterPawn->Sprint(Value);
 }
 
 void AACMainPlayerController::HandleEscape(const FInputActionValue& Value)
@@ -694,30 +453,6 @@ void AACMainPlayerController::HandlePhone(const FInputActionValue& Value)
 		// 휠 아래로 = 핸드폰 닫기
 		ClosePhone();
 	}
-}
-
-bool AACMainPlayerController::CanUseSkill() const
-{
-	AACCharacter* CharacterPawn = GetPawn<AACCharacter>();
-	if (CharacterPawn == nullptr)
-	{
-		AC_LOG(LogHY, Error, TEXT("CharacterPawn is nullptr"));
-		return false;
-	}
-
-	ECharacterState CharacterState = CharacterPawn->GetCharacterState();
-	// 캐릭터의 상태가 None, Stun, Prison 상태일 경우 불가
-	if (CharacterState == ECharacterState::None ||
-		CharacterState == ECharacterState::Interact ||
-		CharacterState == ECharacterState::OnInteract ||
-		CharacterState == ECharacterState::Stun ||
-		CharacterState == ECharacterState::Prison)
-	{
-		AC_LOG(LogHY, Error, TEXT("CharacterState is %s"), *UEnum::GetValueAsString(CharacterState));
-		return false;
-	}
-
-	return true;
 }
 
 bool AACMainPlayerController::CanUseEscapeSkill() const
