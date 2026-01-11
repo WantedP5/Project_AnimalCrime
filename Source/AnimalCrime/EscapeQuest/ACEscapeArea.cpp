@@ -64,19 +64,32 @@ void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponen
 	//관전 상태로 전환
 	PS->EnterSpectatorState();
 
+	//음성 그룹 변경
+	Mafia->SetVoiceGroup(EVoiceGroup::Escape);
+
 	//1초 뒤에 관전 실행
-	FTimerHandle TimerHandle;
-	FTimerDelegate Delegate;
-	Delegate.BindUFunction(
+	FTimerHandle SpectateTimerHandle;
+	FTimerDelegate SpectateDelegate;
+	SpectateDelegate.BindUFunction(
 		PC,
 		FName("ServerStartSpectateOtherPlayer")
 	);
 	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		Delegate,
+		SpectateTimerHandle,
+		SpectateDelegate,
 		1.0f,
 		false
 	);
 
+	//1.5초 뒤에 대기 구역으로 이동 (탈출구역에서 소리 들리는 걸 방지)
+	FTimerHandle MoveTimerHandle;
+	FTimerDelegate MoveDelegate;
+	MoveDelegate.BindUFunction(Mafia, FName("MoveToEscapeWaitingLocation"));
+	GetWorld()->GetTimerManager().SetTimer(
+		MoveTimerHandle,
+		MoveDelegate,
+		1.5f,
+		false
+	);
 }
 

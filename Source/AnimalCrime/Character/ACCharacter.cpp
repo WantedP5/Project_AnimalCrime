@@ -2292,6 +2292,12 @@ void AACCharacter::OnRep_VoiceGroup()
 			AC_LOG(LogSY, Log, TEXT("OnRep_VoiceGroup - Disable VOIP Attenuation for Character: %s"), *GetName());
 			SetVOIPAttenuation(false);
 		}
+		else
+		{
+			// 다른 그룹이면 Attenuation 다시 적용
+			AC_LOG(LogSY, Log, TEXT("OnRep_VoiceGroup - Enable VOIP Attenuation for Character: %s"), *GetName());
+			SetVOIPAttenuation(true);
+		}
 	}
 }
 

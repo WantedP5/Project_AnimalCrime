@@ -80,6 +80,9 @@ public:
 	bool HasWalkyTalky() const { return bHasWalkyTalky; }
 	void SetWalkyTalky(bool bInHasWalkyTalky);
 
+public:
+	UFUNCTION()
+	void MoveToEscapeWaitingLocation();
 //protected:
 //	virtual float GetRequiredHoldTime() const override;
 

@@ -587,6 +587,12 @@ void AACMafiaCharacter::SetWalkyTalky(bool bInHasWalkyTalky)
 	OnRep_HasWalkyTalky();
 }
 
+void AACMafiaCharacter::MoveToEscapeWaitingLocation()
+{
+	// 임의로 정한 탈출 대기 장소
+	SetActorLocation(FVector(-6050.0f, 100.0f, 100.0f));
+}
+
 float AACMafiaCharacter::GetCurrentHP() const
 {
 	return Stat->GetCurrentHp();
