@@ -495,41 +495,54 @@ void UACShopComponent::ServerPurchaseAndEquipItem_Implementation(FPrimaryAssetId
 
 void UACShopComponent::ServerPurchaseSpecialItem_Implementation(FPrimaryAssetId ItemAssetId)
 {
-    UACItemData* ItemData = LoadItemDataSync(ItemAssetId);
-    if (ItemData == nullptr)
-    {
-        UE_LOG(LogHG, Error, TEXT("ServerPurchaseSpecialItem: Failed to load ItemData"));
-        return;
-    }
+	UACItemData* ItemData = LoadItemDataSync(ItemAssetId);
+	if (ItemData == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ServerPurchaseSpecialItem: Failed to load ItemData"));
+		return;
+	}
 
-    FString ItemNameStr = ItemData->ItemName.ToString();
-    if (ItemNameStr.Contains(TEXT("무전기")) || ItemNameStr.Contains(TEXT("WalkyTalky")))
-    {
-        AActor* Owner = GetOwner();
-        if (AACCharacter* Character = Cast<AACCharacter>(Owner))
-        {
-            if (Character->GetCharacterType() == EACCharacterType::Police)
-            {
-                UE_LOG(LogHG, Warning, TEXT("서버: 경찰은 무전기를 구매할 수 없습니다!"));
-                return;
-            }
+	AActor* Owner = GetOwner();
+	if (Owner == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ServerPurchaseSpecialItem: Owner is null"));
+		return;
+	}
+	AACCharacter* Character = Cast<AACCharacter>(Owner);
+	if (Character == nullptr)
+	{
+		UE_LOG(LogHG, Error, TEXT("ServerPurchaseSpecialItem: Owner is not AACCharacter"));
+		return;
+	}
 
-            AACMafiaCharacter* MafiaChar = Cast<AACMafiaCharacter>(Character);
-            if (MafiaChar != nullptr && MafiaChar->HasWalkyTalky())
-            {
-                UE_LOG(LogHG, Warning, TEXT("서버: 무전기는 이미 소지하고 있습니다!"));
-                return;
-            }
-        }
-    }
+	// 구매할 아이템이 무전기면 특수 처리
+	FString ItemNameStr = ItemData->ItemName.ToString();
+	if (ItemNameStr.Contains(TEXT("무전기")) || ItemNameStr.Contains(TEXT("WalkyTalky")))
+	{
+		if (Character->GetCharacterType() == EACCharacterType::Police)
+		{
+			UE_LOG(LogHG, Warning, TEXT("서버: 경찰은 무전기를 구매할 수 없습니다!"));
+			return;
+		}
 
-    if (PurchaseItem(ItemData) == false)
-    {
-        UE_LOG(LogHG, Warning, TEXT("특수 아이템 구매 실패: %s"), *ItemData->ItemName.ToString());
-        return;
-    }
+		AACMafiaCharacter* MafiaChar = Cast<AACMafiaCharacter>(Character);
+		if (MafiaChar != nullptr && MafiaChar->HasWalkyTalky())
+		{
+			UE_LOG(LogHG, Warning, TEXT("서버: 무전기는 이미 소지하고 있습니다!"));
+			return;
+		}
 
-    ClientNotifySpecialItemPurchased(ItemAssetId);  // AssetId 전달
+		// 무전기 구매 성공 후 음성 그룹 마피아로 설정
+		Character->SetVoiceGroup(EVoiceGroup::Mafia);
+	}
+
+	if (PurchaseItem(ItemData) == false)
+	{
+		UE_LOG(LogHG, Warning, TEXT("특수 아이템 구매 실패: %s"), *ItemData->ItemName.ToString());
+		return;
+	}
+
+	ClientNotifySpecialItemPurchased(ItemAssetId);  // AssetId 전달
 }
 
 void UACShopComponent::ServerPurchaseAmmo_Implementation(FPrimaryAssetId ItemAssetId)

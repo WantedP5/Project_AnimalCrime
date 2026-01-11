@@ -182,6 +182,11 @@ bool UACQuickSlotWidget::HasSameItem(UACItemData* ItemData) const
 
 void UACQuickSlotWidget::BindShopComponent()
 {
+    // 이미 바인딩됐으면 스킵
+    if (bShopComponentBound == true)
+    {
+        return;
+    }
     APlayerController* PC = GetOwningPlayer();
     if (PC == nullptr) return;
 
