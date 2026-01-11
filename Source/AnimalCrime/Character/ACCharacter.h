@@ -88,13 +88,34 @@ protected:
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
 
+ /**
+     @brief 상호작용 시작 시 캐릭터 상태 변경
+     @param Target - 상호작용 당하는 액터
+ **/
 	UFUNCTION(Server, Reliable)
-	void ServerFreezeCharacter(AActor* Target, bool bFreeze);
+	void ServerFreezeCharacter(AActor* Target);
+
+/**
+	@brief 상호작용 초기화 시 캐릭터 상태 변경
+	@param Target - 상호작용 당하는 액터
+**/
+	UFUNCTION(Server, Reliable)
+	void ServerUnfreezeCharacter(AActor* Target);
 
 	// === 홀드 상호작용 RPC ===
+
+ /**
+     @brief 상호작용 시작 시 몽타주 재생을 위한 함수
+     @param TargetActor     - 상호작용 당하는 액터
+     @param InteractionData - 상호작용 정보
+ **/
 	UFUNCTION(Server, Reliable)
 	void ServerStartHoldInteraction(AActor* TargetActor, class UACInteractionData* InteractionData);
 
+/**
+	@brief 상호작용 초기화 시 몽타주 중단을 위한 함수
+	@param TargetActor     - 상호작용 당하는 액터
+**/
 	UFUNCTION(Server, Reliable)
 	void ServerStopHoldInteraction(AActor* TargetActor);
 
@@ -599,7 +620,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	float OriginZVelocity = 500.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StunWalkSpeed = 10.0f;
+	float StunWalkSpeed = 50.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunZVelocity = 0.0f;
 

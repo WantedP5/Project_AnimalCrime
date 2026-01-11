@@ -288,7 +288,8 @@ float AACCitizen::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	// Multicast로 모든 클라이언트에 피격 이펙트 전파
 	if (DamageAmount > 0.0f)
 	{
-		MulticastPlayHitEffect(10.0f);
+		// todo: 시민 OnDamage 효과 시간
+		MulticastPlayHitEffect(2.0f);
 	}
 
 	AACCitizenAIController* AIControler = Cast<AACCitizenAIController>(GetController());
@@ -478,9 +479,10 @@ void AACCitizen::OnChangeState()
 	
 	if (CharacterState == ECharacterState::OnDamage)
 	{
+		// todo: 시민 OnDamage 타이머
 		FTimerDelegate TimerDelegate;
 		TimerDelegate.BindUObject(this, &AACCitizen::UpdateCharacterStatusFree);
-		GetWorld()->GetTimerManager().SetTimer(MoveSpeedTimerHandle, TimerDelegate, 10.0, false);
+		GetWorld()->GetTimerManager().SetTimer(MoveSpeedTimerHandle, TimerDelegate, 2.0, false);
 	}
 	else if (CharacterState == ECharacterState::Angry)
 	{

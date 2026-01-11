@@ -158,7 +158,8 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	// 서버에서만 실행되는 영역에 Multicast 호출 
 	if (DamageAmount > 0.0f)
 	{
-		MulticastPlayHitEffect(10.f);  // 모든 클라이언트에 전파
+		// todo: 마피아 OnDamage 효과 시간
+		MulticastPlayHitEffect(2.f);  // 모든 클라이언트에 전파
 	}
 
 	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
@@ -183,6 +184,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		SetCharacterState(ECharacterState::Stun);
 		if (CharacterState == ECharacterState::Stun)
 		{
+			// todo: 마피아 기절 타이머
 			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusRevive);
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
 		}
@@ -192,8 +194,9 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		SetCharacterState(ECharacterState::OnDamage);
 		if (CharacterState == ECharacterState::OnDamage)
 		{
+			// todo: 마피아 OnDamage 타이머
 			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusFree);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 2.0, false);
 		}
 	}
 
@@ -505,7 +508,7 @@ void AACMafiaCharacter::FireHitscan()
 	FVector TraceEnd = CameraLoc + (CameraRot.Vector() * MaxDistance);
 
 	// 총구 위치
-	FVector MuzzleLoc = GetMesh()->GetSocketLocation("RightHandSocket");
+	FVector MuzzleLoc = GetMesh()->GetSocketLocation("RightHandPistolSocket");
 
 	FVector ShootDir = (TraceEnd - MuzzleLoc).GetSafeNormal();
 	FVector End = MuzzleLoc + (ShootDir * MaxDistance);
