@@ -170,6 +170,18 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		ZoomAction = ZoomActionRef.Object;
 	}
+	
+	// ===== 게임 시간 ====
+	static ConstructorHelpers::FObjectFinder<UInputAction> TimerUpActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Project/Input/Actions/IA_TimeUp.IA_TimeUp'"));
+	if (TimerUpActionRef.Succeeded())
+	{
+		TimerUpAction = TimerUpActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> TimerDownActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Project/Input/Actions/IA_TimeDown.IA_TimeDown'"));
+	if (TimerDownActionRef.Succeeded())
+	{
+		TimerDownAction = TimerDownActionRef.Object;
+	}
 
 	// ===== 핸드폰 관련 로드 =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> PhoneActionRef(TEXT("/Game/Project/Input/Actions/IA_Phone.IA_Phone"));
@@ -238,6 +250,7 @@ void AACMainPlayerController::BeginPlay()
 	//}
 
 	ZoomOut();
+	ACHUDWidget->HideSprintUI();
 	ACHUDWidget->WBP_Ammo->UpdateAmmo(0);
 
 	// 서버(리슨 서버 호스트)인 경우에만 여기서 RoleScreen 표시
@@ -260,6 +273,32 @@ void AACMainPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AACMainPlayerController, bZoomFlag);
+}
+
+void AACMainPlayerController::TimeUp()
+{
+	AC_LOG(LogHY, Error, TEXT("TimeUp !!!"));
+	AACMainGameMode* GameMode = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	if (GameMode == nullptr)
+	{
+		return;
+	}
+
+	AC_LOG(LogHY, Error, TEXT("TimeUp"));
+	GameMode->GetGameRuleManager()->RemainTimeUp(60);
+}
+
+void AACMainPlayerController::TimeDown()
+{
+	AC_LOG(LogHY, Error, TEXT("TimeDown !!!"));
+	AACMainGameMode* GameMode = GetWorld()->GetAuthGameMode<AACMainGameMode>();
+	if (GameMode == nullptr)
+	{
+		return;
+	}
+
+	AC_LOG(LogHY, Error, TEXT("TimeDown"));
+	GameMode->GetGameRuleManager()->RemainTimeDown(60);
 }
 
 void AACMainPlayerController::SetupInputComponent()
@@ -349,6 +388,16 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &AACMainPlayerController::ZoomIn);
 		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Completed, this, &AACMainPlayerController::ZoomOut);
+	}
+	
+	if (TimerUpAction)
+	{
+		EnhancedInputComponent->BindAction(TimerUpAction, ETriggerEvent::Started, this, &AACMainPlayerController::TimeUp);
+	}
+	
+	if (TimerDownAction)
+	{
+		EnhancedInputComponent->BindAction(TimerDownAction, ETriggerEvent::Started, this, &AACMainPlayerController::TimeDown);
 	}
 
 	if (PhoneAction)

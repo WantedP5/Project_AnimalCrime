@@ -16,6 +16,7 @@
 #include "CrossHair/ACCrossHairWidget.h"
 #include "UI/BoundItem/ACBoundItemWidget.h"
 #include "Game/ACMainPlayerController.h"
+#include "Sprint/ACSprintWidget.h"
 
 void UACHUDWidget::BindGameState()
 {
@@ -54,8 +55,8 @@ void UACHUDWidget::BindPlayerState()
 	// MoneyComponent를 바인딩
 	// ※ 확인 했으면 위에 주석들 다 지워주세요
 	BindMoneyComponent();
-
 	BindBoundItems();
+	BindSprintGauge();
 }
 
 void UACHUDWidget::HandleScoreChanged(float NewScore)
@@ -92,6 +93,55 @@ void UACHUDWidget::HandleAmmoChanged(int32 InAmmo)
 	}
 	
 	WBP_Ammo->UpdateAmmo(InAmmo);
+}
+
+void UACHUDWidget::HandleGaugeChanged(int32 InSprintGauge)
+{
+	if (WBP_Sprint == nullptr)
+	{
+		return;
+	}
+	
+	WBP_Sprint->UpdateSprintGauge(InSprintGauge);
+}
+
+void UACHUDWidget::ShowSprintUI()
+{
+	if (WBP_Sprint == nullptr)
+	{
+		return;
+	}
+
+	WBP_Sprint->ShowSprintWidget();
+}
+
+void UACHUDWidget::HideSprintUI()
+{
+	if (WBP_Sprint == nullptr)
+	{
+		return;
+	}
+
+	WBP_Sprint->HideSprintWidget();
+}
+
+void UACHUDWidget::BindSprintGauge()
+{
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		AACCharacter* Character = Cast<AACCharacter>(PC->GetPawn());
+		if (Character == nullptr)
+		{
+			// Pawn이 아직 없으면 타이머로 재시도
+			UE_LOG(LogHY, Warning, TEXT("Pawn is nullptr BindSprintGauge"));
+		}
+		Character->OnSprintChanged.AddUObject(this, &UACHUDWidget::HandleGaugeChanged);
+		Character->OnSprintUIShow.AddUObject(this, &UACHUDWidget::ShowSprintUI);
+		Character->OnSprintUIHide.AddUObject(this, &UACHUDWidget::HideSprintUI);
+	}
+	
+	// 초기값 설정.
+	HandleGaugeChanged(10);
 }
 
 void UACHUDWidget::BindMoneyComponent()

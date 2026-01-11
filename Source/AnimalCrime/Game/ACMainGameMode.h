@@ -203,4 +203,9 @@ protected:
 	int32 MafiaCount;
 	
 #pragma endregion 
+	
+	
+public:
+	void GameRemainTimeUp();
+	void GameRemainTimeDown();
 };

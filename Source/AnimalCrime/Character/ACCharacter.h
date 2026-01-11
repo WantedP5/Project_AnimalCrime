@@ -12,6 +12,14 @@
 
 class AACMainPlayerController;
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSprintChanged, int32 /*Current*/);
+DECLARE_MULTICAST_DELEGATE(FOnSprintUIShow);
+DECLARE_MULTICAST_DELEGATE(FOnSprintUIHide);
+
+
+
+
 UCLASS()
 class ANIMALCRIME_API AACCharacter : public ACharacter, public IACInteractInterface
 {
@@ -475,7 +483,11 @@ protected: // Dash 전용 맴버 변수
 	UPROPERTY(Replicated)
 	uint8 bDashCoolDown = true;
 
-
+public:
+	FOnSprintChanged OnSprintChanged;
+	
+	FOnSprintUIShow OnSprintUIShow;
+	FOnSprintUIHide OnSprintUIHide;
 protected: // Sprint 전용 맴버 변수
 	UPROPERTY(ReplicatedUsing = OnRep_Sprint)
 	uint8 bSprint : 1 = false;
@@ -493,7 +505,10 @@ protected: // Sprint 전용 맴버 변수
 	FTimerHandle SprintGaugeDownTimerHandle;
 	FTimerHandle SprintGaugeUpTimerHandle;
 
-	UPROPERTY(Replicated)
+	UFUNCTION()
+	void OnRep_SprintGauge();
+	
+	UPROPERTY(ReplicatedUsing = OnRep_SprintGauge)
 	int32 SprintGauge = 10;
 	
 public:
