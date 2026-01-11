@@ -28,6 +28,15 @@ public:
 	UFUNCTION()
 	void HandleAmmoChanged(int32 InAmmo);
 
+	UFUNCTION()
+	void HandleGaugeChanged(int32 InSprintGauge);
+	
+	void ShowSprintUI();
+	void HideSprintUI();
+	
+	// 새 함수 추가 - MoneyComponent 바인딩
+	void BindSprintGauge();
+	
 	// 새 함수 추가 - MoneyComponent 바인딩
 	void BindMoneyComponent();
 
@@ -77,10 +86,16 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACBoundItemWidget> WBP_Contraband;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACSprintWidget> WBP_Sprint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoundItem")
 	TObjectPtr<UTexture2D> WalkyTalkyImage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoundItem")
 	TObjectPtr<UTexture2D> ContrabandImage;
+
+	
+
 };

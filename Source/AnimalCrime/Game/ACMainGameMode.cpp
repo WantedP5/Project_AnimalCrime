@@ -571,3 +571,13 @@ void AACMainGameMode::PostSeamlessTravel()
 	// 	}
 	// }
 }
+
+void AACMainGameMode::GameRemainTimeUp()
+{
+	GameRuleManager->RemainTimeUp(60);
+}
+
+void AACMainGameMode::GameRemainTimeDown()
+{
+	GameRuleManager->RemainTimeDown(60);
+}

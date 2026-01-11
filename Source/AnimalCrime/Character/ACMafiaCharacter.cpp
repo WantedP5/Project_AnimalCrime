@@ -429,6 +429,13 @@ void AACMafiaCharacter::AttackHitCheck(int32 DamageAmount)
 
 	if (bHit)
 	{
+		// @Todo: 리펙토링 필요. 급해서 이렇게 짬.
+		if (DamageAmount >= 5.0f)
+		{
+			AC_LOG(LogHY, Log, TEXT("Damage Amount %d"), DamageAmount);
+			UGameplayStatics::ApplyDamage(Hit.GetActor(), DamageAmount, GetController(), this, nullptr);
+			return;
+		}
 		AC_LOG(LogHY, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		UACItemData* EquippedWeapon = ShopComponent->EquippedWeapon;
 		if (EquippedWeapon == nullptr)

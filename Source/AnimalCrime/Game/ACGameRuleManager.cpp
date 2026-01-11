@@ -20,6 +20,13 @@ void UACGameRuleManager::Init(AACMainGameMode* InGameMode)
 {
 	GameMode = Cast<AACMainGameMode>(InGameMode);
 	GameScoreGauge = 5000.0f;
+	
+	// 10분
+	GameOverTime = 600;
+	
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &UACGameRuleManager::CheckEndTimer);
+	GetWorld()->GetTimerManager().SetTimer(GameOverTimeHandle, TimerDelegate, 1, true);
 }
 
 AACMainGameMode* UACGameRuleManager::GetOwner() const
@@ -54,8 +61,16 @@ void UACGameRuleManager::OnObjectDestroyed(float InScore)
 	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		if (GameMode->HasAuthority())
+		UWorld* World = GameMode->GetWorld();
+		if (World && GameMode->HasAuthority())
 		{
+			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
+			if (bTimerFlag == true)
+			{
+				return;
+			}
+			bTimerFlag = true;
+			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
 			ShowGameResult(EGameEndType::Score);
 		}
 	}
@@ -82,8 +97,15 @@ void UACGameRuleManager::OnAttackCitizen(float InScore)
 	}
 	if (GameScoreGauge <= MafiaWinThreshold)
 	{
-		if (GameMode->HasAuthority())
+		UWorld* World = GameMode->GetWorld();
+		if (World && GameMode->HasAuthority())
 		{
+			if (bTimerFlag == true)
+			{
+				return;
+			}
+			bTimerFlag = true;
+			World->GetTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 10.0f, false);
 			ShowGameResult(EGameEndType::Score);
 		}
 	}
@@ -159,6 +181,18 @@ void UACGameRuleManager::ShowGameResult(EGameEndType GameEndType)
 	GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_NextMap, this, &UACGameRuleManager::LoadNextMap, 7.0f, false);
 }
 
+
+void UACGameRuleManager::CheckEndTimer()
+{
+	GameOverTime -= 1;
+	UE_LOG(LogHY, Error, TEXT("Remain Timer:%d"), GameOverTime);
+	if (GameOverTime < 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(GameOverTimeHandle);
+		LoadNextMap();
+	}
+}
+
 void UACGameRuleManager::RewardPoliceForAction(EPoliceAction Action, float InScore)
 {
 	switch (Action)
@@ -222,4 +256,17 @@ void UACGameRuleManager::LoadNextMap()
 	}
 
 	GameInstance->LoadLobbyMap();
+}
+
+/*
+ *	테스트 용도로 만들은 함수
+ */
+void UACGameRuleManager::RemainTimeUp(int32 TimeAmount)
+{
+	GameOverTime += TimeAmount;
+}
+
+void UACGameRuleManager::RemainTimeDown(int32 TimeAmount)
+{
+	GameOverTime -= TimeAmount;
 }

@@ -785,7 +785,10 @@ void AACCharacter::ServerSprintEnd_Implementation()
 	// 게이지 Up에 대한 Timer 시작
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(this, &AACCharacter::GaugeUp);
-	GetWorld()->GetTimerManager().SetTimer(SprintGaugeUpTimerHandle, TimerDelegate, 1, true);
+	if (GetWorld()->GetTimerManager().IsTimerActive(SprintGaugeUpTimerHandle) == false)
+	{
+		GetWorld()->GetTimerManager().SetTimer(SprintGaugeUpTimerHandle, TimerDelegate, 1, true);
+	}
 
 	bSprint = false;
 	OnRep_Sprint();
@@ -816,24 +819,39 @@ void AACCharacter::OnRep_Sprint()
 void AACCharacter::GaugeUp()
 {
 	// 1씩 증가
-	SprintGauge += 1;
-	// AC_LOG(LogHY, Warning, TEXT("Gauge Up: %d"), SprintGauge);
-	if (SprintGauge > SprintGaugeData)
+	if (SprintGauge + 1 > SprintGaugeData)
 	{
-		SprintGauge = SprintGaugeData;
+		GetWorldTimerManager().ClearTimer(SprintGaugeUpTimerHandle);
+		bSprint = false;
+		OnRep_Sprint();
+		return;
 	}
+	// AC_LOG(LogHY, Warning, TEXT("Gauge Up: %d"), SprintGauge);
+	
+	SprintGauge += 1;
+	OnRep_SprintGauge();
 }
 
 void AACCharacter::GaugeDown()
 {
-	SprintGauge -= 1;
 	// AC_LOG(LogHY, Warning, TEXT("Gauge Down: %d"), SprintGauge);
-	if (SprintGauge <= 0)
+	if (SprintGauge - 1 <= 0)
 	{
 		GetWorldTimerManager().ClearTimer(SprintGaugeDownTimerHandle);
+		
+		// @Todo: 임시 방편 바꿔야할수도...
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUObject(this, &AACCharacter::GaugeUp);
+		if (GetWorld()->GetTimerManager().IsTimerActive(SprintGaugeUpTimerHandle) == false)
+		{
+			GetWorld()->GetTimerManager().SetTimer(SprintGaugeUpTimerHandle, TimerDelegate, 1, true);
+		}
 		bSprint = false;
 		OnRep_Sprint();
 	}
+	
+	SprintGauge -= 1;
+	OnRep_SprintGauge();
 }
 
 #pragma endregion
@@ -2110,6 +2128,19 @@ void AACCharacter::ServerShoot_Implementation()
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit: %s"), *Hit.GetActor()->GetName());
 		UGameplayStatics::ApplyDamage(Hit.GetActor(), GunDamage, GetController(), this, AACGunBase::StaticClass());
+	}
+}
+
+void AACCharacter::OnRep_SprintGauge()
+{
+	OnSprintChanged.Broadcast(SprintGauge);
+	if (SprintGauge == 10)
+	{
+		OnSprintUIHide.Broadcast();
+	}
+	else
+	{
+		OnSprintUIShow.Broadcast();
 	}
 }
 

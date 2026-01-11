@@ -58,6 +58,8 @@ protected:
 	bool CanUseSkill() const;
 	bool CanUseEscapeSkill() const;
 public:
+	void TimeUp();
+	void TimeDown();
 
 
 public:
@@ -270,6 +272,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> EscapeAction;
 
+	// ===== 게임 시간 관련 테스트 =========
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> TimerUpAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> TimerDownAction;
+	
 	// ===== 총기 관련 테스트 =========
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<class UInputAction> ZoomAction;
