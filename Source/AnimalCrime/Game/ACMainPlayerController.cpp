@@ -18,6 +18,7 @@
 #include "UI/Interaction/ACInteractProgressWidget.h"
 #include "UI/GameStart/ACRoleScreen.h"
 #include "UI/GameResult/ACGameResultScreen.h"
+#include "UI/Spectator/ACSpectatorScreen.h"
 #include "ACPlayerState.h"
 #include "ACMainGameState.h"
 #include "ACMainGameMode.h"
@@ -36,10 +37,10 @@
 AACMainPlayerController::AACMainPlayerController()
 {
 	//탈출 스크린 로드
-	static ConstructorHelpers::FClassFinder<UUserWidget> EscapeScreenRef(TEXT("/Game/Project/UI/WBP_EscapeText.WBP_EscapeText_C"));
-	if (EscapeScreenRef.Succeeded())
+	static ConstructorHelpers::FClassFinder<UACSpectatorScreen> SpectatorScreenRef(TEXT("/Game/Project/UI/Spectator/WBP_SpectatorScreen.WBP_SpectatorScreen_C"));
+	if (SpectatorScreenRef.Succeeded())
 	{
-		EscapeScreenClass = EscapeScreenRef.Class;
+		SpectatorScreenClass = SpectatorScreenRef.Class;
 	}
 
 	// HUD Class 대입.
@@ -122,13 +123,13 @@ AACMainPlayerController::AACMainPlayerController()
 	{
 		SprintAction = SprintActionRef.Object;
 	}
-	
+
 	static ConstructorHelpers::FObjectFinder<UInputAction> EscapeActionRef(TEXT("/Game/Project/Input/Actions/IA_Escape.IA_Escape"));
 	if (EscapeActionRef.Succeeded())
 	{
 		EscapeAction = EscapeActionRef.Object;
 	}
-	
+
 	// ===== 퀵슬롯 Input Action 로드 (하나만) =====
 	static ConstructorHelpers::FObjectFinder<UInputAction> QuickSlotActionRef(TEXT("/Game/Project/Input/Actions/IA_QuickSlot.IA_QuickSlot"));
 	if (QuickSlotActionRef.Succeeded())
@@ -245,7 +246,7 @@ void AACMainPlayerController::BeginPlay()
 		ScreenSetRole();
 	}
 	AC_LOG(LogHY, Warning, TEXT("End"));
-	
+
 	bReplicates = true;
 }
 
@@ -257,7 +258,7 @@ void AACMainPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AACMainPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(AACMainPlayerController, bZoomFlag);
 }
 
@@ -328,7 +329,7 @@ void AACMainPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(EscapeAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleEscape);
 	}
-	
+
 	if (SettingsCloseAction)
 	{
 		EnhancedInputComponent->BindAction(SettingsCloseAction, ETriggerEvent::Started, this, &AACMainPlayerController::HandleSettingsClose);
@@ -567,14 +568,14 @@ void AACMainPlayerController::HandleEscape(const FInputActionValue& Value)
 		AC_LOG(LogHY, Error, TEXT("InputFlag is false"));
 		return;
 	}
-	
+
 	if (CanUseEscapeSkill() == false)
 	{
 		AC_LOG(LogHY, Error, TEXT("CanUseEscapeSkill is false"));
 		return;
 	}
-	
-	
+
+
 	AACMafiaCharacter* MafiaPawn = GetPawn<AACMafiaCharacter>();
 	if (MafiaPawn == nullptr)
 	{
@@ -678,7 +679,7 @@ bool AACMainPlayerController::CanUseEscapeSkill() const
 		AC_LOG(LogHY, Error, TEXT("CharacterPawn is nullptr"));
 		return false;
 	}
-	
+
 	ECharacterState CharacterState = MafiaPawn->GetCharacterState();
 	// 캐릭터의 상태가 None, Stun, Prison 상태일 경우 불가
 	if (CharacterState != ECharacterState::OnInteract)
@@ -686,7 +687,7 @@ bool AACMainPlayerController::CanUseEscapeSkill() const
 		AC_LOG(LogHY, Error, TEXT("CharacterState is %s"), *UEnum::GetValueAsString(CharacterState));
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -719,13 +720,12 @@ void AACMainPlayerController::ChangeInputMode(EInputMode NewMode)
 
 void AACMainPlayerController::ClientOnEscapeSuccess_Implementation()
 {
-	//UI 변경
-	EscapeScreen = CreateWidget<UUserWidget>(this, EscapeScreenClass);
-	if (EscapeScreen == nullptr)
+	if (ACHUDWidget == nullptr)
 	{
 		return;
 	}
-	EscapeScreen->AddToViewport();
+	ACHUDWidget->RemoveFromParent();
+	ShowNotification(FText::FromString(TEXT("탈출")));
 
 	// IMC 변경
 	ChangeInputMode(EInputMode::Spectator);
@@ -993,21 +993,21 @@ void AACMainPlayerController::ZoomIn()
 		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
 		return;
 	}
-	
+
 	if (CharacterPawn->IsHoldingGun() == false)
 	{
 		AC_LOG(LogHY, Log, TEXT("No Gun In Hand"));
 		return;
 	}
-	
+
 	if (CharacterPawn->CanZoomIn() == false)
 	{
-	AC_LOG(LogHY, Log, TEXT("줌이 안된데"));
-	return;
+		AC_LOG(LogHY, Log, TEXT("줌이 안된데"));
+		return;
 	}
 	Server_Zoom(true);
 	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
-	
+
 	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
 	if (FollowCamera == nullptr)
 	{
@@ -1049,9 +1049,9 @@ void AACMainPlayerController::ZoomIn()
 				StaticMeshComp->SetHiddenInGame(true);
 			}
 		}
-		
+
 	}
-	
+
 	ACHUDWidget->ZoomInState();
 }
 
@@ -1065,21 +1065,21 @@ void AACMainPlayerController::ZoomOut()
 		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
 		return;
 	}
-	
+
 	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
 	if (FollowCamera == nullptr)
 	{
 		AC_LOG(LogHY, Log, TEXT("FollowCamera is nullptr"));
 		return;
 	}
-	
+
 	UCameraComponent* GunCamera = CharacterPawn->GetGunCamera();
 	if (GunCamera == nullptr)
 	{
 		AC_LOG(LogHY, Log, TEXT("GunCamera is nullptr"));
 		return;
 	}
-	
+
 	Server_Zoom(false);
 
 	FollowCamera->Activate();
@@ -1095,7 +1095,7 @@ void AACMainPlayerController::ZoomOut()
 		CharacterPawn->GetFaceAccMesh()->SetHiddenInGame(false);
 		CharacterPawn->GetShoesMesh()->SetHiddenInGame(false);
 		Mesh->SetHiddenInGame(false);
-		
+
 		TArray<USceneComponent*> Childrens;
 		Mesh->GetChildrenComponents(true, Childrens);
 
@@ -1111,7 +1111,7 @@ void AACMainPlayerController::ZoomOut()
 			}
 		}
 	}
-	
+
 	ACHUDWidget->ZoomOutState();
 }
 
@@ -1129,7 +1129,7 @@ void AACMainPlayerController::OnRep_Zoom()
 		AC_LOG(LogHY, Log, TEXT("CharacterPawn is nullptr"));
 		return;
 	}
-	
+
 	// Zoom In 상태
 	if (bZoomFlag == true)
 	{
@@ -1220,6 +1220,15 @@ void AACMainPlayerController::ServerSwitchToNextSpectateTarget_Implementation()
 		{
 			// ViewTarget 설정
 			SetViewTargetWithBlend(NextPawn, 0.0f);
+
+			// 클라이언트에 UI 업데이트 알림
+			AACPlayerState* TargetPS = NextPawn->GetPlayerState<AACPlayerState>();
+			if (TargetPS == nullptr)
+			{
+				return;
+			}
+			ClientOnSpectateTargetChanged(TargetPS);
+
 			return;
 		}
 
@@ -1247,7 +1256,7 @@ void AACMainPlayerController::ServerStartSpectateOtherPlayer_Implementation()
 	MyPawn->SetActorEnableCollision(false);
 
 	//관전 대상 선택
-	ServerSwitchToNextSpectateTarget();
+	//ServerSwitchToNextSpectateTarget();
 
 	//게임종료 조건 체크
 	AACMainGameMode* GM = GetWorld()->GetAuthGameMode<AACMainGameMode>();
@@ -1374,6 +1383,23 @@ void AACMainPlayerController::ClosePhone()
 void AACMainPlayerController::UpdateAmmoUI(int32 Ammo)
 {
 	ACHUDWidget->HandleAmmoChanged(Ammo);
+}
+
+void AACMainPlayerController::ClientOnSpectateTargetChanged_Implementation(AACPlayerState* NewTargetPS)
+{
+	//만약 SpectatorScreen 이 없다면 생성
+	if (SpectatorScreen == nullptr)
+	{
+		SpectatorScreen = CreateWidget<UACSpectatorScreen>(this, SpectatorScreenClass);
+		if (SpectatorScreen == nullptr)
+		{
+			return;
+		}
+		SpectatorScreen->AddToViewport();
+		SpectatorScreen->BindGameState();
+	}
+	//UI 수정
+	SpectatorScreen->SetFriend(NewTargetPS);
 }
 
 void AACMainPlayerController::ShowNotification(const FText& Text)

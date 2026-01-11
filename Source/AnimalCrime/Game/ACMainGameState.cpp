@@ -38,6 +38,7 @@ void AACMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AACMainGameState, TeamScore);
+	DOREPLIFETIME(AACMainGameState, EscapedCount);
 	DOREPLIFETIME(AACMainGameState, EscapeState);
 	DOREPLIFETIME(AACMainGameState, SpectatablePawns);
 }
@@ -154,6 +155,15 @@ AActor* AACMainGameState::GetDestinationActor() const
 	// @Todo 현재 랜덤 값이지만, 나중에는 최대 인원수를 둬야할 것 같음.
 	int32 RandIndex = FMath::RandRange(0, DestinationObjects.Num() - 1);
 	return DestinationObjects[RandIndex];
+}
+void AACMainGameState::OnRep_EscapedCount()
+{
+	OnEscapeCountChanged.Broadcast(EscapedCount);
+}
+void AACMainGameState::AddEscapedCount()
+{
+	++EscapedCount;
+	OnRep_EscapedCount();
 }
 #pragma endregion
 

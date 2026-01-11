@@ -213,6 +213,13 @@ public:
 	void ClientNotifySpectateTargetRemoved(APawn* RemovedPawn);
 
 	/**
+	  @brief 관전 대상이 변경되었을 때 UI 업데이트
+	  @param NewTargetPS - 새 관전 대상의 PlayerState
+  **/
+	UFUNCTION(Client, Reliable)
+	void ClientOnSpectateTargetChanged(class AACPlayerState* NewTargetPS);
+
+	/**
 		@brief 알림 메시지 표시용 함수
 		@param Text - 함림 텍스트
 	**/
@@ -242,9 +249,9 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UUserWidget> EscapeScreenClass;
+	TSubclassOf<class UACSpectatorScreen> SpectatorScreenClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	TObjectPtr<class UUserWidget> EscapeScreen;
+	TObjectPtr<class UACSpectatorScreen> SpectatorScreen;
 
 	// ===== 입력 관련 =====
 protected:

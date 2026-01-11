@@ -9,6 +9,7 @@
 #include "ACMainGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChanged, float, NewScore);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEscapeCountChanged, int32, NewCount);
 /**
  *
  */
@@ -101,6 +102,15 @@ public:
 	AActor* GetDestinationActor() const;
 #pragma endregion
 
+	UFUNCTION()
+	void OnRep_EscapedCount();
+
+	UFUNCTION(BlueprintCallable)
+	void AddEscapedCount();
+
+	UFUNCTION(BlueprintPure)
+	int32 GetEscapedCount() const { return EscapedCount; }
+
 public:
 	/**
 		@brief 특정 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
@@ -143,6 +153,10 @@ public:
 public:
 	FOnScoreChanged OnScoreChanged;
 
+public:
+	//!< 탈출 인원 변경 델리게이트
+	FOnEscapeCountChanged OnEscapeCountChanged;
+
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_TeamScore)
 	float TeamScore = 5000;
@@ -157,4 +171,10 @@ private:
 	/** 목적지 정보 배열 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TArray<TObjectPtr<class AActor>> DestinationObjects;
+
+
+private:
+	//!< 탈출 인원
+	UPROPERTY(ReplicatedUsing = OnRep_EscapedCount)
+	int32 EscapedCount = 0;
 };

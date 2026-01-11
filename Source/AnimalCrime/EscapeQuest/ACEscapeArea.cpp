@@ -38,11 +38,15 @@ void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponen
 		return;
 	}
 
-	AC_LOG(LogSY, Log, TEXT("Begin EscapeAreas"));
-
 	if (HasAuthority() == false)
 	{
 		AC_LOG(LogSY, Log, TEXT("HasAuthority false!"));
+		return;
+	}
+
+	AACMainGameState* GS = GetWorld()->GetGameState<AACMainGameState>();
+	if (GS == nullptr)
+	{
 		return;
 	}
 
@@ -52,14 +56,17 @@ void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponen
 		return;
 	}
 
-	// UI변경, IMC 변경
-	PC->ClientOnEscapeSuccess();
-
 	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
 	if (PS == nullptr)
 	{
 		return;
 	}
+
+	// 탈출인원 추가
+	GS->AddEscapedCount();
+
+	// UI변경, IMC 변경
+	PC->ClientOnEscapeSuccess();
 
 	//관전 상태로 전환
 	PS->EnterSpectatorState();
@@ -74,7 +81,7 @@ void AACEscapeArea::OnEscapeOverlapBegin(UPrimitiveComponent* OverlappedComponen
 		PC,
 		FName("ServerStartSpectateOtherPlayer")
 	);
-	GetWorld()->GetTimerManager().SetTimer(
+	GetWorld()->GetTimerManager().SetTimer( 
 		SpectateTimerHandle,
 		SpectateDelegate,
 		1.0f,
