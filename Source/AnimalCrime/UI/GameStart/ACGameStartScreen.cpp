@@ -3,6 +3,7 @@
 #include "Components/Button.h"
 #include "Game/ACAdvancedFriendsGameInstance.h"
 
+#include "Kismet/KismetSystemLibrary.h"
 #include "AnimalCrime.h"
 void UACGameStartScreen::NativeConstruct()
 {

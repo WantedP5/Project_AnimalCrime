@@ -37,6 +37,7 @@ void UACAdvancedFriendsGameInstance::Init()
 	// 맵 관련 초기화
 	CurrentMapType = EMapType::None;
 
+	MainMenuMapName = TEXT("MainMenuMap");
 	LobbyMapName = TEXT("LobbyMap");
 	GameMapName = TEXT("CityMap");
 
@@ -103,6 +104,10 @@ void UACAdvancedFriendsGameInstance::OnStart()
 #pragma endregion
 
 #pragma region Map Level
+void UACAdvancedFriendsGameInstance::LoadMainMenuMap()
+{
+	UpdateMap(EMapType::MainMenu);
+}
 void UACAdvancedFriendsGameInstance::LoadLobbyMap()
 {
 	UpdateMap(EMapType::Lobby);
@@ -209,6 +214,9 @@ void UACAdvancedFriendsGameInstance::DoServerTravel()
 
 	switch (CurrentMapType)
 	{
+	case EMapType::MainMenu:
+		GetWorld()->ServerTravel("MainMenuMap", true);
+		break;
 	case EMapType::Lobby:
 		GetWorld()->ServerTravel("LobbyMap", true);
 		break;
