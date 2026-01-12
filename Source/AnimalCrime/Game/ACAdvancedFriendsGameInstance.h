@@ -10,6 +10,7 @@ UENUM(BlueprintType)
 enum class EMapType : uint8
 {
 	None		UMETA(DisplayName = "None"),
+	MainMenu	UMETA(DisplayName = "MainMenu"),
 	Lobby       UMETA(DisplayName = "Lobby"),
 	Game        UMETA(DisplayName = "Game"),
 	Result      UMETA(DisplayName = "Result"),
@@ -33,6 +34,7 @@ public:
 
 #pragma region Map Level 
 public:
+	void LoadMainMenuMap();
 	void LoadLobbyMap();
 	void LoadGameMap();
 
@@ -99,6 +101,9 @@ public:
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
 	EMapType CurrentMapType;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
+	FString MainMenuMapName;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
 	FString LobbyMapName;
