@@ -16,7 +16,19 @@ public:
 private:
 	UFUNCTION()
 	void OnCreateRoomClicked();
+
+	//UFUNCTION()
+	//void OnCreditClicked();
+
+	//UFUNCTION()
+	//void OnQuitGameClicked();
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UButton> CreateRoomButton;
+
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<class UButton> CreditButton;
+
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<class UButton> QuitGameButton;
 };
