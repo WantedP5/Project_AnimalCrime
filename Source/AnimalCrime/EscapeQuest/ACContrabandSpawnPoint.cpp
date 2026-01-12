@@ -1,15 +1,18 @@
-﻿
+
 #include "EscapeQuest/ACContrabandSpawnPoint.h"
 #include "Components/BillboardComponent.h"
+#include "Components/SceneComponent.h"
 
 AACContrabandSpawnPoint::AACContrabandSpawnPoint()
 {
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	RootComponent = SceneRoot;
+
 #if WITH_EDITORONLY_DATA
 	Billboard = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("Billboard"));
-	if (Billboard == nullptr)
+	if (Billboard)
 	{
-		return;
+		Billboard->SetupAttachment(RootComponent);
 	}
-	RootComponent = Billboard;
 #endif
 }

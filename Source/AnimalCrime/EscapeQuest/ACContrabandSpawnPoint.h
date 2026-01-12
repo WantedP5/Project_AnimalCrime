@@ -13,6 +13,10 @@ class ANIMALCRIME_API AACContrabandSpawnPoint : public AActor
 public:
     AACContrabandSpawnPoint();
 
+private:
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class USceneComponent> SceneRoot;
+
 #if WITH_EDITORONLY_DATA
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<class UBillboardComponent> Billboard;
