@@ -309,6 +309,9 @@ public:
 	void MulticastPlayZoomMontage();
 	
 	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastStopAllMontage();
+	
+	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayShootMontage();
 	
 	UFUNCTION(NetMulticast, Unreliable)
@@ -522,7 +525,6 @@ protected: // Sprint 전용 맴버 변수
 	UFUNCTION()
 	void OnRep_Sprint();
 
-
 	UFUNCTION()
 	void GaugeUp();
 
@@ -541,6 +543,12 @@ protected: // Sprint 전용 맴버 변수
 public:
 	bool CanZoomIn();
 	
+public:
+	UFUNCTION(Server, Unreliable)
+	void ServerPlayZoomIn();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerPlayZoomOut();
 
 protected:
 	UPROPERTY(Replicated, EditAnywhere)

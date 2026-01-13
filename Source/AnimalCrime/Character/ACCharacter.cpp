@@ -1010,13 +1010,26 @@ bool AACCharacter::IsHoldingGun()
 	return true;
 }
 
+void AACCharacter::MulticastStopAllMontage_Implementation()
+{
+	AC_LOG(LogHY, Error, TEXT("MulticastStopAllMontage Before"));
+	
+	if (ZoomMontage && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		AC_LOG(LogHY, Error, TEXT("MulticastStopAllMontage After"));
+		GetMesh()->GetAnimInstance()->StopAllMontages(0.5);
+	}
+}
+
 void AACCharacter::MulticastPlayZoomMontage_Implementation()
 {
-	// 보류
-	// if (MeleeMontage && GetMesh() && GetMesh()->GetAnimInstance())
-	// {
-	// 	GetMesh()->GetAnimInstance()->Montage_Play(ZoomMontage, 1.0f);
-	// }
+	AC_LOG(LogHY, Error, TEXT("MulticastPlayZoomMontage Before"));
+	
+	if (ZoomMontage && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		AC_LOG(LogHY, Error, TEXT("MulticastPlayZoomMontage After"));
+		GetMesh()->GetAnimInstance()->Montage_Play(ZoomMontage, 1.0f);
+	}
 }
 
 void AACCharacter::MulticastPlayShootMontage_Implementation()
@@ -2232,9 +2245,18 @@ bool AACCharacter::CanZoomIn()
 		return false;
 	}
 
-	// MulticastPlayZoomMontage();
-
 	return true;
+}
+
+
+void AACCharacter::ServerPlayZoomIn_Implementation()
+{
+	MulticastPlayZoomMontage();
+}
+
+void AACCharacter::ServerPlayZoomOut_Implementation()
+{
+	MulticastStopAllMontage();
 }
 
 void AACCharacter::PlayHitEffect(float Duration)
