@@ -20,7 +20,16 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Carry")
     void SetIsCarrying(bool bNewCarrying);
 
+    UFUNCTION(BlueprintCallable, Category = "Carry")
+    bool GetIsZoomIn() const { return IsZoomIn; }
+
+    UFUNCTION(BlueprintCallable, Category = "Carry")
+    void SetIsZoomIn(bool bNewZoomIn);
+
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool IsCarrying = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    bool IsZoomIn = false;
 };

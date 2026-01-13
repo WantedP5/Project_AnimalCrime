@@ -808,7 +808,8 @@ void AACMainPlayerController::ZoomIn()
 	}
 	Server_Zoom(true);
 	
-	CharacterPawn->ServerPlayZoomIn();
+	//CharacterPawn->ServerPlayZoomIn();
+	CharacterPawn->SetZoomInState(true);
 	AC_LOG(LogHY, Error, TEXT("ZoomIn %d"), bZoomFlag);
 
 	UCameraComponent* FollowCamera = CharacterPawn->GetFollowCamera();
@@ -883,7 +884,8 @@ void AACMainPlayerController::ZoomOut()
 		return;
 	}
 
-	CharacterPawn->ServerPlayZoomOut();
+	//CharacterPawn->ServerPlayZoomOut();
+	CharacterPawn->SetZoomInState(false);
 	Server_Zoom(false);
 
 	FollowCamera->Activate();

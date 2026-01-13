@@ -2474,6 +2474,34 @@ void AACCharacter::OnRep_BulletCount()
 	}
 }
 
+void AACCharacter::Server_SetZoomInState_Implementation(bool bPlay)
+{
+	Multicast_SetZoomInState(bPlay);
+}
+
+void AACCharacter::Multicast_SetZoomInState_Implementation(bool bPlay)
+{
+	UACCharacterAnimInstance* Anim = Cast<UACCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Anim == nullptr)
+	{
+		return;
+	}
+	bIsZoomIn = bPlay;
+	Anim->SetIsZoomIn(bPlay);
+}
+
+void AACCharacter::SetZoomInState(bool bPlay)
+{
+	if (HasAuthority())
+	{
+		Multicast_SetZoomInState(bPlay);
+	}
+	else
+	{
+		Server_SetZoomInState(bPlay);
+	}
+}
+
 void AACCharacter::OnRep_VoiceGroup()
 {
 	// 로컬 플레이어 캐릭터가 무전기 상태 변경 시 모든 다른 캐릭터의 VOIP 설정 업데이트

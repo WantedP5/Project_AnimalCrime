@@ -11,3 +11,13 @@ void UACCharacterAnimInstance::SetIsCarrying(bool bNewCarrying)
 
     IsCarrying = bNewCarrying;
 }
+
+void UACCharacterAnimInstance::SetIsZoomIn(bool bNewZoomIn)
+{
+    if (IsZoomIn == bNewZoomIn)
+    {
+        return; // 변경 없으면 아무 것도 안 함
+    }
+
+    IsZoomIn = bNewZoomIn;
+}

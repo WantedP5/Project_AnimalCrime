@@ -60,7 +60,7 @@ public:
 	//virtual void SettingsClose(const FInputActionValue& Value);
 	virtual void Jump() override;
 	virtual void SettingsClose();
-	
+
 public:
 	/**
 	 * @brief PlayerController로 부터 Dash 키가 눌렸는지 Input을 받는 함수
@@ -86,7 +86,7 @@ public:
 	// 서버에 Dash 요청 함수
 	UFUNCTION(Server, Reliable)
 	void ServerSprintEnd();
-	
+
 	AACMainPlayerController* GetMainPlayerController() const;
 
 protected:
@@ -97,34 +97,34 @@ protected:
 	UFUNCTION(Server, Reliable)
 	virtual void ServerItemDrop();
 
- /**
-     @brief 상호작용 시작 시 캐릭터 상태 변경
-     @param Target - 상호작용 당하는 액터
- **/
+	/**
+		@brief 상호작용 시작 시 캐릭터 상태 변경
+		@param Target - 상호작용 당하는 액터
+	**/
 	UFUNCTION(Server, Reliable)
 	void ServerFreezeCharacter(AActor* Target);
 
-/**
-	@brief 상호작용 초기화 시 캐릭터 상태 변경
-	@param Target - 상호작용 당하는 액터
-**/
+	/**
+		@brief 상호작용 초기화 시 캐릭터 상태 변경
+		@param Target - 상호작용 당하는 액터
+	**/
 	UFUNCTION(Server, Reliable)
 	void ServerUnfreezeCharacter(AActor* Target);
 
 	// === 홀드 상호작용 RPC ===
 
  /**
-     @brief 상호작용 시작 시 몽타주 재생을 위한 함수
-     @param TargetActor     - 상호작용 당하는 액터
-     @param InteractionData - 상호작용 정보
+	 @brief 상호작용 시작 시 몽타주 재생을 위한 함수
+	 @param TargetActor     - 상호작용 당하는 액터
+	 @param InteractionData - 상호작용 정보
  **/
 	UFUNCTION(Server, Reliable)
 	void ServerStartHoldInteraction(AActor* TargetActor, class UACInteractionData* InteractionData);
 
-/**
-	@brief 상호작용 초기화 시 몽타주 중단을 위한 함수
-	@param TargetActor     - 상호작용 당하는 액터
-**/
+	/**
+		@brief 상호작용 초기화 시 몽타주 중단을 위한 함수
+		@param TargetActor     - 상호작용 당하는 액터
+	**/
 	UFUNCTION(Server, Reliable)
 	void ServerStopHoldInteraction(AActor* TargetActor);
 
@@ -254,14 +254,14 @@ public:
 public:
 	UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	UCameraComponent* GetGunCamera() const { return GunCamera; }
-	
+
 protected:
 	//!< 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> GunSpringArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -271,7 +271,7 @@ protected:
 	/** 몽타주: 기본 공격  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> MeleeMontage;
-	
+
 	/** 몽타주: 총  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Member|Attack|Anim", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> ZoomMontage;
@@ -293,37 +293,37 @@ protected:
 	/** 플레그: 공격 시도 중 여부 */
 	UPROPERTY()
 	uint8 bEscapeFlag : 1 = false;
-	
+
 	UFUNCTION(Server, Reliable)
 	void ServerEscape();
 	void PerformEscape();
-	
+
 public:
 	virtual void AttackHitCheck(int32 DamageAmount = 1);
 	bool IsHoldingGun();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayAttackMontage();
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayZoomMontage();
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastStopAllMontage();
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayShootMontage();
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayEscapeSkillMontage();
 
-	
+
 	void FireHitscan();
-	
- /**
-     @brief 캐릭터의 Carry 상태를 설정하는 진입 함수.
-		호출한 주체가 서버인지 클라이언트인지에 따라 내부적으로 Server RPC 또는 Multicast RPC를 호출하여 모든 플레이어에게 애니메이션이 동기화되도록 처리한다.
- **/
+
+	/**
+		@brief 캐릭터의 Carry 상태를 설정하는 진입 함수.
+		   호출한 주체가 서버인지 클라이언트인지에 따라 내부적으로 Server RPC 또는 Multicast RPC를 호출하여 모든 플레이어에게 애니메이션이 동기화되도록 처리한다.
+	**/
 	UFUNCTION(BlueprintCallable)
 	void SetCarryState(bool bPlay);
 
@@ -339,11 +339,20 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetCarryState(bool bPlay);
 
- /**
-		@brief brief VoiceGroup이 리플리케이트될 때 호출되는 함수.
-			로컬 플레이어의 무전기 상태가 변경되면 모든 캐릭터의 VOIP 설정을 업데이트하고,
-			다른 캐릭터의 무전기 상태가 변경되면 해당 캐릭터의 VOIP 설정만 업데이트한다.
- **/
+	UFUNCTION(BlueprintCallable)
+	void SetZoomInState(bool bPlay);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetZoomInState(bool bPlay);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetZoomInState(bool bPlay);
+
+	/**
+		   @brief brief VoiceGroup이 리플리케이트될 때 호출되는 함수.
+			   로컬 플레이어의 무전기 상태가 변경되면 모든 캐릭터의 VOIP 설정을 업데이트하고,
+			   다른 캐릭터의 무전기 상태가 변경되면 해당 캐릭터의 VOIP 설정만 업데이트한다.
+	**/
 	UFUNCTION()
 	void OnRep_VoiceGroup();
 
@@ -410,15 +419,15 @@ private:
 	**/
 	bool SortNearInteractables();
 
- /**
-     @brief NearInteractables에서 가장 가까운 유효한 액터를 Focus로 설정
-     @details Overlap 이벤트 발생 시(Add/RemoveInteractable) 호출됨
- **/
+	/**
+		@brief NearInteractables에서 가장 가까운 유효한 액터를 Focus로 설정
+		@details Overlap 이벤트 발생 시(Add/RemoveInteractable) 호출됨
+	**/
 	void UpdateFocus();
 
- /**
-     @brief 홀드 상호작용 관련 멤버변수를 모두 초기화
- **/
+	/**
+		@brief 홀드 상호작용 관련 멤버변수를 모두 초기화
+	**/
 	void ResetHoldInteract();
 
 	/**
@@ -427,7 +436,7 @@ private:
 	**/
 	float GetHoldProgress() const;
 
-//!< 상호작용 멤버변수
+	//!< 상호작용 멤버변수
 protected:
 	/**
 		@brief VOIPTalker 등록 시도 함수. 타이머로 주기적으로 호출되어 VOIPTalker가 생성될 때까지 시도함.
@@ -480,7 +489,7 @@ protected:
 	TObjectPtr<class UACShopComponent> ShopComponent;
 
 
-	
+
 	UFUNCTION()
 	void OnRep_CharacterState();
 public:
@@ -494,7 +503,7 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_CharacterState, EditAnywhere, BlueprintReadWrite, Category = "State")
 	ECharacterState CharacterState;
-	
+
 	//UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "State")
 	//ECharacterState PrevCharacterState;
 public:
@@ -503,7 +512,7 @@ public:
 	void SetStunState();
 	void SetInteractState();
 	void SetOnInteractState();
-	
+
 protected:
 	float CalculateMoveSpeed() const;
 
@@ -515,7 +524,7 @@ protected: // Dash 전용 맴버 변수
 
 public:
 	FOnSprintChanged OnSprintChanged;
-	
+
 	FOnSprintUIShow OnSprintUIShow;
 	FOnSprintUIHide OnSprintUIHide;
 protected: // Sprint 전용 맴버 변수
@@ -536,17 +545,17 @@ protected: // Sprint 전용 맴버 변수
 
 	UFUNCTION()
 	void OnRep_SprintGauge();
-	
+
 	UPROPERTY(ReplicatedUsing = OnRep_SprintGauge)
 	int32 SprintGauge = 10;
-	
+
 public:
 	bool CanZoomIn();
-	
+
 public:
 	UFUNCTION(Server, Unreliable)
 	void ServerPlayZoomIn();
-	
+
 	UFUNCTION(Server, Unreliable)
 	void ServerPlayZoomOut();
 
@@ -558,7 +567,7 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> BatSwingSound;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	TObjectPtr<USoundBase> GunSound;
 
@@ -602,12 +611,12 @@ public:
 	void AddBullets(int32 InBulletCount);
 	void ClearBullets();
 	void SpendBullets(int32 InBulletCount);
-	
+
 	UFUNCTION()
 	void OnRep_BulletCount();
-	
+
 protected:
-	UPROPERTY(ReplicatedUsing= OnRep_BulletCount, EditAnywhere, BlueprintReadWrite, Category = "Bullet")
+	UPROPERTY(ReplicatedUsing = OnRep_BulletCount, EditAnywhere, BlueprintReadWrite, Category = "Bullet")
 	int32 BulletCount = 0;
 	// VOIP 관련
 public:
@@ -631,7 +640,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SprintMoveSpeedData;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float OriginMafiaMoveSpeedData;
 	
@@ -643,7 +652,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SprintGaugeUpData;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DashForwardImpulseData;
 
@@ -695,4 +704,7 @@ protected:	// 캐릭터 스킬의 맴버 변수
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsCarry : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsZoomIn : 1;
 };
