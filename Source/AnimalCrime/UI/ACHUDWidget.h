@@ -73,6 +73,9 @@ public:
 	TObjectPtr<class UACScoreWidget> WBP_Score;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UACScoreSlider> ScoreSlider;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACQuickSlotWidget> WBP_QuickSlot;
 	
 	UPROPERTY(meta = (BindWidget))

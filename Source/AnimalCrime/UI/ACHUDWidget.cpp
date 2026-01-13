@@ -16,6 +16,7 @@
 #include "CrossHair/ACCrossHairWidget.h"
 #include "UI/BoundItem/ACBoundItemWidget.h"
 #include "UI/EscapeQuest/ACQuestTracker.h"
+#include "UI/Score/ACScoreSlider.h"
 #include "Game/ACMainPlayerController.h"
 #include "Sprint/ACSprintWidget.h"
 
@@ -67,11 +68,18 @@ void UACHUDWidget::HandleScoreChanged(float NewScore)
 		return;
 	}
 
+	if (ScoreSlider == nullptr)
+	{
+		return;
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		if (AACMainGameState* MainGameState = World->GetGameState<AACMainGameState>())
 		{
 			WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
+
+			ScoreSlider->UpdateScore(NewScore, MainGameState->GetMaxScore());
 		}
 	}
 }
