@@ -134,6 +134,16 @@ public:
 	int32 EscapeCount = 3;
 	
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float DamaeRate = 2.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float OnHitEffectRate = 2.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float StunRate = 10.0f;
+protected:
+	
 	// UPROPERTY()
 	// TObjectPtr<UDataAsset> 
 };
