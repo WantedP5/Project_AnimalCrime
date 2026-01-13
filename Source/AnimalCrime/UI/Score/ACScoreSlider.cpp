@@ -4,6 +4,8 @@
 
 #include "Components/Slider.h"
 #include "Components/TextBlock.h"
+#include "Styling/SlateBrush.h"
+#include "Widgets/Input/SSlider.h"
 
 void UACScoreSlider::UpdateScore(float CurrentScore, float MaxScore)
 {
@@ -16,8 +18,37 @@ void UACScoreSlider::UpdateScore(float CurrentScore, float MaxScore)
 		UE_LOG(LogTemp, Log, TEXT("ScoreProgressBar nullptr"));
 		return;
 	}
-	ScoreSlider->SetValue(CurrentScore);
 
+	TSharedPtr<SSlider> SlateSlider = StaticCastSharedPtr<SSlider>(ScoreSlider->GetCachedWidget());
+	if (bIsHappy == true && Percent <= 0.3)
+	{
+		bIsHappy = false;
+		FSlateBrush Brush;
+		Brush.SetResourceObject(CryingImage);
+		Brush.ImageSize = HandleImageSize;
+		SliderStyle.SetNormalThumbImage(Brush);
+		SliderStyle.SetBarThickness(15.f);
+		if (SlateSlider.IsValid() == true)
+		{
+			SlateSlider->SetStyle(&SliderStyle);
+		}
+	}
+	else if (bIsHappy == false && Percent > 0.3)
+	{
+		bIsHappy = true;
+		FSlateBrush Brush;
+		Brush.SetResourceObject(SmileImage);
+		Brush.ImageSize = HandleImageSize;
+		SliderStyle.SetNormalThumbImage(Brush);
+		SliderStyle.SetBarThickness(15.f);
+		if (SlateSlider.IsValid() == true)
+		{
+			SlateSlider->SetStyle(&SliderStyle);
+		}
+	}
+
+	ScoreSlider->SetValue(CurrentScore);
+	
 	if (ScoreText == nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("ScoreText nullptr"));

@@ -63,10 +63,10 @@ void UACHUDWidget::BindPlayerState()
 
 void UACHUDWidget::HandleScoreChanged(float NewScore)
 {
-	if (WBP_Score == nullptr)
-	{
-		return;
-	}
+	//if (WBP_Score == nullptr)
+	//{
+	//	return;
+	//}
 
 	if (ScoreSlider == nullptr)
 	{
@@ -77,7 +77,7 @@ void UACHUDWidget::HandleScoreChanged(float NewScore)
 	{
 		if (AACMainGameState* MainGameState = World->GetGameState<AACMainGameState>())
 		{
-			WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
+			//WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
 
 			ScoreSlider->UpdateScore(NewScore, MainGameState->GetMaxScore());
 		}

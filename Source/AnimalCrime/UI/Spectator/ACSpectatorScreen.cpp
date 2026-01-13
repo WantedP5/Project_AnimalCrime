@@ -1,6 +1,6 @@
 ﻿
 #include "UI/Spectator/ACSpectatorScreen.h"
-#include "UI/Score/ACScoreWidget.h"
+#include "UI/Score/ACScoreSlider.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "AdvancedSteamFriendsLibrary.h"
@@ -26,7 +26,7 @@ void UACSpectatorScreen::BindGameState()
 
 void UACSpectatorScreen::HandleScoreChanged(float NewScore)
 {
-	if (WBP_Score == nullptr)
+	if (ScoreSlider == nullptr)
 	{
 		return;
 	}
@@ -35,7 +35,9 @@ void UACSpectatorScreen::HandleScoreChanged(float NewScore)
 	{
 		if (AACMainGameState* MainGameState = World->GetGameState<AACMainGameState>())
 		{
-			WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
+			//WBP_Score->UpdateScore(NewScore, MainGameState->GetMaxScore());
+
+			ScoreSlider->UpdateScore(NewScore, MainGameState->GetMaxScore());
 		}
 	}
 }
