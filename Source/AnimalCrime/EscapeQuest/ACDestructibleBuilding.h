@@ -14,7 +14,6 @@ USTRUCT(BlueprintType)
 struct FDestroyParticleInfo
 {
 	GENERATED_BODY()
-
 	/** 파괴 종료 파티클 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UParticleSystem> Particle = nullptr;
@@ -40,6 +39,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
  /**
      @brief 건물 파괴 호출 함수
@@ -53,11 +54,45 @@ public:
 	UFUNCTION()
 	void OnRep_Destroyed();
 
-private:
- /**
-	 @brief 특정 위치에 파괴 스트레인 적용
- **/
-	void ApplyFractureStrain();
+	// 함수 선언만 되어있어서 주석처리함
+//private:
+// /**
+//	 @brief 특정 위치에 파괴 스트레인 적용
+// **/
+//	void ApplyFractureStrain();
+
+public:
+	/**
+	 * @brief Fade 효과 시작 (클라이언트에서만 호출할 것)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Fade")
+	void StartFadeLoop();
+
+	/**
+	 * @brief Fade 효과 중지 (클라이언트에서만 호출할 것)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Fade")
+	void StopFade();
+
+protected:
+	// Fade 업데이트 함수
+	void UpdateFade();
+
+protected:
+	// Fade 머티리얼
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+	TObjectPtr<class UMaterialInterface> FadeMaterial;
+
+	// Fade 상태
+	FTimerHandle FadeTimerHandle;
+	float CurrentFadeAlpha = 0.0f;
+	bool bFadingIn = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+	float FadeSpeed = 0.25f;
+
+	// Dynamic Material Instance
+	TObjectPtr<UMaterialInstanceDynamic> OverlayDynamicMaterial;
 
 protected:
 	// 평소 건물 (메시 / 충돌 / 위치 조정 가능)

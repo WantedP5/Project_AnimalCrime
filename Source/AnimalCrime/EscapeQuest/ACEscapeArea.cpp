@@ -6,10 +6,18 @@
 #include "Game/ACMainGameState.h"
 #include "Game/ACMainPlayerController.h"
 #include "Game/ACPlayerState.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 #include "AnimalCrime.h"
 AACEscapeArea::AACEscapeArea()
 {
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> NiagaraRef(TEXT("/Game/Project/EscapeQuest/NS_EscapeArea.NS_EscapeArea"));
+	if (NiagaraRef.Succeeded())
+	{
+		NiagaraEffect->SetAsset(NiagaraRef.Object);
+	}
+
 	SetActorEnableCollision(false);
 }
 void AACEscapeArea::BeginPlay()

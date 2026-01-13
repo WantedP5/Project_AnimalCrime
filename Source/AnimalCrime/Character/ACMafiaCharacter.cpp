@@ -22,6 +22,7 @@
 #include "Sound/SoundBase.h"
 #include "UI/ACHUDWidget.h"
 
+#include "EscapeQuest/ACDestructibleBuilding.h"
 AACMafiaCharacter::AACMafiaCharacter()
 {
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("MafiaCollision"));
@@ -360,6 +361,26 @@ void AACMafiaCharacter::ClientSetBombHeld_Implementation(bool bIsHolding)
 		return;
 	}
 	bIsHolding ? PC->ACHUDWidget->ShowDropUI() : PC->ACHUDWidget->HideDropUI();
+
+	// === Building Fade 제어 (이 클라이언트에서만 보임!) ===
+	TArray<AActor*> FoundBuildings;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AACDestructibleBuilding::StaticClass(), FoundBuildings);
+
+	for (AActor* Actor : FoundBuildings)
+	{
+		AACDestructibleBuilding* Building = Cast<AACDestructibleBuilding>(Actor);
+		if (Building && Building->BombSpot == ESpot::Bank)
+		{
+			if (bIsHolding == true)
+			{
+				Building->StartFadeLoop();  // 이 클라이언트에서만 fade 시작
+			}
+			else
+			{
+				Building->StopFade();  // 이 클라이언트에서만 fade 중지
+			}
+		}
+	}
 }
 
 void AACMafiaCharacter::ClientSetEscapeAreaVisible_Implementation(bool bVisible)
