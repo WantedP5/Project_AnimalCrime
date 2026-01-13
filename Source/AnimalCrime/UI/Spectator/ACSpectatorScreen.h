@@ -21,8 +21,11 @@ public:
 	void SetFriend(class AACPlayerState* PS);
 
 protected:
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<class UACScoreWidget> WBP_Score;
+
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UACScoreWidget> WBP_Score;
+	TObjectPtr<class UACScoreSlider> ScoreSlider;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> FriendImage;

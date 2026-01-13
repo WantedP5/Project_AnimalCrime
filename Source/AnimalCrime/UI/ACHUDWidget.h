@@ -69,8 +69,11 @@ public:
 	void UpdateQuestTracker(EEscapeState NewState);
 	
 public:
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<class UACScoreWidget> WBP_Score;
+
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UACScoreWidget> WBP_Score;
+	TObjectPtr<class UACScoreSlider> ScoreSlider;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UACQuickSlotWidget> WBP_QuickSlot;
