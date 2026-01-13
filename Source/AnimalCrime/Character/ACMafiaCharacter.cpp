@@ -161,7 +161,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	if (DamageAmount > 0.0f)
 	{
 		// todo: 마피아 OnDamage 효과 시간
-		MulticastPlayHitEffect(2.f);  // 모든 클라이언트에 전파
+		MulticastPlayHitEffect(DamaeRate);  // 모든 클라이언트에 전파
 	}
 
 	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
@@ -188,7 +188,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		{
 			// todo: 마피아 기절 타이머
 			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusRevive);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, StunRate, false);
 		}
 	}
 	else
@@ -204,7 +204,7 @@ float AACMafiaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		{
 			// todo: 마피아 OnDamage 타이머
 			TimerDelegate.BindUObject(this, &AACMafiaCharacter::UpdateCharacterStatusFree);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 2.0, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DamaeRate, false);
 		}
 	}
 

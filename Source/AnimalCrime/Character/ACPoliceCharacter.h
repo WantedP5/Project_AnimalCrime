@@ -23,6 +23,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayHitEffect(float Duration);
 public:
@@ -51,6 +52,17 @@ protected:
 protected:
 	// 월급
 	FTimerHandle SalaryTimerHandle;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 	float TimeRate = 10.0f;
 	
+	// 현재는 미사용 -> OnDamage가 존재하지 않음.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float DamaeRate = 2.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float OnHitEffectRate = 5.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+	float StunRate = 5.0f;
 };
