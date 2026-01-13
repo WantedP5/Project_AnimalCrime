@@ -114,16 +114,18 @@ float AACPoliceCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 
 	if (DamageAmount > 0.0f)
 	{
-		MulticastPlayHitEffect(10.f);  // 모든 클라이언트에 전파
+		// todo: 경찰 Stun 효과 시간
+		MulticastPlayHitEffect(5.f);  // 모든 클라이언트에 전파
 	}
 
 	AC_LOG(LogHY, Error, TEXT("Damage:%f"), DamageAmount);
 	AC_LOG(LogHY, Error, TEXT("Name:%s"), *DamageCauser->GetName());
 	SetCharacterState(ECharacterState::Stun);
 	
+	// todo: 경찰 기절 5초 타이머
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(this, &AACPoliceCharacter::UpdateCharacterStatusRevive);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 5.0, false);
 	
 	return SuperResult;
 }

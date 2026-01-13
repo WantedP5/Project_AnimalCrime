@@ -43,7 +43,7 @@
 #include "Game/ACPlayerState.h"
 #include "Game/ACAdvancedFriendsGameInstance.h"
 #include "Skill/ACSkillData.h"
-
+#include "Voice/ACVOIPTalker.h"
 #include "Sound/SoundBase.h"
 #include "UI/ACHUDWidget.h"
 #include "Materials/MaterialInterface.h"
@@ -257,7 +257,7 @@ AACCharacter::AACCharacter()
 	
 
 	// VOIPTalker 생성
-	VOIPTalker = CreateDefaultSubobject<UVOIPTalker>(TEXT("VOIPTalker"));
+	VOIPTalker = CreateDefaultSubobject<UACVOIPTalker>(TEXT("VOIPTalker"));
 
 	static ConstructorHelpers::FObjectFinder<USoundAttenuation> AttenuationRef(TEXT("/Game/Project/Sound/SA_VOIP.SA_VOIP"));
 	if (AttenuationRef.Succeeded())
@@ -568,7 +568,7 @@ void AACCharacter::InteractStarted(int32 InputIndex)
 		CurrentHoldTime = 0.f;
 		CurrentHoldKey = Key;
 		AC_LOG(LogSW, Warning, TEXT("Hold Interaction Progress Started!!! %s | State: %s"), *GetName(), *UEnum::GetValueAsString(CharacterState));
-		ServerFreezeCharacter(CurrentHoldTarget, true);
+		ServerFreezeCharacter(CurrentHoldTarget);
 
 		// 서버에 홀드 상호작용 시작 알림 (몽타주 + 회전)
 		ServerStartHoldInteraction(CurrentHoldTarget, InteractionData);
@@ -1735,10 +1735,15 @@ void AACCharacter::ResetHoldInteract()
 	}
 
 	// 타겟이 있으면 정리
-	if (CurrentHoldTarget)
+	if (CurrentHoldTarget != nullptr)
 	{
+		// 상태 초기화
+		ServerUnfreezeCharacter(CurrentHoldTarget);
+
+		// 몽타주 초기화
 		ServerStopHoldInteraction(CurrentHoldTarget);
-		ServerFreezeCharacter(CurrentHoldTarget, false);
+
+		// 즉시 상호작용 재시도 방지
 		RemoveInteractable(CurrentHoldTarget);
 	}
 
@@ -1837,112 +1842,109 @@ void AACCharacter::ServerItemDrop_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("Server ItemDrop!!"));
 }
 
-void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target, bool bFreeze)
+void AACCharacter::ServerFreezeCharacter_Implementation(AActor* Target)
 {
-	AC_LOG(LogSW, Error, TEXT("111111"));
-	if (bFreeze == true)
+	AC_LOG(LogSW, Error, TEXT("2222222"));
+	//bOnInteract = true;
+	SetCharacterState(ECharacterState::Interact);
+
+	if (Target == nullptr)
 	{
-		AC_LOG(LogSW, Error, TEXT("2222222"));
-		//bOnInteract = true;
-		SetCharacterState(ECharacterState::Interact);
+		return;
+	}
+	// 2. 거리 검사 (가장 강력한 보안 장치)
+	// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+	// todo: 거리 다시 확인하기
+	float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+	float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
 
-		if (Target == nullptr)
+	if (DistSq > MaxDistSq)
+	{
+		AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+		return;
+	}
+
+	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+	if (Interactable == nullptr)
+	{
+		return;
+	}
+
+	if (Interactable->GetInteractorType() == EACInteractorType::Citizen || Interactable->GetInteractorType() == EACInteractorType::BlackMarketDealer)
+	{
+		ACharacter* Char = Cast<ACharacter>(Target);
+		if (Char == nullptr)
 		{
 			return;
 		}
-		// 2. 거리 검사 (가장 강력한 보안 장치)
-		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
-		// todo: 거리 다시 확인하기
-		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
-		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
 
-		if (DistSq > MaxDistSq)
-		{
-			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
-			return;
-		}
-
-		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
-		if (Interactable == nullptr)
-		{
-			return;
-		}
-
-		if (Interactable->GetInteractorType() == EACInteractorType::Citizen || Interactable->GetInteractorType() == EACInteractorType::BlackMarketDealer)
-		{
-			ACharacter* Char = Cast<ACharacter>(Target);
-			if (Char == nullptr)
-			{
-				return;
-			}
-
-			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_None);
-			AC_LOG(LogSW, Error, TEXT("333333333"));
-		}
-		else
-		{
-			AACCharacter* ACChar = Cast<AACCharacter>(Target);
-			if (ACChar == nullptr)
-			{
-				return;
-			}
-
-			ACChar->SetCharacterState(ECharacterState::OnInteract);
-			AC_LOG(LogSW, Error, TEXT("44444444"));
-		}
+		// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+		Char->GetCharacterMovement()->SetMovementMode(MOVE_None);
+		AC_LOG(LogSW, Error, TEXT("333333333"));
 	}
 	else
 	{
-		SetCharacterState(ECharacterState::Free);
-		AC_LOG(LogSW, Error, TEXT("5555555555"));
-
-		if (Target == nullptr)
+		AACCharacter* ACChar = Cast<AACCharacter>(Target);
+		if (ACChar == nullptr)
 		{
 			return;
 		}
 
-		// 2. 거리 검사 (가장 강력한 보안 장치)
-		// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
-		// todo: 거리 다시 확인하기
-		float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
-		float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
+		ACChar->SetCharacterState(ECharacterState::OnInteract);
+		AC_LOG(LogSW, Error, TEXT("44444444"));
+	}
+}
 
-		if (DistSq > MaxDistSq)
+void AACCharacter::ServerUnfreezeCharacter_Implementation(AActor* Target)
+{
+	SetCharacterState(ECharacterState::Free);
+	AC_LOG(LogSW, Error, TEXT("5555555555"));
+
+	if (Target == nullptr)
+	{
+		return;
+	}
+
+	// 2. 거리 검사 (가장 강력한 보안 장치)
+	// 상호작용 가능한 최대 거리가 300이라면, 오차 범위 포함해서 350~400 정도로 검사
+	// todo: 거리 다시 확인하기
+	float DistSq = FVector::DistSquared(GetActorLocation(), Target->GetActorLocation());
+	float MaxDistSq = FMath::Square(400.0f); // 400cm (4미터)
+
+	if (DistSq > MaxDistSq)
+	{
+		AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
+		return;
+	}
+
+	IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
+	if (Interactable == nullptr)
+	{
+		return;
+	}
+
+	if (Interactable->GetInteractorType() == EACInteractorType::Citizen || Interactable->GetInteractorType() == EACInteractorType::BlackMarketDealer)
+	{
+		ACharacter* Char = Cast<ACharacter>(Target);
+		if (Char == nullptr)
 		{
-			AC_LOG(LogSW, Error, TEXT("해킹 의심: 너무 먼 거리의 타겟 요청. 거리: %f"), FMath::Sqrt(DistSq));
 			return;
 		}
 
-		IACInteractInterface* Interactable = Cast<IACInteractInterface>(Target);
-		if (Interactable == nullptr)
+		// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
+		Char->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
+		AC_LOG(LogSW, Error, TEXT("666666666"));
+	}
+	else
+	{
+		AACCharacter* ACChar = Cast<AACCharacter>(Target);
+		if (ACChar == nullptr)
 		{
 			return;
 		}
 
-		if (Interactable->GetInteractorType() == EACInteractorType::Citizen || Interactable->GetInteractorType() == EACInteractorType::BlackMarketDealer)
-		{
-			ACharacter* Char = Cast<ACharacter>(Target);
-			if (Char == nullptr)
-			{
-				return;
-			}
-
-			// SetMovementMode는 Replicated되므로 클라이언트에도 동기화됨
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
-			AC_LOG(LogSW, Error, TEXT("666666666"));
-		}
-		else
-		{
-			AACCharacter* ACChar = Cast<AACCharacter>(Target);
-			if (ACChar == nullptr)
-			{
-				return;
-			}
-
-			ACChar->SetCharacterState(ECharacterState::Free);
-			AC_LOG(LogSW, Error, TEXT("777777777"));
-		}
+		ACChar->SetCharacterState(ECharacterState::Free);
+		AC_LOG(LogSW, Error, TEXT("777777777"));
 	}
 }
 
