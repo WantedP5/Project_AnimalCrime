@@ -1269,6 +1269,35 @@ void AACCharacter::UpdateFocus()
 				continue;
 		}
 
+		// todo: 임시로 감옥 안의 마피아는 건들지 말자
+		if (CharacterType == EACCharacterType::Police && TargetType == EACInteractorType::Mafia)
+		{
+			AACCharacter* TargetChar = Cast<AACCharacter>(Candidate);
+			if (TargetChar == nullptr)
+			{
+				AC_LOG(LogSW, Error, TEXT("NOT AACCharacter"))
+					continue;
+			}
+			APlayerController* mafPC = Cast<APlayerController>(TargetChar->GetController());
+			if (mafPC == nullptr)
+			{
+				AC_LOG(LogSW, Error, TEXT("NO CONTROLLER"))
+					continue;
+			}
+			AACPlayerState* mafPS = mafPC->GetPlayerState<AACPlayerState>();
+			if (mafPS == nullptr)
+			{
+				AC_LOG(LogSW, Error, TEXT("NO GetPlayerState"))
+					continue;
+			}
+
+			if (mafPS->CharacterLocation == ECharacterLocation::Prison)
+			{
+				AC_LOG(LogSW, Error, TEXT("STOP PLAYING WITH PRISONERS!!!!"))
+					continue;
+			}
+		}
+
 		FocusedInteractable = Candidate;
 		FocusedInterface = Interactable;
 		FocusedTargetType = TargetType;
