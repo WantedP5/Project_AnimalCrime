@@ -27,7 +27,7 @@ void AACBlackMarketDealer::BeginPlay()
         TimerHandle,
         this,
         &AACBlackMarketDealer::UpdateHighlightForLocalPlayer,
-        0.5f,
+        1.5f,
         false
     );
 }
@@ -41,6 +41,13 @@ void AACBlackMarketDealer::UpdateHighlightForLocalPlayer()
         AC_LOG(LogHG, Error, TEXT("PC is nullptr"));
         return;
     }
+
+    // 로컬 컨트롤러인지 확인 (중요!)
+    if (!PC->IsLocalController())
+    {
+        return;
+    }
+
 
     AACCharacter* LocalChar = Cast<AACCharacter>(PC->GetPawn());
     if (LocalChar == nullptr)
@@ -75,6 +82,12 @@ void AACBlackMarketDealer::UpdateHighlightForLocalPlayer()
             {
                 MeshComp->SetRenderCustomDepth(true);
                 MeshComp->SetCustomDepthStencilValue(2);  // Stencil = 2 (BlackMarketDealer용)
+
+                // CustomDepth가 depth buffer에 제대로 쓰이도록 설정
+                MeshComp->bRenderCustomDepth = true;
+
+                // Mesh가 depth에 제대로 렌더링되도록 설정
+                MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
             }
         }
 

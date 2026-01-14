@@ -36,7 +36,7 @@ void AACDestroyableObject::BeginPlay()
 		TimerHandle,
 		this,
 		&AACDestroyableObject::EnableCustomDepthForMafia,
-		0.5f,
+		1.5f,
 		false
 	);
 
@@ -139,6 +139,12 @@ void AACDestroyableObject::EnableCustomDepthForMafia()
 	if (PC == nullptr)
 	{
 		UE_LOG(LogHG, Error, TEXT("PC is nullptr"));
+		return;
+	}
+
+	// 로컬 컨트롤러인지 확인 (중요!)
+	if (!PC->IsLocalController())
+	{
 		return;
 	}
 
