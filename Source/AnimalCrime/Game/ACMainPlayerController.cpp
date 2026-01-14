@@ -473,9 +473,10 @@ bool AACMainPlayerController::CanUseEscapeSkill() const
 		return false;
 	}
 
-	if (CharacterState == ECharacterState::Stun)
+	ECharacterState PrevCharacterState = MafiaPawn->GetPrevCharacterState();
+	if (PrevCharacterState == ECharacterState::Stun)
 	{
-		AC_LOG(LogHY, Error, TEXT("CharacterState is %s"), *UEnum::GetValueAsString(CharacterState));
+		AC_LOG(LogHY, Error, TEXT("PrevCharacterState was %s"), *UEnum::GetValueAsString(PrevCharacterState));
 		return false;
 	}
 	

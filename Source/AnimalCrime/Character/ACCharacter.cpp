@@ -453,6 +453,7 @@ void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	// 캐릭터 상태
 	DOREPLIFETIME(AACCharacter, CharacterState);
+	DOREPLIFETIME(AACCharacter, PrevCharacterState);
 
 	// Skeletal Mesh
 	DOREPLIFETIME(AACCharacter, HeadMeshReal);
@@ -470,6 +471,7 @@ void AACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AACCharacter, bStun);
 	DOREPLIFETIME(AACCharacter, bOnDamage);
 	DOREPLIFETIME(AACCharacter, bInteract);
+
 }
 
 void AACCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -1469,6 +1471,11 @@ ECharacterState AACCharacter::GetCharacterState() const
 	return CharacterState;
 }
 
+ECharacterState AACCharacter::GetPrevCharacterState() const
+{
+	return PrevCharacterState;
+}
+
 void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 {
 	// Case: 상태각 같은 경우
@@ -1579,7 +1586,7 @@ void AACCharacter::SetCharacterState(ECharacterState InCharacterState)
 
 	AC_LOG(LogHY, Warning, TEXT("Success !!! Now: %s Input: %s name:%s"), *UEnum::GetValueAsString(CharacterState), *UEnum::GetValueAsString(InCharacterState), *GetName());
 
-	//PrevCharacterState = CharacterState;
+	PrevCharacterState = CharacterState;
 	CharacterState = InCharacterState;
 
 	if (HasAuthority())
