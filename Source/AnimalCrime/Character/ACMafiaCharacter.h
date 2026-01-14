@@ -56,9 +56,6 @@ public:
 
 	virtual void AttackHitCheck(int32 DamageAmount) override;
 	
-	// RayCast를 통해 공격
-	void FireHitscan();
-
 	/**
 	 * @brief TimeRate마다 세금을 내는 함수
 	 */
