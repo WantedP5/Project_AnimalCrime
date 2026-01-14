@@ -330,7 +330,8 @@ void AACMainPlayerController::HandleAttack(const FInputActionValue& Value)
 	else
 	{
 		AC_LOG(LogHY, Error, TEXT("빵야빵야"));
-		ControlledCharacter->FireHitscan();
+		ControlledCharacter->ServerPlayShootMontage();
+		//ControlledCharacter->FireHitscan();
 	}
 }
 

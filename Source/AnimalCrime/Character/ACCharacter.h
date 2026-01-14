@@ -607,6 +607,10 @@ private:
 public:
 	UFUNCTION(Server, Reliable)
 	void ServerShoot();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerPlayShootMontage();
+	
 public:
 	int32 GetBulletCount() const;
 	void AddBullets(int32 InBulletCount);
