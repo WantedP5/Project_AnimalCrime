@@ -1233,12 +1233,7 @@ void AACCharacter::UpdateFocus()
 		return;
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC == nullptr)
-	{
-		return;
-	}
-	AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+	AACPlayerState* PS = GetPlayerState<AACPlayerState>();
 	if (PS == nullptr)
 	{
 		return;
@@ -1278,13 +1273,7 @@ void AACCharacter::UpdateFocus()
 				AC_LOG(LogSW, Error, TEXT("NOT AACCharacter"))
 					continue;
 			}
-			APlayerController* mafPC = Cast<APlayerController>(TargetChar->GetController());
-			if (mafPC == nullptr)
-			{
-				AC_LOG(LogSW, Error, TEXT("NO CONTROLLER"))
-					continue;
-			}
-			AACPlayerState* mafPS = mafPC->GetPlayerState<AACPlayerState>();
+			AACPlayerState* mafPS = TargetChar->GetPlayerState<AACPlayerState>();
 			if (mafPS == nullptr)
 			{
 				AC_LOG(LogSW, Error, TEXT("NO GetPlayerState"))
