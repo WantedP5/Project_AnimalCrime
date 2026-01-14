@@ -51,6 +51,7 @@ public:
 	   */
 	void BindBoundItems();
 
+	void BindQuestTracker();
 	/**
 	 * @brief 무전기 소지 여부 변경 시 호출
 	 */

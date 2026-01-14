@@ -59,6 +59,7 @@ void UACHUDWidget::BindPlayerState()
 	BindMoneyComponent();
 	BindBoundItems();
 	BindSprintGauge();
+	BindQuestTracker();
 }
 
 void UACHUDWidget::HandleScoreChanged(float NewScore)
@@ -224,6 +225,32 @@ void UACHUDWidget::BindMoneyComponent()
 		}
 	}
 }
+
+void UACHUDWidget::BindQuestTracker()
+{
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		AACPlayerState* PS = PC->GetPlayerState<AACPlayerState>();
+		if (PS == nullptr)
+		{
+			FTimerHandle RetryTimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				RetryTimerHandle,
+				this,
+				&UACHUDWidget::BindQuestTracker,
+				0.1f,
+				false
+			);
+			return;
+		}
+
+		if (PS->PlayerRole == EPlayerRole::Mafia && QuestTracker)
+		{
+			QuestTracker->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
 
 void UACHUDWidget::BindBoundItems()
 {
