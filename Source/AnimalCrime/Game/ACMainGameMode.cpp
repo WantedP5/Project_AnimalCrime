@@ -44,7 +44,7 @@ AACMainGameMode::AACMainGameMode()
 	);
 
 	static ConstructorHelpers::FClassFinder<APawn> PolicePawnBP(
-		TEXT("/Game/Project/Character/BP_ACPolice")
+		TEXT("/Game/Project/Character/BP_TestPolice")
 	);
 	if (MafiaPawnBP.Succeeded())
 	{
