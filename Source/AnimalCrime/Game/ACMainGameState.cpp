@@ -167,7 +167,7 @@ void AACMainGameState::AddEscapedCount()
 }
 #pragma endregion
 
-void AACMainGameState::Multicast_GlobalShowNotification_Implementation(const FText& Message, EPlayerRole TargetRole)
+void AACMainGameState::Multicast_GlobalShowNotification_Implementation(const FText& Message, EPlayerRole TargetRole, ENotificationType NotificationType)
 {
 	UWorld* World = GetWorld();
 	if (World == nullptr)
@@ -198,12 +198,12 @@ void AACMainGameState::Multicast_GlobalShowNotification_Implementation(const FTe
 		return;
 	}
 
-	MainPC->ShowNotification(Message);
+	MainPC->ShowNotification(Message, NotificationType);
 }
 
-void AACMainGameState::GlobalShowNotification(const FText& Message)
+void AACMainGameState::GlobalShowNotification(const FText& Message, ENotificationType NotificationType)
 {
-	Multicast_GlobalShowNotification(Message, EPlayerRole::None);
+	Multicast_GlobalShowNotification(Message, EPlayerRole::None, NotificationType);
 }
 
 TArray<class AACPlayerState*> AACMainGameState::GetPlayersByRoleAndLocation(EPlayerRole InRole, ECharacterLocation InLocation) const

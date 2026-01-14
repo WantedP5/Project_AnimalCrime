@@ -129,8 +129,8 @@ void AACBombInstallArea::OnBombDestroyComplete(AACEscapeMissionBomb* Bomb)
 	{
 		return;
 	}
-	GS->Multicast_GlobalShowNotification(FText::FromString(TEXT("목표 파괴 성공.\n탈출을 개시하십시오.")), EPlayerRole::Mafia);
-	GS->Multicast_GlobalShowNotification(FText::FromString(TEXT("건물이 폭파되었습니다!")), EPlayerRole::Police);
+	GS->Multicast_GlobalShowNotification(FText::FromString(TEXT("목표 파괴 성공.\n탈출을 개시하십시오.")), EPlayerRole::Mafia, ENotificationType::Warning);
+	GS->Multicast_GlobalShowNotification(FText::FromString(TEXT("건물이 폭파되었습니다!")), EPlayerRole::Police, ENotificationType::Warning);
 
 	GS->ServerChangeEscapeState(EEscapeState::Escape);
 }

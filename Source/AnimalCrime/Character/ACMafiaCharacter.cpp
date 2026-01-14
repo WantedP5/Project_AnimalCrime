@@ -271,7 +271,7 @@ void AACMafiaCharacter::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey
 	{
 	case EInteractionKey::E:
 		AC_LOG(LogSW, Log, TEXT("마피아 신분증!"))
-			PC->Client_ShowNotification(FText::FromString(TEXT("마피아")));
+			PC->Client_ShowNotification(FText::FromString(TEXT("마피아")), ENotificationType::None);
 		break;
 	case EInteractionKey::R:
 		// 경찰과 상호작용(투옥)

@@ -118,13 +118,13 @@ public:
 		@param TargetRole - 타겟 직업, None이면 모두에게 표시
 	**/
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_GlobalShowNotification(const FText& Message, EPlayerRole TargetRole);
+	void Multicast_GlobalShowNotification(const FText& Message, EPlayerRole TargetRole, ENotificationType NotificationType);
 	/**
 		@brief 모든 직업 전체에 알림 메시지를 띄우는 멀티캐스트 함수
 		@param Message - 메시지 내용
 		RPC는 오버로드 불가능하고, RPC 파라미터에는 기본값을 줄 수 없으므로 별도 함수로 구현
 	**/
-	void GlobalShowNotification(const FText& Message);
+	void GlobalShowNotification(const FText& Message, ENotificationType NotificationType);
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	TArray< class AACPlayerState*> GetPlayersByRoleAndLocation(EPlayerRole InRole, ECharacterLocation InLocation) const;

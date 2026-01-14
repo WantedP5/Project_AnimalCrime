@@ -138,3 +138,11 @@ enum class EGameEndType : uint8
 	AllPrison	UMETA(DisplayName = "AllPrison"),	// 전원 감옥
 	TimeOver	UMETA(DisplayName = "TimeOver"),	// 시간 종료
 };
+
+//알림 UI 종류
+UENUM(BlueprintType)
+enum class ENotificationType : uint8
+{
+	None		UMETA(DisplayName = "None"),
+	Warning		UMETA(DisplayName = "Warning"),	//경고
+};

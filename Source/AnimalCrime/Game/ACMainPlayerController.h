@@ -214,10 +214,10 @@ public:
 		@param Text - 함림 텍스트
 	**/
 	UFUNCTION(BlueprintCallable)
-	void ShowNotification(const FText& Text);
+	void ShowNotification(const FText& Text, ENotificationType NotificationType);
 
 	UFUNCTION(Client, Reliable)
-	void Client_ShowNotification(const FText& Message);
+	void Client_ShowNotification(const FText& Message, ENotificationType NotificationType);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ShowGameResult(EGameEndType GameEndType);

@@ -516,7 +516,7 @@ void AACMainPlayerController::ClientOnEscapeSuccess_Implementation()
 		return;
 	}
 	ACHUDWidget->RemoveFromParent();
-	ShowNotification(FText::FromString(TEXT("탈출")));
+	ShowNotification(FText::FromString(TEXT("탈출")), ENotificationType::None);
 
 	// IMC 변경
 	ChangeInputMode(EInputMode::Spectator);
@@ -1208,7 +1208,7 @@ void AACMainPlayerController::ClientOnSpectateTargetChanged_Implementation(AACPl
 	SpectatorScreen->SetFriend(NewTargetPS);
 }
 
-void AACMainPlayerController::ShowNotification(const FText& Text)
+void AACMainPlayerController::ShowNotification(const FText& Text, ENotificationType NotificationType)
 {
 	if (IsLocalController() == false)
 	{
@@ -1219,12 +1219,12 @@ void AACMainPlayerController::ShowNotification(const FText& Text)
 	{
 		AC_LOG(LogSY, Error, TEXT("UIManager is nullptr"));
 	}
-	UIManager->ShowNotification(Text);
+	UIManager->ShowNotification(Text, NotificationType);
 }
 
-void AACMainPlayerController::Client_ShowNotification_Implementation(const FText& Message)
+void AACMainPlayerController::Client_ShowNotification_Implementation(const FText& Message, ENotificationType NotificationType)
 {
-	ShowNotification(Message);
+	ShowNotification(Message, NotificationType);
 }
 
 void AACMainPlayerController::SetHasWalkyTalky(bool bInHasWalkyTalky)

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ACGameEnums.h"
 #include "Components/ActorComponent.h"
 #include "ACUIManagerComponent.generated.h"
 
@@ -16,9 +17,12 @@ public:
 	UACUIManagerComponent();
 
 public:
-	void ShowNotification(const FText& Text);
+	void ShowNotification(const FText& Text, ENotificationType NotificationType);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UACNotificationText> NotificationWidgetClass;
+	TSubclassOf<class UACNotificationText> NotificationNormalClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UACNotificationText> NotificationWarningClass;
 };

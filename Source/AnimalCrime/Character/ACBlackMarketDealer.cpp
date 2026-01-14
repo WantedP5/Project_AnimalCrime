@@ -104,10 +104,10 @@ void AACBlackMarketDealer::OnInteract(AACCharacter* ACPlayer, EInteractionKey In
 	// ===== 수정: Character에서 직접 체크 =====
 	if (MafiaChar->GetContraband() <= 0)
 	{
-		PC->Client_ShowNotification(FText::FromString(TEXT("거래할 밀수품이 없습니다.")));
+		PC->Client_ShowNotification(FText::FromString(TEXT("거래할 밀수품이 없습니다.")), ENotificationType::None);
 		return;
 	}
-	PC->Client_ShowNotification(FText::FromString(TEXT("폭탄을 획득했습니다.\n 은행에 폭탄을 설치하세요.")));
+	PC->Client_ShowNotification(FText::FromString(TEXT("폭탄을 획득했습니다.\n 은행에 폭탄을 설치하세요.")), ENotificationType::None);
 
 	// 밀수품 개수 차감
 	MafiaChar->SubtractContraband();

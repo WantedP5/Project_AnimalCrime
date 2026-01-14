@@ -1223,7 +1223,7 @@ void AACCitizen::OnInteract(AACCharacter* ACPlayer, EInteractionKey InKey)
 	{
 	case EInteractionKey::E:
 		AC_LOG(LogSW, Log, TEXT("시민 신분증!"))
-			PC->Client_ShowNotification(FText::FromString(TEXT("시민")));
+			PC->Client_ShowNotification(FText::FromString(TEXT("시민")), ENotificationType::None);
 			break;
 	case EInteractionKey::R:
 		AC_LOG(LogSW, Log, TEXT("시민 사망!"))
