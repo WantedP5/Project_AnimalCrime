@@ -34,7 +34,7 @@ AACPrisonBase::AACPrisonBase()
 	InteractionWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidgetComponent->SetupAttachment(DoorWidgetRoot); // DoorWidgetRoot에 부착
 	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractionWidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
+	InteractionWidgetComponent->SetDrawSize(FVector2D(300.0f, 80.0f));
 	InteractionWidgetComponent->SetRelativeLocation(FVector(0.0f, -50.0f, 0.0f)); // 기준점에서 위로
 	InteractionWidgetComponent->SetVisibility(false); // 기본 숨김
 

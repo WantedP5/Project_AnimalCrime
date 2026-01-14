@@ -44,7 +44,7 @@ AACEscapeMissionContraband::AACEscapeMissionContraband()
 	InteractionWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidgetComponent->SetupAttachment(RootComponent);
 	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractionWidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
+	InteractionWidgetComponent->SetDrawSize(FVector2D(300.0f, 80.0f));
 	InteractionWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 80.0f)); // 오브젝트 위
 	InteractionWidgetComponent->SetVisibility(false); // 기본 숨김
 
