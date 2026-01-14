@@ -576,10 +576,28 @@ void AACMafiaCharacter::OnRep_HasWalkyTalky()
 
 void AACMafiaCharacter::ExcuteEscape()
 {
+	
 	if (EscapeCount <= 0)
 	{
 		return;
 	}
 
 	ServerEscape();
+}
+
+void AACMafiaCharacter::ServerEscape_Implementation()
+{
+	EscapeCount -= 1;
+	PerformEscape();
+}
+
+void AACMafiaCharacter::PerformEscape()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance == nullptr)
+	{
+		return;
+	}
+	
+	MulticastPlayEscapeSkillMontage();
 }

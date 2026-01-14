@@ -981,21 +981,24 @@ void AACCharacter::PerformAttackTrace()
 	MulticastPlayAttackMontage();
 }
 
-void AACCharacter::ServerEscape_Implementation()
-{
-	PerformEscape();
-}
-
-void AACCharacter::PerformEscape()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance == nullptr)
-	{
-		return;
-	}
-
-	MulticastPlayEscapeSkillMontage();
-}
+// void AACCharacter::ServerEscape_Implementation()
+// {
+// 	PerformEscape();
+// 	
+// }
+//
+// void AACCharacter::PerformEscape()
+// {
+// 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+// 	if (AnimInstance == nullptr)
+// 	{
+// 		return;
+// 	}
+//
+// 	
+// 	MulticastPlayEscapeSkillMontage();
+// 	
+// }
 
 void AACCharacter::AttackHitCheck(int32 DamageAmount)
 {

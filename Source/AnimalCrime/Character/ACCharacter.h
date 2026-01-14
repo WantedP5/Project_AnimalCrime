@@ -294,9 +294,9 @@ protected:
 	UPROPERTY()
 	uint8 bEscapeFlag : 1 = false;
 
-	UFUNCTION(Server, Reliable)
-	void ServerEscape();
-	void PerformEscape();
+	// UFUNCTION(Server, Reliable)
+	// void ServerEscape();
+	// void PerformEscape();
 
 public:
 	virtual void AttackHitCheck(int32 DamageAmount = 1);

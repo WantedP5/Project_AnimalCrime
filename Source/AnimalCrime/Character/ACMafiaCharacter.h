@@ -126,6 +126,10 @@ protected:
 public:
 	void ExcuteEscape();
 	
+	UFUNCTION(Server, Reliable)
+	void ServerEscape();
+	void PerformEscape();
+	
 	
 	UPROPERTY(Replicated)
 	int32 EscapeCount = 3;

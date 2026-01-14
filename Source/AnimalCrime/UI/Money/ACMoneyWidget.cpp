@@ -14,5 +14,12 @@ void UACMoneyWidget::UpdateMoney(int32 InMoney)
 		return ;
 	}
 	
-	MoneyText->SetText(FText::AsNumber(InMoney));
+	//MoneyText->SetText(FText::AsNumber(InMoney));
+
+	MoneyText->SetText(
+		FText::Format(
+			FText::FromString("$: {0}"),
+			FText::AsNumber(InMoney)
+		)
+	);
 }

@@ -443,7 +443,7 @@ FVector AACMainGameMode::GetRandomSpawnLocation() const
 	FNavLocation RandomLocation;
 
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
-	float Radius = 5000;
+	float Radius = 13000;
 	if (NavSys && NavSys->GetRandomReachablePointInRadius(FVector(17200.f, 2200.0f, 90.0f), Radius, RandomLocation))
 	{
 		return RandomLocation.Location;
