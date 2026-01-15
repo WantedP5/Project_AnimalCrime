@@ -430,7 +430,7 @@ void UACShopComponent::ServerPurchaseAndAddToQuickSlot_Implementation(FPrimaryAs
             UE_LOG(LogHY, Error, TEXT("None Test Name:%s"), *GetOwner()->GetName());
             return;
         }
-        CharacterPawn->AddBullets(10000);
+        CharacterPawn->AddBullets(5);
     }
 
     ClientAddToQuickSlot(ItemAssetId);  // AssetId 전달
