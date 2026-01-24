@@ -12,7 +12,7 @@
 <div align="center">
   <table>
      <tr>
-      <td align="center"> ![Image](https://github.com/user-attachments/assets/00ca9a83-30d9-4fa5-85db-6a99e34a1953) </td>
+      <td align="center"> <img src="https://github.com/user-attachments/assets/00ca9a83-30d9-4fa5-85db-6a99e34a1953" width="500" /> </td>
       <td align="center"> <img width="1550" height="847" alt="image" src="" /> </td>
     </tr>
      <tr>
