@@ -85,22 +85,25 @@
     </tr>
     <tr>
       <td align="left">
-        - 캐릭터 이동 및 스킬 구현<br>
-        - 아이템 빌드 구현
+        - 경찰, 마피아<br>
+        - NPC
       </td>
       <td align="left">
-        - 몬스터 스킬 구현<br>
-        - 몬스터 AI 구현
+        - 상점<br>
+        - CCTV, 스마트폰<br>
+        - 퀵슬롯<br>
+        - 머터리얼
       </td>
       <td align="left">
-        - 인벤토리 시스템<br>
-        - 장비 시스템
+        - Steam 연동<br>
+        - 로비<br>
+        - 보이스챗<br>
+        - 마피아 임무<br>
+        - 관전
       </td>
       <td align="left">
-        - 퀘스트 시스템<br>
-        - 상점 시스템<br>
-        - 포탈(맵이동)<br>
-        - 상호작용 인터페이스
+        - 상호작용<br>
+        - 관전
       </td>
     </tr>
   </table>
