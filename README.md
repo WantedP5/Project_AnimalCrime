@@ -65,9 +65,9 @@
 ---
 
 ## 🎮 게임 소개
-
-<img width="707" height="1000" alt="Image" src="https://github.com/user-attachments/assets/e0be6d55-033d-4bfc-a54c-3c24c2bc5dec" />
-
+<div align="center">
+  <img width="707" height="1000" alt="Image" src="https://github.com/user-attachments/assets/e0be6d55-033d-4bfc-a54c-3c24c2bc5dec" />
+</div>
 ---
 
 ## 🤝 업무 분담 및 협업 과정
