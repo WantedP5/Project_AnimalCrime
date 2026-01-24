@@ -135,7 +135,7 @@
 <div align="center">
   <table>
     <tr>
-      <td align="center"><img width="1794" height="813" alt="Image" src="https://github.com/user-attachments/assets/dce6af46-8db5-4420-b85b-56dc5bc6b9d4" /></td>
+      <td align="center"><img width="1195" height="769" alt="Image" src="https://github.com/user-attachments/assets/a72aa364-1431-4c9b-9050-48c44e123770" /></td>
       <td align="center"><img width="1391" height="1125" alt="Image" src="https://github.com/user-attachments/assets/2aba4741-922a-4d67-a721-955739d483da" /></td>
       <td align="center"><img width="1140" height="903" alt="Image" src="https://github.com/user-attachments/assets/bec45297-4d7f-45c7-8e0a-3c960c41a92f" /></td>
     </tr>
