@@ -66,7 +66,7 @@
 
 ## 🎮 게임 소개
 
-<img width="1414" height="2000" alt="Image" src="https://github.com/user-attachments/assets/e0be6d55-033d-4bfc-a54c-3c24c2bc5dec" />
+<img width="707" height="1000" alt="Image" src="https://github.com/user-attachments/assets/e0be6d55-033d-4bfc-a54c-3c24c2bc5dec" />
 
 ---
 
@@ -95,7 +95,6 @@
         - 머터리얼
       </td>
       <td align="left">
-        - Steam 연동<br>
         - 로비<br>
         - 보이스챗<br>
         - 마피아 임무<br>
@@ -103,7 +102,7 @@
       </td>
       <td align="left">
         - 상호작용<br>
-        - 관전
+        - 감옥
       </td>
     </tr>
   </table>
