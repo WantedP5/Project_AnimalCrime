@@ -12,7 +12,7 @@
 <div align="center">
   <table>
      <tr>
-      <td align="center"> <img src="https://github.com/user-attachments/assets/00ca9a83-30d9-4fa5-85db-6a99e34a1953" width="500" /> </td>
+      <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/00ca9a83-30d9-4fa5-85db-6a99e34a1953" /> </td>
       <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/5c5fbd11-96dc-4931-822c-c0d61f62714b" /> </td>
     </tr>
      <tr>
