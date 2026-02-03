@@ -26,9 +26,9 @@
 <div align="center">
   <table>
      <tr>
+      <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/f2434927-eb32-4076-9c1f-3059e5b34b86" /> </td>
       <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/9ab41f77-7c19-4c43-a0eb-68bbf050c496" /> </td>
-      <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/9ab41f77-7c19-4c43-a0eb-68bbf050c496" /> </td>
-      <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/5c5fbd11-96dc-4931-822c-c0d61f62714b" /> </td>
+      <td align="center"> <img width="300" alt="image" src="https://github.com/user-attachments/assets/8a7f1e84-ae7f-4135-a00b-c2d853839aaf" /> </td>
     </tr>
     <tr>
       <th> ▲ 감옥 </th>
